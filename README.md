@@ -14,21 +14,37 @@
 </p>
 <br/>
 
-## Generate free SDKs
 
-Use the CLI to generate typed SDKs from _OpenAPI 3.x_ specifications. No sign-up required!
+## Generate free SDKs for your API
+
+Generate typed SDKs from _OpenAPI 3.x_ specifications. No sign-up required!
+
+| Feature    | Supported |
+| ---------- | :-------: |
+| Types      |    ✅     |
+| Tests      |    ✅     |
+| Form data  |    ✅     |
+| All Auth   |    ✅     |
+| Files      |    ✅     |
+| Websockets |    🚧     |
+| Graphql    |    🚧     |
 
 ## Premium Features
 
-- Edit code configuration in the UI
-https://github.com/Sideko-Inc/sideko/assets/13861016/965954fd-e2bb-4bf3-b593-0fc7370bfe2e
+#### Edit code configuration in the UI
 
-- State-of-the-art documentation
-https://github.com/Sideko-Inc/sideko/assets/13861016/f9e93fc6-27eb-4294-8202-b11f381e291c
+https://github.com/Sideko-Inc/sideko/assets/13861016/965954fd-e2bb-4bf3-b593-0fc7370bfe2e.mov
+
+#### State-of-the-art documentation
+
+https://github.com/Sideko-Inc/sideko/assets/13861016/f9e93fc6-27eb-4294-8202-b11f381e291c.mov
 
 - Version management
 
 Join the [waitlist](https://admin.typeform.com/form/W6nUwRRl/create?block=b6e90243-5eca-472b-8057-9a2fb7e87890) to get premium access
+
+## How to use the SDK Generator
+Use CURL or the sideko CLI to generate SDKs
 
 ### Get the CLI with install script (macOS, Linux, Windows w/ WSL)
 
@@ -42,6 +58,7 @@ $ sideko generate specs/slack.json python ../sdks-dir
 Generating Sideko SDK in PYTHON
 Successfully generated SDK. Saving to ../sdks-dir
 ```
+
 
 ### Using CURL
 
@@ -65,6 +82,10 @@ curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
 | Rust       |    ✅     |
 | C#         |    🚧     |
 | Java       |    🚧     |
+
+## Excited about the project?
+Join us on [discord](https://discord.gg/PYcar4e5)
+
 
 ## Reference
 

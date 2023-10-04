@@ -1,0 +1,20 @@
+[package]
+name = "sideko"
+version = "0.1.4"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anstyle = "1.0.3"
+bytes = "1.5.0"
+camino = "1.1.6"
+clap = { version = "4.4.4", features = ["derive"] }
+flate2 = "1.0.27"
+reqwest = { version = "0.11.20", features = [
+    "multipart",
+    "blocking",
+    "rustls-tls",
+], default-features = false }
+tar = "0.4.40"
+url = "2.4.1"

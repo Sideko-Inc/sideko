@@ -57,3 +57,4 @@ curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
 ## Reference
 
 - [License](./LICENSE)
+- [Issues](https://github.com/Sideko-Inc/sideko/issues/new)

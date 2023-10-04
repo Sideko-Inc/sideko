@@ -14,9 +14,21 @@
 </p>
 <br/>
 
-## Generate SDKs
+## Generate free SDKs
 
-Use the CLI to generate typed SDKs from _OpenAPI 3.x_ specifications
+Use the CLI to generate typed SDKs from _OpenAPI 3.x_ specifications. No sign-up required!
+
+## Premium Features
+
+- Edit code configuration in the UI
+https://github.com/Sideko-Inc/sideko/assets/13861016/965954fd-e2bb-4bf3-b593-0fc7370bfe2e
+
+- State-of-the-art documentation
+https://github.com/Sideko-Inc/sideko/assets/13861016/f9e93fc6-27eb-4294-8202-b11f381e291c
+
+- Version management
+
+Join the [waitlist](https://admin.typeform.com/form/W6nUwRRl/create?block=b6e90243-5eca-472b-8057-9a2fb7e87890) to get premium access
 
 ### Get the CLI with install script (macOS, Linux, Windows w/ WSL)
 

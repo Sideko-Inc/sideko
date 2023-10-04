@@ -15,9 +15,11 @@
 <br/>
 
 
-## Generate free SDKs for your API
+## Generate SDKs for your API
 
-Generate typed SDKs from _OpenAPI 3.x_ specifications. No sign-up required!
+Instantly generate SDKs for your API.
+
+From _OpenAPI 3.x_ specifications -> SDK repos with types, tests, authentication, and code snippets
 
 | Feature    | Supported |
 | ---------- | :-------: |

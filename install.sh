@@ -87,7 +87,7 @@ get_os() {
 get_machine() {
   case "$(uname -m)" in
     "x86_64"|"amd64"|"x64")
-      echo "amd64" ;;
+      echo "x86_64" ;;
     "i386"|"i86pc"|"x86"|"i686")
       echo "386" ;;
     "arm64"|"armv6l"|"aarch64")
@@ -109,11 +109,6 @@ do_install_binary() {
     exit 1
   }
 
-  command_exists unzip || {
-    fmt_error "unzip is not installed"
-    exit 1
-  }
-
   local tmp_dir=$(get_tmp_dir)
 
   # Download tar.gz to tmp directory
@@ -126,6 +121,10 @@ do_install_binary() {
   if [[ "$asset_name" == *.tar.gz ]]; then
     tar -xvf "$asset_name"
   elif [[ "$asset_name" == *.zip ]]; then
+    command_exists unzip || {
+        fmt_error "unzip is not installed"
+        exit 1
+    }
     unzip "$asset_name"
   else
     fmt_error "Unknown file format: $asset_name"

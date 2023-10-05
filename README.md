@@ -86,8 +86,7 @@ curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
 | Java       |    🚧     |
 
 ## Excited about the project?
-Join us on [discord](https://discord.gg/PYcar4e5)
-
+Reach us at team@sideko.dev
 
 ## Reference
 

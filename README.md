@@ -16,8 +16,8 @@
 
 
 ## Generate SDKs for your API
+<img width="1209" alt="Screenshot 2023-10-06 at 11 01 06 AM" src="https://github.com/Sideko-Inc/sideko/assets/13861016/f3359ae9-b77e-42d6-abf0-565d6b1ff0d2">
 
-Instantly generate SDKs for your API.
 
 From _OpenAPI 3.x_ specifications -> SDK repos with types, tests, authentication, and code snippets
 

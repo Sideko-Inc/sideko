@@ -10,13 +10,43 @@
 </p>
 
 <p align="center">
-  <a href="https://sideko.dev/cli"><strong>Documentation</strong></a>
+  <a href="https://sideko.dev/documentation"><strong>Site</strong></a>
 </p>
 <br/>
 
-## Generate SDKs
+## Generate SDKs for your API
 
-Use the CLI to generate typed SDKs from _OpenAPI 3.x_ specifications
+<img width="1209" alt="Screenshot 2023-10-06 at 11 01 06 AM" src="https://github.com/Sideko-Inc/sideko/assets/13861016/f3359ae9-b77e-42d6-abf0-565d6b1ff0d2">
+
+From _OpenAPI 3.x_ specifications -> SDK repos with types, tests, authentication, and code snippets
+
+| Feature    | Supported |
+| ---------- | :-------: |
+| Types      |    ✅     |
+| Tests      |    ✅     |
+| Form data  |    ✅     |
+| All Auth   |    ✅     |
+| Files      |    ✅     |
+| Websockets |    🚧     |
+| Graphql    |    🚧     |
+
+## Premium Features
+
+#### Edit code configuration in the UI
+
+https://github.com/Sideko-Inc/sideko/assets/13861016/965954fd-e2bb-4bf3-b593-0fc7370bfe2e.mov
+
+#### State-of-the-art documentation
+
+https://github.com/Sideko-Inc/sideko/assets/13861016/f9e93fc6-27eb-4294-8202-b11f381e291c.mov
+
+- Version management
+
+Join the [waitlist](https://admin.typeform.com/form/W6nUwRRl/create?block=b6e90243-5eca-472b-8057-9a2fb7e87890) to get premium access
+
+## How to use the SDK Generator
+
+Use CURL or the sideko CLI to generate SDKs
 
 ### Get the CLI with install script (macOS, Linux, Windows w/ WSL)
 
@@ -38,7 +68,7 @@ curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
      -F "extension=json" \
      -F "language=python" \
      -F "file=@/path-to/openapi.json" \
-     -F "name=openapi.json" \
+     -F "name=mysdk" \
      -o sdk.tar.gz
 
 tar -xvf sdk.tar.gz
@@ -53,7 +83,7 @@ curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
      -F "extension=json" \
      -F "language=go" \
      -F "file=@openapi.json" \
-     -F "name=openapi.json" \
+     -F "name=mysdk" \
      -o sdk.tar.gz
 
 tar -xvf sdk.tar.gz
@@ -70,6 +100,10 @@ tar -xvf sdk.tar.gz
 | Rust       |    ✅     |
 | C#         |    🚧     |
 | Java       |    🚧     |
+
+## Excited about the project?
+
+Reach us at team@sideko.dev
 
 ## Reference
 

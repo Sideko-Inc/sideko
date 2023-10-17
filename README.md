@@ -37,9 +37,26 @@ Successfully generated SDK. Saving to ../sdks-dir
 curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
      -F "extension=json" \
      -F "language=python" \
-     -F "file=@/path-to/openapi.json.json" \
+     -F "file=@/path-to/openapi.json" \
      -F "name=openapi.json" \
      -o sdk.tar.gz
+
+tar -xvf sdk.tar.gz
+```
+
+### Use the petstore example
+
+```bash
+curl -O https://petstore3.swagger.io/api/v3/openapi.json
+
+curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
+     -F "extension=json" \
+     -F "language=go" \
+     -F "file=@openapi.json" \
+     -F "name=openapi.json" \
+     -o sdk.tar.gz
+
+tar -xvf sdk.tar.gz
 ```
 
 ## Supported Languages

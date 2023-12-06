@@ -42,7 +42,7 @@ https://github.com/Sideko-Inc/sideko/assets/13861016/f9e93fc6-27eb-4294-8202-b11
 
 - Version management
 
-Join the [waitlist](https://admin.typeform.com/form/W6nUwRRl/create?block=b6e90243-5eca-472b-8057-9a2fb7e87890) to get premium access
+Join the [waitlist](https://forms.gle/KHidhBtoWsBJ3w387) to get premium access
 
 ## How to use the SDK Generator
 

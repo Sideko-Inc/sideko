@@ -1,0 +1,277 @@
+openapi: '3.0.2'
+info:
+  title: Brewdog Beer API
+  version: '2.0'
+servers:
+  - url: https://api.punkapi.com/v2/
+
+paths:
+  /beers/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+          content:
+            "application/json":
+                schema:
+                  type: object
+                  $ref: "#/components/schemas/Beer"
+
+  /beers/random:
+    get:
+      responses:
+        '200':
+          description: OK
+          content:
+            "application/json":
+                schema:
+                  type: object
+                  $ref: "#/components/schemas/Beer"
+  
+  /beers:
+    get:
+      parameters:
+        - name: abv_gt
+          in: query
+          description: Returns all beers with ABV greater than the supplied number
+          required: false
+          schema:
+            type: number
+
+        - name: abv_lt
+          in: query
+          description: Returns all beers with ABV less than the supplied number
+          required: false
+          schema:
+            type: number
+
+        - name: ibu_gt
+          in: query
+          description: Returns all beers with IBU greater than the supplied number
+          required: false
+          schema:
+            type: number
+
+        - name: ibu_lt
+          in: query
+          description: Returns all beers with IBU less than the supplied number
+          required: false
+          schema:
+            type: number
+
+        - name: ebc_gt
+          in: query
+          description: Returns all beers with EBC greater than the supplied number
+          required: false
+          schema:
+            type: number
+
+        - name: ebc_lt
+          in: query
+          description: Returns all beers with EBC less than the supplied number
+          required: false
+          schema:
+            type: number
+
+        - name: beer_name
+          in: query
+          description: Returns all beers matching the supplied name
+          required: false
+          schema:
+            type: string
+
+        - name: yeast
+          in: query
+          description: Returns all beers matching the supplied yeast name
+          required: false
+          schema:
+            type: string
+
+        - name: brewed_before
+          in: query
+          description: "Returns all beers brewed before this date (format: mm-yyyy)"
+          required: false
+          schema:
+            type: string
+            format: date
+
+        - name: brewed_after
+          in: query
+          description: "Returns all beers brewed after this date (format: mm-yyyy)"
+          required: false
+          schema:
+            type: string
+            format: date
+
+        - name: hops
+          in: query
+          description: Returns all beers matching the supplied hops name
+          required: false
+          schema:
+            type: string
+
+        - name: malt
+          in: query
+          description: Returns all beers matching the supplied malt name
+          required: false
+          schema:
+            type: string
+
+        - name: food
+          in: query
+          description: Returns all beers matching the supplied food string
+          required: false
+          schema:
+            type: string
+
+        - name: ids
+          in: query
+          description: Returns all beers matching the supplied IDs (separate multiple IDs with '|')
+          required: false
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: OK
+          content:
+            "application/json":
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    $ref: "#/components/schemas/Beer"
+
+components:
+  schemas:
+    Beer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        tagline:
+          type: string
+        first_brewed:
+          type: string
+        description:
+          type: string
+        image_url:
+          type: string
+        abv:
+          type: number
+        ibu:
+          type: number
+        target_fg:
+          type: number
+        target_og:
+          type: number
+        ebc:
+          type: number
+        srm:
+          type: number
+        ph:
+          type: number
+        attenuation_level:
+          type: number
+        volume:
+          $ref: '#/components/schemas/Volume'
+        boil_volume:
+          $ref: '#/components/schemas/Volume'
+        method:
+          $ref: '#/components/schemas/Method'
+        ingredients:
+          $ref: '#/components/schemas/Ingredients'
+        food_pairing:
+          type: array
+          items:
+            type: string
+        brewers_tips:
+          type: string
+        contributed_by:
+          type: string
+
+    Volume:
+      type: object
+      properties:
+        value:
+          type: number
+        unit:
+          type: string
+
+    Method:
+      type: object
+      properties:
+        mash_temp:
+          type: array
+          items:
+            $ref: '#/components/schemas/MashTemp'
+        fermentation:
+          $ref: '#/components/schemas/Fermentation'
+        twist:
+          type: string
+
+    MashTemp:
+      type: object
+      properties:
+        temp:
+          $ref: '#/components/schemas/Temperature'
+        duration:
+          type: integer
+
+    Fermentation:
+      type: object
+      properties:
+        temp:
+          $ref: '#/components/schemas/Temperature'
+
+    Temperature:
+      type: object
+      properties:
+        value:
+          type: number
+        unit:
+          type: string
+
+    Ingredients:
+      type: object
+      properties:
+        malt:
+          type: array
+          items:
+            $ref: '#/components/schemas/Malt'
+        hops:
+          type: array
+          items:
+            $ref: '#/components/schemas/Hops'
+        yeast:
+          type: string
+
+    Malt:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Volume'
+
+    Hops:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          $ref: '#/components/schemas/Volume'
+        add:
+          type: string
+        attribute:
+          type: string
+
+    

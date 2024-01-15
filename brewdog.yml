@@ -21,8 +21,10 @@ paths:
           content:
             "application/json":
                 schema:
-                  type: object
-                  $ref: "#/components/schemas/Beer"
+                  type: array
+                  items:
+                    type: object
+                    $ref: "#/components/schemas/Beer"
 
   /beers/random:
     get:
@@ -32,8 +34,10 @@ paths:
           content:
             "application/json":
                 schema:
-                  type: object
-                  $ref: "#/components/schemas/Beer"
+                  type: array
+                  items:
+                    type: object
+                    $ref: "#/components/schemas/Beer"
   
   /beers:
     get:

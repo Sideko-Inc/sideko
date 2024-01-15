@@ -2,6 +2,7 @@ openapi: '3.0.2'
 info:
   title: Brewdog Beer API
   version: '2.0'
+  description: Original API documentation [here](https://punkapi.com/documentation/v2) The Punk API is a fascinating service that provides access to a vast array of information about different beers, including their brewing methods, ingredients, and pairing options. It's designed for developers and beer enthusiasts who want to explore a wide range of beer-related data. The API offers endpoints to fetch details about individual beers, search based on various parameters like alcohol by volume (ABV), international bitterness units (IBU), and even beer names. It's an excellent resource for creating applications or services related to beer tasting, brewing, and culinary pairings. With its comprehensive dataset, the Punk API is a valuable tool for anyone interested in delving into the world of craft beers and their diverse characteristics.
 servers:
   - url: https://api.punkapi.com/v2/
 
@@ -197,6 +198,57 @@ components:
           type: string
         contributed_by:
           type: string
+
+      example:
+        id: 192
+        name: "Punk IPA 2007 - 2010"
+        tagline: "Post Modern Classic. Spiky. Tropical. Hoppy."
+        first_brewed: "04/2007"
+        description: "Our flagship beer that kick started the craft beer revolution. This is James and Martin's original take on an American IPA, subverted with punchy New Zealand hops. Layered with new world hops to create an all-out riot of grapefruit, pineapple and lychee before a spiky, mouth-puckering bitter finish."
+        image_url: "https://images.punkapi.com/v2/192.png"
+        abv: 6.0
+        ibu: 60.0
+        target_fg: 123
+        ebc: 123
+        srm: 123
+        ph: 123
+        attenuation_level: 123
+        volume:
+          value: 20
+          unit: "liters"
+        boil_volume:
+          value: 20
+          unit: "liters"
+        method:
+          mash_temp:
+            - temp:
+                value: 65
+                unit: "celsius"
+              duration: 75
+        fermentation:
+          temp:
+            value: 19.0
+            unit: "celsius"
+        ingredients:
+          malt:
+            - name: "Extra Pale"
+              amount:
+                value: 5.3
+                unit: "kilograms"
+          hops:
+            - name: "Ahtanum"
+              amount:
+                value: 17.5
+                unit: "grams"
+              add: "start"
+              attribute: "bitter"
+        yeast: "Wyeast 1056 - American Ale™"
+        food_pairing:
+          - "Spicy carne asada with a pico de gallo sauce"
+          - "Shredded chicken tacos with a mango chilli lime salsa"
+          - "Cheesecake with a passion fruit swirl sauce"
+        brewers_tips: "While it may surprise you, this version of Punk IPA isn't dry hopped but still packs a punch! To make the best of the aroma hops make sure they are fully submerged and add them just before knock out for an intense hop hit."
+        contributed_by: "Sam Mason <samjbmason>"
 
     Volume:
       type: object

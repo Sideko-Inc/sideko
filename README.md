@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://sideko.dev/documentation"><strong>Site</strong></a>
+  <a href="https://sideko.dev"><strong>Site</strong></a>
 </p>
 <br/>
 

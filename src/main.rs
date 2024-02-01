@@ -1,62 +1,17 @@
 use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
-use url::Url;
 
 use flate2::read::GzDecoder;
 use std::io::Cursor;
-use std::path::PathBuf;
 use tar::Archive;
 
 mod generate;
+mod login;
 mod styles;
-
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[command(propagate_version = true)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(clap::ValueEnum, Clone, Debug)]
-pub enum ProgrammingLanguage {
-    Python,
-    Ruby,
-    Typescript,
-    Rust,
-    Go,
-}
-
-impl ToString for ProgrammingLanguage {
-    fn to_string(&self) -> String {
-        match self {
-            ProgrammingLanguage::Python => "python".to_string(),
-            ProgrammingLanguage::Ruby => "ruby".to_string(),
-            ProgrammingLanguage::Typescript => "typescript".to_string(),
-            ProgrammingLanguage::Rust => "rust".to_string(),
-            ProgrammingLanguage::Go => "go".to_string(),
-        }
-    }
-}
-
-#[derive(Subcommand)]
-#[command(styles=styles::get_styles())]
-enum Commands {
-    Generate {
-        openapi_path: PathBuf,
-        language: ProgrammingLanguage,
-        output_dir: Utf8PathBuf,
-        base_url: Option<String>,
-        name: Option<String>,
-    },
-}
-
-fn is_valid_url(val: &str) -> Result<Url, String> {
-    url::Url::parse(val).map_err(|e| format!("Invalid URL: {}", e))
-}
+mod utils;
 
 #[derive(Debug)]
-pub enum GenerateError {
+pub enum CliError {
     ReqwestError(reqwest::Error),
     FailedResponse(reqwest::StatusCode, String),
     FileError(String),
@@ -65,14 +20,54 @@ pub enum GenerateError {
     ArgumentError(String),
 }
 
-fn main() -> Result<(), GenerateError> {
+pub type CliResult<T> = std::result::Result<T, CliError>;
+
+#[derive(Parser)]
+#[command(name = "Sideko CLI")]
+#[command(author = "Team Sideko <team@sideko.dev>")]
+#[command(about = "Authenticate & Generate SDKs with Sideko in seconds", long_about = None)]
+#[command(version = "0.1.0")]
+#[command(propagate_version = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+#[command(styles=styles::get_styles())]
+enum Commands {
+    /// Log into Sideko interactively to obtain API key for generations
+    Login {
+        #[arg(long, short)]
+        /// Path to file to store API key, default: ./.sideko
+        output: Option<Utf8PathBuf>,
+    },
+    /// Generate a SDK client
+    Generate {
+        /// Path to OpenAPI spec
+        openapi_path: Utf8PathBuf,
+        /// Programming language to generate
+        language: generate::ProgrammingLanguage,
+        /// Output path of generated source files
+        output: Utf8PathBuf,
+        #[arg(long, short)]
+        /// Base URL of API if not specified in OpenAPI spec
+        base_url: Option<String>,
+        #[arg(long, short)]
+        /// Name of SDK library to generate
+        name: Option<String>,
+    },
+}
+
+#[tokio::main]
+async fn main() -> CliResult<()> {
     let cli = Cli::parse();
 
     match &cli.command {
         Commands::Generate {
             openapi_path,
             language,
-            output_dir,
+            output,
             base_url,
             name,
         } => {
@@ -83,41 +78,50 @@ fn main() -> Result<(), GenerateError> {
 
             // Input checks
             if let Some(base_url) = &base_url {
-                if is_valid_url(base_url).is_err() {
-                    return Err(GenerateError::ArgumentError(format!(
-                        "Invalid base url: {base_url}"
-                    )));
-                };
+                utils::validate_url(base_url)?;
             }
-            if !output_dir.is_dir() {
-                return Err(GenerateError::ArgumentError(
+            if !output.is_dir() {
+                return Err(CliError::ArgumentError(
                     "Please specify a directory for the output to save to".to_string(),
                 ));
             }
-            let ext = &openapi_path
-                .extension()
-                .and_then(std::ffi::OsStr::to_str)
-                .ok_or(GenerateError::ArgumentError(
-                    "Invalid file extension".to_string(),
-                ))?;
+            let ext = &openapi_path.extension().ok_or(CliError::ArgumentError(
+                "Invalid file extension".to_string(),
+            ))?;
 
             // generate call
-            let bytes = generate::generate(openapi_path, ext, language, base_url, name)?;
+            let bytes = generate::handle_generate(openapi_path, ext, language, base_url, name)?;
 
             // save to output path
             let gz_decoder = GzDecoder::new(Cursor::new(&bytes));
             let mut archive = Archive::new(gz_decoder);
-            if let Err(e) = archive.unpack(output_dir) {
-                return Err(GenerateError::ArgumentError(format!(
+            if let Err(e) = archive.unpack(output) {
+                return Err(CliError::ArgumentError(format!(
                     "Failed to unpack archive: {}",
                     e
                 )));
             }
-            println!(
-                "Successfully generated SDK. Saving to {}",
-                &output_dir.to_string()
-            );
-            Ok(())
+            println!("Successfully generated SDK. Saving to {output}");
+        }
+        Commands::Login { output } => {
+            let output_path = if let Some(o) = output {
+                o.clone()
+            } else {
+                let cwd = std::env::current_dir().map_err(|_| {
+                    CliError::FileError("Unable to determine current working directory".to_string())
+                })?;
+                let mut utf_buff = Utf8PathBuf::from_path_buf(cwd).map_err(|_| {
+                    CliError::FileError("Unable to determine current working directory".to_string())
+                })?;
+                utf_buff.push(".sideko");
+                utf_buff
+            };
+
+            // todo: Validate exiting file or doesn't exist, no dir
+
+            login::handle_login(&output_path).await?;
         }
     }
+
+    Ok(())
 }

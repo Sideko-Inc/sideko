@@ -11,10 +11,13 @@ bytes = "1.5.0"
 camino = "1.1.6"
 clap = { version = "4.4.4", features = ["derive"] }
 flate2 = "1.0.27"
+open = "5.0.1"
 reqwest = { version = "0.11.20", features = [
     "multipart",
     "blocking",
     "rustls-tls",
 ], default-features = false }
+rocket = "0.5.0"
 tar = "0.4.40"
+tokio = { version = "1.35.1", features = ["time"] }
 url = "2.4.1"

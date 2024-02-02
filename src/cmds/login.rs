@@ -7,9 +7,10 @@ use rocket::{
     routes, uri, Shutdown,
 };
 
+use crate::utils::API_KEY_ENV_VAR;
 use crate::CliResult;
 
-pub async fn handle_login(output: &Utf8PathBuf) -> CliResult<()> {
+pub(crate) async fn handle_login(output: &Utf8PathBuf) -> CliResult<()> {
     let port = 65530;
     let login_url = url::Url::parse_with_params(
         "http://localhost:8080/v1/auth/workos/url",
@@ -43,7 +44,7 @@ pub async fn handle_login(output: &Utf8PathBuf) -> CliResult<()> {
 
 // ------------ ROUTES ------------
 
-static SUCCESS_HTML: &str = include_str!("html/success.html");
+static SUCCESS_HTML: &str = include_str!("../html/success.html");
 
 #[get("/success")]
 async fn login_success(shutdown: Shutdown) -> RawHtml<&'static str> {
@@ -55,7 +56,7 @@ async fn login_success(shutdown: Shutdown) -> RawHtml<&'static str> {
 async fn login_callback(key: String, output: String) -> Redirect {
     let mut output_buff = Utf8PathBuf::new();
     output_buff.push(&output);
-    fs::write(&output_buff, format!("SIDEKO_API_KEY={key}")).unwrap();
+    fs::write(&output_buff, format!("{API_KEY_ENV_VAR}={key}\n")).unwrap();
     println!("Sideko API key saved in {output}");
     Redirect::to(uri!(login_success))
 }

@@ -1,10 +1,13 @@
-use crate::{CliError, CliResult};
+use crate::{utils, CliError, CliResult};
 use bytes::Bytes;
 use camino::Utf8PathBuf;
-use reqwest::blocking::multipart;
+use reqwest::{
+    multipart::{Form, Part},
+    Client,
+};
 
 #[derive(clap::ValueEnum, Clone, Debug)]
-pub enum ProgrammingLanguage {
+pub(crate) enum ProgrammingLanguage {
     Python,
     Ruby,
     Typescript,
@@ -24,65 +27,86 @@ impl ToString for ProgrammingLanguage {
     }
 }
 
-struct GenerateFormData {
+struct GenerateData {
+    api_key: String,
     extension: String,
-    file_path: String,
+    file_path: Utf8PathBuf,
     language: String,
     base_url: Option<String>,
-    name: Option<String>,
+    package_name: Option<String>,
 }
 
-impl GenerateFormData {
-    fn to_multipart(&self) -> CliResult<multipart::Form> {
-        let base_url = &self.base_url.clone().unwrap_or_default();
-        let name = &self.name.clone().unwrap_or(String::from("sdk"));
-        Ok(multipart::Form::new()
+impl GenerateData {
+    fn to_multipart(&self) -> CliResult<Form> {
+        let mut form = Form::new()
             .text("extension", self.extension.clone())
-            .text("language", self.language.clone())
-            .file("file", &self.file_path)
-            .map_err(|e| CliError::FileError(format!("Unable to attach file: {e}")))?
-            .text("base_url", base_url.clone())
-            .text("name", name.clone()))
+            .text("language", self.language.clone());
+        let file_bytes = std::fs::read(&self.file_path)
+            .map_err(|e| CliError::FileError(format!("Unable to read file: {e}")))?;
+        let file_part = Part::stream(file_bytes)
+            .file_name(format!("openapi.{}", &self.extension))
+            .mime_str(
+                mime_guess::from_ext(&self.extension)
+                    .first_or_octet_stream()
+                    .as_ref(),
+            )
+            .unwrap();
+        form = form.part("file", file_part);
+        if let Some(b) = &self.base_url {
+            form = form.text("base_url", b.clone());
+        }
+        if let Some(name) = &self.package_name {
+            form = form.text("package_name", name.clone());
+        }
+
+        Ok(form)
     }
 }
 
-pub fn handle_generate(
+pub(crate) async fn handle_generate(
     openapi_path: &Utf8PathBuf,
     ext: &str,
     language: &ProgrammingLanguage,
     base_url: &Option<String>,
-    name: &Option<String>,
+    package_name: &Option<String>,
 ) -> CliResult<Bytes> {
-    let data = GenerateFormData {
+    let api_key = utils::get_api_key()?;
+    let data = GenerateData {
+        api_key,
         extension: ext.to_string(),
-        file_path: openapi_path.to_string(),
+        file_path: openapi_path.clone(),
         language: language.to_string(),
         base_url: base_url.clone(),
-        name: name.clone(),
+        package_name: package_name.clone(),
     };
-    let form = data.to_multipart()?;
 
-    Ok(generate_request(form))?
+    Ok(generate_request(data).await)?
 }
 
-fn generate_request(form: multipart::Form) -> CliResult<Bytes> {
-    let client = reqwest::blocking::Client::new();
+async fn generate_request(data: GenerateData) -> CliResult<Bytes> {
+    let form = data.to_multipart()?;
+
+    let client = Client::new();
+    let url = format!("{}/v1/sdk/generate/", utils::sideko_base_url());
 
     let response = client
-        .post("https://api.sideko.dev/v1/sdk/generate/")
+        .post(url)
         .multipart(form)
+        .header("x-api-key", &data.api_key)
         .send()
+        .await
         .map_err(|e| CliError::NetworkError(format!("Failed to make network request: {e}")))?;
 
     if !response.status().is_success() {
         eprintln!("Failed to make network request");
         return Err(CliError::FailedResponse(
             response.status(),
-            response.text().unwrap_or_default(),
+            response.text().await.unwrap_or_default(),
         ));
     }
     let bytes = response
         .bytes()
+        .await
         .map_err(|e| CliError::DownloadError(format!("Could not download file: {e}")))?;
 
     Ok(bytes)

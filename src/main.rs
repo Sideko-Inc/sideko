@@ -31,7 +31,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
     #[arg(long, short)]
-    /// Path to .sideko file containing api key, default checks: $CWD/.sideko then $HOME/.sideko
+    /// Path to .sideko file containing api key, default locations: $CWD/.sideko then $HOME/.sideko
     config: Option<Utf8PathBuf>,
 }
 
@@ -56,8 +56,8 @@ enum Commands {
         /// Base URL of API if not specified in OpenAPI spec
         base_url: Option<String>,
         #[arg(long, short)]
-        /// Name of SDK library to generate
-        name: Option<String>,
+        /// Name of SDK package to generate
+        package_name: Option<String>,
     },
 }
 
@@ -71,27 +71,35 @@ async fn main() -> CliResult<()> {
             language,
             output,
             base_url,
-            name,
+            package_name,
         } => {
             println!(
                 "Generating Sideko SDK in {}",
                 &language.to_string().to_uppercase()
             );
+            utils::load_config(utils::config_bufs(vec![cli.config]))?;
 
             // Input validation
             if let Some(base_url) = &base_url {
                 utils::validate_url(base_url)?;
             }
 
-            utils::validate_path(openapi_path, &utils::PathKind::Dir, false)?;
+            utils::validate_path(openapi_path, &utils::PathKind::File, false)?;
+            utils::validate_path(output, &utils::PathKind::Dir, true)?;
 
             let ext = &openapi_path.extension().ok_or(CliError::ArgumentError(
                 "Invalid file extension".to_string(),
             ))?;
 
             // generate sdk
-            let bytes =
-                cmds::generate::handle_generate(openapi_path, ext, language, base_url, name)?;
+            let bytes = cmds::generate::handle_generate(
+                openapi_path,
+                ext,
+                language,
+                base_url,
+                package_name,
+            )
+            .await?;
 
             // save to output path
             let gz_decoder = GzDecoder::new(Cursor::new(&bytes));

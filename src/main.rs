@@ -2,11 +2,10 @@ use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 
 use flate2::read::GzDecoder;
-use std::io::Cursor;
+use std::{io::Cursor, str::FromStr};
 use tar::Archive;
 
-mod generate;
-mod login;
+mod cmds;
 mod styles;
 mod utils;
 
@@ -31,6 +30,9 @@ pub type CliResult<T> = std::result::Result<T, CliError>;
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+    #[arg(long, short)]
+    /// Path to .sideko file containing api key, default checks: $CWD/.sideko then $HOME/.sideko
+    config: Option<Utf8PathBuf>,
 }
 
 #[derive(Subcommand)]
@@ -39,7 +41,7 @@ enum Commands {
     /// Log into Sideko interactively to obtain API key for generations
     Login {
         #[arg(long, short)]
-        /// Path to file to store API key, default: ./.sideko
+        /// Path to file to stored API key, default: $HOME/.sideko
         output: Option<Utf8PathBuf>,
     },
     /// Generate a SDK client
@@ -47,7 +49,7 @@ enum Commands {
         /// Path to OpenAPI spec
         openapi_path: Utf8PathBuf,
         /// Programming language to generate
-        language: generate::ProgrammingLanguage,
+        language: cmds::generate::ProgrammingLanguage,
         /// Output path of generated source files
         output: Utf8PathBuf,
         #[arg(long, short)]
@@ -76,21 +78,20 @@ async fn main() -> CliResult<()> {
                 &language.to_string().to_uppercase()
             );
 
-            // Input checks
+            // Input validation
             if let Some(base_url) = &base_url {
                 utils::validate_url(base_url)?;
             }
-            if !output.is_dir() {
-                return Err(CliError::ArgumentError(
-                    "Please specify a directory for the output to save to".to_string(),
-                ));
-            }
+
+            utils::validate_path(openapi_path, &utils::PathKind::Dir, false)?;
+
             let ext = &openapi_path.extension().ok_or(CliError::ArgumentError(
                 "Invalid file extension".to_string(),
             ))?;
 
-            // generate call
-            let bytes = generate::handle_generate(openapi_path, ext, language, base_url, name)?;
+            // generate sdk
+            let bytes =
+                cmds::generate::handle_generate(openapi_path, ext, language, base_url, name)?;
 
             // save to output path
             let gz_decoder = GzDecoder::new(Cursor::new(&bytes));
@@ -104,22 +105,23 @@ async fn main() -> CliResult<()> {
             println!("Successfully generated SDK. Saving to {output}");
         }
         Commands::Login { output } => {
+            // Handle options
             let output_path = if let Some(o) = output {
                 o.clone()
             } else {
-                let cwd = std::env::current_dir().map_err(|_| {
-                    CliError::FileError("Unable to determine current working directory".to_string())
-                })?;
-                let mut utf_buff = Utf8PathBuf::from_path_buf(cwd).map_err(|_| {
-                    CliError::FileError("Unable to determine current working directory".to_string())
+                let home = std::env::var("HOME")
+                    .map_err(|_| CliError::ArgumentError("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
+                let mut utf_buff = Utf8PathBuf::from_str(&home).map_err(|_| {
+                    CliError::FileError("Unable to build default output path".to_string())
                 })?;
                 utf_buff.push(".sideko");
                 utf_buff
             };
 
-            // todo: Validate exiting file or doesn't exist, no dir
+            // Validate input
+            utils::validate_path(&output_path, &utils::PathKind::File, true)?;
 
-            login::handle_login(&output_path).await?;
+            cmds::login::handle_login(&output_path).await?;
         }
     }
 

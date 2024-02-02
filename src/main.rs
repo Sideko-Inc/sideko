@@ -30,7 +30,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
     #[arg(long, short)]
-    /// Path to .sideko file containing api key, default locations: $CWD/.sideko then $HOME/.sideko
+    /// Path to .sideko file containing api key, default locations: ./.sideko then $HOME/.sideko
     config: Option<Utf8PathBuf>,
     #[arg(
         long,
@@ -58,8 +58,9 @@ enum Commands {
         openapi_path: Utf8PathBuf,
         /// Programming language to generate
         language: cmds::generate::ProgrammingLanguage,
-        /// Output path of generated source files
-        output: Utf8PathBuf,
+        #[arg(long, short)]
+        /// Output path of generated source files, default: ./
+        output: Option<Utf8PathBuf>,
         #[arg(long, short)]
         /// Base URL of API if not specified in OpenAPI spec
         base_url: Option<String>,
@@ -101,8 +102,20 @@ async fn cli() -> CliResult<()> {
                 utils::validate_url(base_url)?;
             }
 
+            let output = if let Some(o) = output {
+                o.clone()
+            } else {
+                let cwd = std::env::current_dir().map_err(|e| {
+                    log::debug!("CWD failure: {e}");
+                    CliError::General("Failed determining cwd for --output default".to_string())
+                })?;
+                Utf8PathBuf::from_path_buf(cwd).map_err(|_| {
+                    CliError::General("Unable to build default --output path".to_string())
+                })?
+            };
+
             utils::validate_path(openapi_path, &utils::PathKind::File, false)?;
-            utils::validate_path(output, &utils::PathKind::Dir, true)?;
+            utils::validate_path(&output, &utils::PathKind::Dir, true)?;
 
             let ext = &openapi_path.extension().ok_or(CliError::ArgumentError(
                 "Invalid file extension".to_string(),
@@ -121,7 +134,7 @@ async fn cli() -> CliResult<()> {
             // save to output path
             let gz_decoder = GzDecoder::new(Cursor::new(&bytes));
             let mut archive = Archive::new(gz_decoder);
-            if let Err(e) = archive.unpack(output) {
+            if let Err(e) = archive.unpack(&output) {
                 return Err(CliError::ArgumentError(format!(
                     "Failed to unpack archive: {}",
                     e
@@ -135,12 +148,12 @@ async fn cli() -> CliResult<()> {
                 o.clone()
             } else {
                 let home = std::env::var("HOME")
-                    .map_err(|_| CliError::ArgumentError("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
-                let mut utf_buff = Utf8PathBuf::from_str(&home).map_err(|_| {
-                    CliError::ArgumentError("Unable to build default output path".to_string())
+                    .map_err(|_| CliError::General("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
+                let mut utf_buf = Utf8PathBuf::from_str(&home).map_err(|_| {
+                    CliError::General("Unable to build default --output path".to_string())
                 })?;
-                utf_buff.push(".sideko");
-                utf_buff
+                utf_buf.push(".sideko");
+                utf_buf
             };
 
             // Validate input

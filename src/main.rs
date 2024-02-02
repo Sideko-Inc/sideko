@@ -11,12 +11,11 @@ mod utils;
 
 #[derive(Debug)]
 pub enum CliError {
-    ReqwestError(reqwest::Error),
-    FailedResponse(reqwest::StatusCode, String),
-    FileError(String),
-    DownloadError(String),
-    NetworkError(String),
+    General(String),
     ArgumentError(String),
+    ReqwestError(String, reqwest::Error),
+    ResponseError(String, reqwest::Response),
+    IoError(String, std::io::Error),
 }
 
 pub type CliResult<T> = std::result::Result<T, CliError>;
@@ -33,6 +32,15 @@ struct Cli {
     #[arg(long, short)]
     /// Path to .sideko file containing api key, default locations: $CWD/.sideko then $HOME/.sideko
     config: Option<Utf8PathBuf>,
+    #[arg(
+        long,
+        short = 'q',
+        global = true,
+        help = "No logging except for errors"
+    )]
+    quiet: bool,
+    #[arg(long, short = 'v', global = true, help = "Verbose logging")]
+    verbose: bool,
 }
 
 #[derive(Subcommand)]
@@ -61,9 +69,18 @@ enum Commands {
     },
 }
 
-#[tokio::main]
-async fn main() -> CliResult<()> {
+async fn cli() -> CliResult<()> {
     let cli = Cli::parse();
+
+    // set up logger
+    let level = if cli.quiet {
+        log::Level::Error
+    } else if cli.verbose {
+        log::Level::Debug
+    } else {
+        log::Level::Info
+    };
+    utils::init_logger(level);
 
     match &cli.command {
         Commands::Generate {
@@ -73,7 +90,7 @@ async fn main() -> CliResult<()> {
             base_url,
             package_name,
         } => {
-            println!(
+            log::info!(
                 "Generating Sideko SDK in {}",
                 &language.to_string().to_uppercase()
             );
@@ -110,7 +127,7 @@ async fn main() -> CliResult<()> {
                     e
                 )));
             }
-            println!("Successfully generated SDK. Saving to {output}");
+            log::info!("Successfully generated SDK, saved to {output}");
         }
         Commands::Login { output } => {
             // Handle options
@@ -120,7 +137,7 @@ async fn main() -> CliResult<()> {
                 let home = std::env::var("HOME")
                     .map_err(|_| CliError::ArgumentError("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
                 let mut utf_buff = Utf8PathBuf::from_str(&home).map_err(|_| {
-                    CliError::FileError("Unable to build default output path".to_string())
+                    CliError::ArgumentError("Unable to build default output path".to_string())
                 })?;
                 utf_buff.push(".sideko");
                 utf_buff
@@ -134,4 +151,26 @@ async fn main() -> CliResult<()> {
     }
 
     Ok(())
+}
+
+#[tokio::main]
+async fn main() {
+    match cli().await {
+        Err(CliError::ArgumentError(message) | CliError::General(message)) => {
+            log::error!("{message}")
+        }
+        Err(CliError::ReqwestError(message, err)) => {
+            log::debug!("{err}");
+            log::error!("{message}");
+        }
+        Err(CliError::ResponseError(message, res)) => {
+            log::debug!("Error response: {:?}", res);
+            log::error!("{message}");
+        }
+        Err(CliError::IoError(message, err)) => {
+            log::debug!("{err}");
+            log::error!("{message}");
+        }
+        Ok(_) => (),
+    }
 }

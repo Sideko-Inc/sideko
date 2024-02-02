@@ -41,8 +41,9 @@ impl GenerateData {
         let mut form = Form::new()
             .text("extension", self.extension.clone())
             .text("language", self.language.clone());
-        let file_bytes = std::fs::read(&self.file_path)
-            .map_err(|e| CliError::FileError(format!("Unable to read file: {e}")))?;
+        let file_bytes = std::fs::read(&self.file_path).map_err(|e| {
+            CliError::IoError(format!("Unable to read file: {}", &self.file_path), e)
+        })?;
         let file_part = Part::stream(file_bytes)
             .file_name(format!("openapi.{}", &self.extension))
             .mime_str(
@@ -95,19 +96,18 @@ async fn generate_request(data: GenerateData) -> CliResult<Bytes> {
         .header("x-api-key", &data.api_key)
         .send()
         .await
-        .map_err(|e| CliError::NetworkError(format!("Failed to make network request: {e}")))?;
+        .map_err(|e| CliError::ReqwestError("Failed to make network request".to_string(), e))?;
 
-    if !response.status().is_success() {
-        eprintln!("Failed to make network request");
-        return Err(CliError::FailedResponse(
-            response.status(),
-            response.text().await.unwrap_or_default(),
+    let status = response.status();
+    if !status.is_success() {
+        return Err(CliError::ResponseError(
+            format!("Generate SDK request failed: {}", status),
+            response,
         ));
     }
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| CliError::DownloadError(format!("Could not download file: {e}")))?;
+    let bytes = response.bytes().await.map_err(|e| {
+        CliError::ReqwestError("Could not extract file from response".to_string(), e)
+    })?;
 
     Ok(bytes)
 }

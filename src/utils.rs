@@ -7,9 +7,24 @@ use crate::CliResult;
 
 pub(crate) static API_KEY_ENV_VAR: &str = "SIDEKO_API_KEY";
 
+pub(crate) fn init_logger(level: log::Level) {
+    if level == log::Level::Trace {
+        env_logger::Builder::new().init();
+    } else if level > log::Level::Info {
+        env_logger::Builder::new()
+            .filter_module("sideko", level.to_level_filter())
+            .init();
+    } else {
+        env_logger::Builder::new()
+            .filter_module("sideko", level.to_level_filter())
+            .format_target(false)
+            .format_timestamp(None)
+            .init();
+    }
+}
+
 pub(crate) fn sideko_base_url() -> String {
-    // let url = std::env::var("SIDKEO_BASE_URL").unwrap_or("https://api.sideko.dev".to_string());
-    let url = std::env::var("SIDKEO_BASE_URL").unwrap_or("http://localhost:8080".to_string());
+    let url = std::env::var("SIDKEO_BASE_URL").unwrap_or("https://api.sideko.dev".to_string());
     if url.ends_with('/') {
         url[0..url.len() - 1].to_string()
     } else {
@@ -55,15 +70,15 @@ pub(crate) fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8Pat
 pub(crate) fn load_config(bufs: Vec<Utf8PathBuf>) -> CliResult<()> {
     for buf in &bufs {
         if !buf.is_file() {
-            println!("no config found at {buf}");
+            log::debug!("no config found at {buf}");
             continue;
         }
         match dotenv::from_path(buf) {
             Ok(_) => {
-                println!("loaded config from {buf}");
+                log::debug!("loaded config from {buf}");
                 return Ok(());
             }
-            Err(_) => println!("failed loading config from {buf}"),
+            Err(_) => log::debug!("failed loading config from {buf}"),
         };
     }
 

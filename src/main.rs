@@ -91,10 +91,7 @@ async fn cli() -> CliResult<()> {
             base_url,
             package_name,
         } => {
-            log::info!(
-                "Generating Sideko SDK in {}",
-                &language.to_string().to_uppercase()
-            );
+            log::info!("Generating Sideko SDK in {}", &language.to_string());
             utils::load_config(utils::config_bufs(vec![cli.config]))?;
 
             // Input validation
@@ -140,7 +137,10 @@ async fn cli() -> CliResult<()> {
                     e
                 )));
             }
-            log::info!("Successfully generated SDK, saved to {output}");
+            log::info!(
+                "Successfully generated SDK in {}, saved to {output}",
+                language.to_string()
+            );
         }
         Commands::Login { output } => {
             // Handle options

@@ -16,80 +16,9 @@
 
 ## Generate SDKs for your API
 
-<img width="1209" alt="Screenshot 2023-10-06 at 11 01 06 AM" src="https://github.com/Sideko-Inc/sideko/assets/13861016/f3359ae9-b77e-42d6-abf0-565d6b1ff0d2">
+<img width="1209" alt="generate-cmd" src="assets/generate_cmd.png">
 
-From _OpenAPI 3.x_ specifications -> SDK repos with types, tests, authentication, and code snippets
-
-| Feature    | Supported |
-| ---------- | :-------: |
-| Types      |    ✅     |
-| Tests      |    ✅     |
-| Form data  |    ✅     |
-| All Auth   |    ✅     |
-| Files      |    ✅     |
-| Websockets |    🚧     |
-| Graphql    |    🚧     |
-
-## Premium Features
-
-#### Edit code configuration in the UI
-
-https://github.com/Sideko-Inc/sideko/assets/13861016/965954fd-e2bb-4bf3-b593-0fc7370bfe2e.mov
-
-#### State-of-the-art documentation
-
-https://github.com/Sideko-Inc/sideko/assets/13861016/f9e93fc6-27eb-4294-8202-b11f381e291c.mov
-
-- Version management
-
-Join the [waitlist](https://forms.gle/KHidhBtoWsBJ3w387) to get premium access
-
-## How to use the SDK Generator
-
-Use CURL or the sideko CLI to generate SDKs
-
-### Get the CLI with install script (macOS, Linux, Windows w/ WSL)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
-```
-
-```
-$ sideko generate specs/slack.json python ../sdks-dir
-
-Generating Sideko SDK in PYTHON
-Successfully generated SDK. Saving to ../sdks-dir
-```
-
-### Using CURL
-
-```bash
-curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
-     -F "extension=json" \
-     -F "language=python" \
-     -F "file=@/path-to/openapi.json" \
-     -F "name=mysdk" \
-     -o sdk.tar.gz
-
-tar -xvf sdk.tar.gz
-```
-
-### Use the petstore example
-
-```bash
-curl -O https://petstore3.swagger.io/api/v3/openapi.json
-
-curl -X POST "https://api.sideko.dev/v1/sdk/generate/" \
-     -F "extension=json" \
-     -F "language=go" \
-     -F "file=@openapi.json" \
-     -F "name=mysdk" \
-     -o sdk.tar.gz
-
-tar -xvf sdk.tar.gz
-```
-
-## Supported Languages
+From _OpenAPI 3.x_ specifications to SDK repos with types, tests, authentication, and code snippets in seconds!
 
 | Language   | Supported |
 | ---------- | :-------: |
@@ -100,6 +29,45 @@ tar -xvf sdk.tar.gz
 | Rust       |    ✅     |
 | C#         |    🚧     |
 | Java       |    🚧     |
+
+| Feature      | Supported |
+| ------------ | :-------: |
+| All Auth     |    ✅     |
+| Native Types |    ✅     |
+| Tests        |    ✅     |
+| Form data    |    ✅     |
+| Files        |    ✅     |
+| Websockets   |    🚧     |
+| Graphql      |    🚧     |
+
+## Installation
+
+_Intstall via curl for macOS, Linux, Windows w/ WSL_
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
+```
+
+## Usage
+
+### Login
+
+You need a Sideko API Key to generate SDKs. Create one for **free** by signing up at [app.sideko.dev](http://app.sideko.dev) or login via the CLI:
+
+```bash
+sideko login
+# Complete login via browser pop-up
+```
+
+Run `sideko login --help` to list all options.
+
+### Generate
+
+```
+sideko generate specs/myopenapi.yaml python
+```
+
+Run `sideko generate --help` to list all options.
 
 ## Excited about the project?
 

@@ -18,11 +18,11 @@ pub enum ProgrammingLanguage {
 
 #[pyfunction]
 pub fn generate_sdk(output: PathBuf, language: ProgrammingLanguage) {
-    let output_path = Utf8PathBuf::from_path_buf(output).expect("whoops");
+    // let output_path = Utf8PathBuf::from_path_buf(output).expect("whoops");
     println!("{:?}", language);
 
     // Validate input
-    utils::validate_path(&output_path, &utils::PathKind::File, true).expect("validate path");
+    // utils::validate_path(&output_path, &utils::PathKind::File, true).expect("validate path");
 
     // let _x = tokio::runtime::Runtime::new()
     //     .expect("runtime")

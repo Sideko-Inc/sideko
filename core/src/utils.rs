@@ -1,6 +1,5 @@
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 
-use camino::Utf8PathBuf;
 use url::Url;
 
 use crate::result::{Error, Result};
@@ -33,15 +32,11 @@ pub fn sideko_base_url() -> String {
 }
 
 /// Loads default location of .sideko config files in order
-pub fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8PathBuf> {
+pub fn config_bufs(user_defined: Vec<Option<PathBuf>>) -> Vec<PathBuf> {
     let cwd_config = {
-        if let Ok(cwd) = std::env::current_dir() {
-            if let Ok(mut buf) = Utf8PathBuf::from_path_buf(cwd) {
-                buf.push(".sideko");
-                Some(buf)
-            } else {
-                None
-            }
+        if let Ok(mut cwd) = std::env::current_dir() {
+            cwd.push(".sideko");
+            Some(cwd)
         } else {
             None
         }
@@ -49,7 +44,7 @@ pub fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8PathBuf> {
 
     let home_config = {
         if let Ok(home) = std::env::var("HOME") {
-            if let Ok(mut buf) = Utf8PathBuf::from_str(&home) {
+            if let Ok(mut buf) = PathBuf::from_str(&home) {
                 buf.push(".sideko");
                 Some(buf)
             } else {
@@ -67,25 +62,26 @@ pub fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8PathBuf> {
 }
 
 /// Loads env from first path buf that exists
-pub fn load_config(bufs: Vec<Utf8PathBuf>) -> Result<()> {
+pub fn load_config(bufs: Vec<PathBuf>) -> Result<()> {
     for buf in &bufs {
+        let path_str = buf.to_str().unwrap_or_default();
         if !buf.is_file() {
-            log::debug!("no config found at {buf}");
+            log::debug!("no config found at {path_str}");
             continue;
         }
         match dotenv::from_path(buf) {
             Ok(_) => {
-                log::debug!("loaded config from {buf}");
+                log::debug!("loaded config from {path_str}");
                 return Ok(());
             }
-            Err(_) => log::debug!("failed loading config from {buf}"),
+            Err(_) => log::debug!("failed loading config from {path_str}"),
         };
     }
 
     Err(Error::ArgumentError(format!(
         "Failed loading config, no config file present in paths: {}",
         bufs.iter()
-            .map(|b| b.to_string())
+            .map(|b| b.to_str().unwrap_or_default().to_string())
             .collect::<Vec<String>>()
             .join(", ")
     )))
@@ -112,23 +108,24 @@ pub enum PathKind {
 }
 
 /// Validates path kind & if it exists (optionally)
-pub fn validate_path(buf: &Utf8PathBuf, path_kind: &PathKind, allow_dne: bool) -> Result<()> {
+pub fn validate_path(buf: PathBuf, path_kind: &PathKind, allow_dne: bool) -> Result<()> {
+    let path_str = buf.to_str().unwrap_or_default();
     let (allowed, err_msg) = match (path_kind, allow_dne) {
         (PathKind::File, false) => (
             buf.is_file(),
-            format!("Path `{buf}` must be a file or a non-existent path"),
+            format!("Path `{path_str}` must be a file or a non-existent path"),
         ),
         (PathKind::File, true) => (
             buf.is_file() || !buf.exists(),
-            format!("Path `{buf}` must be a file or a non-existent path"),
+            format!("Path `{path_str}` must be a file or a non-existent path"),
         ),
         (PathKind::Dir, false) => (
             buf.is_dir(),
-            format!("Path `{buf}` must be a directory or a non-existent path"),
+            format!("Path `{path_str}` must be a directory or a non-existent path"),
         ),
         (PathKind::Dir, true) => (
             buf.is_dir() || !buf.exists(),
-            format!("Path `{buf}` must be a directory or a non-existent path"),
+            format!("Path `{path_str}` must be a directory or a non-existent path"),
         ),
     };
 

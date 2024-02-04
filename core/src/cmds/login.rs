@@ -1,6 +1,5 @@
-use std::{fs, time::Duration};
+use std::{fs, path::PathBuf, time::Duration};
 
-use camino::Utf8PathBuf;
 use rocket::{
     get,
     response::{content::RawHtml, Redirect},
@@ -8,26 +7,37 @@ use rocket::{
 };
 use tokio::time::sleep;
 
-use crate::result::{Error, Result};
 use crate::utils::API_KEY_ENV_VAR;
+use crate::{
+    result::{Error, Result},
+    utils,
+};
 
-pub async fn handle_login(output: &Utf8PathBuf) -> Result<()> {
+pub async fn handle_login(output: PathBuf) -> Result<()> {
+    // validate
     let port = 65530;
     let wait_secs = 180;
+    utils::validate_path(output.clone(), &utils::PathKind::File, true)?;
+
+    // open browser for login
     let login_url = url::Url::parse_with_params(
         "http://localhost:8080/v1/auth/workos/url",
         &[
-            ("cli_output", output.to_string()),
-            ("cli_port", port.to_string()),
+            ("cli_output", output.to_str().unwrap_or(".")),
+            ("cli_port", &port.to_string()),
         ],
     )
     .unwrap()
     .to_string();
 
-    // open browser for login
     log::info!("Continue by logging in via the browser pop up...");
     sleep(Duration::from_millis(1000)).await;
-    open::that(login_url).unwrap();
+    if let Err(e) = open::that(&login_url) {
+        log::warn!(
+            "Failed opening browser for login, please navigate to `{login_url}` to complete login"
+        );
+        log::debug!("{:?}", e);
+    }
 
     // launch callback server & wait up to 3 min for callback
     log::debug!("Starting callback server on port {port}... will wait {wait_secs} seconds for auth callback");
@@ -63,9 +73,8 @@ async fn login_success(shutdown: Shutdown) -> RawHtml<&'static str> {
 
 #[get("/login?<key>&<output>")]
 async fn login_callback(key: String, output: String) -> Redirect {
-    let mut output_buff = Utf8PathBuf::new();
-    output_buff.push(&output);
-    fs::write(&output_buff, format!("{API_KEY_ENV_VAR}={key}\n")).unwrap();
+    let output_buff = PathBuf::from(&output);
+    fs::write(output_buff, format!("{API_KEY_ENV_VAR}={key}\n")).unwrap();
     log::info!("Sideko API key saved in {output}");
     Redirect::to(uri!(login_success))
 }

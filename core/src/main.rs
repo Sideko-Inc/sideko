@@ -1,4 +1,10 @@
 #[tokio::main]
 async fn main() {
-    sideko::cli::run_cli().await;
+    let res = sideko::cli::cli().await;
+
+    if res.is_err() {
+        std::process::exit(1)
+    } else {
+        std::process::exit(0)
+    }
 }

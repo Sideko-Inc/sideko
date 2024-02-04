@@ -1,9 +1,6 @@
 use crate::{cmds, result, styles, utils};
-use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
-use flate2::read::GzDecoder;
-use std::{io::Cursor, str::FromStr};
-use tar::Archive;
+use std::{path::PathBuf, str::FromStr};
 
 #[derive(Parser)]
 #[command(name = "Sideko CLI")]
@@ -16,7 +13,7 @@ struct Cli {
     command: Commands,
     #[arg(long, short)]
     /// Path to .sideko file containing api key, default locations: ./.sideko then $HOME/.sideko
-    config: Option<Utf8PathBuf>,
+    config: Option<PathBuf>,
     #[arg(
         long,
         short = 'q',
@@ -35,17 +32,17 @@ enum Commands {
     Login {
         #[arg(long, short)]
         /// Path to file to stored API key, default: $HOME/.sideko
-        output: Option<Utf8PathBuf>,
+        output: Option<PathBuf>,
     },
     /// Generate a SDK client
     Generate {
-        /// Path to OpenAPI spec
-        openapi_path: Utf8PathBuf,
+        /// Path or URL of OpenAPI spec
+        openapi_source: String,
         /// Programming language to generate
         language: cmds::generate::ProgrammingLanguage,
         #[arg(long, short)]
         /// Output path of generated source files, default: ./
-        output: Option<Utf8PathBuf>,
+        output: Option<PathBuf>,
         #[arg(long, short)]
         /// Base URL of API if not specified in OpenAPI spec
         base_url: Option<String>,
@@ -55,7 +52,7 @@ enum Commands {
     },
 }
 
-async fn cli() -> result::Result<()> {
+pub async fn cli() -> result::Result<()> {
     let cli = Cli::parse();
 
     // set up logger
@@ -67,96 +64,58 @@ async fn cli() -> result::Result<()> {
         log::Level::Info
     };
     utils::init_logger(level);
+    utils::load_config(utils::config_bufs(vec![cli.config]))?;
 
-    match &cli.command {
+    let cmd_res = match &cli.command {
         Commands::Generate {
-            openapi_path,
+            openapi_source,
             language,
             output,
             base_url,
             package_name,
         } => {
-            log::info!("Generating Sideko SDK in {}", &language.to_string());
-            utils::load_config(utils::config_bufs(vec![cli.config]))?;
-
-            // Input validation
-            if let Some(base_url) = &base_url {
-                utils::validate_url(base_url)?;
-            }
-
-            let output = if let Some(o) = output {
+            // Set defaults
+            let destination = if let Some(o) = output {
                 o.clone()
             } else {
-                let cwd = std::env::current_dir().map_err(|e| {
+                std::env::current_dir().map_err(|e| {
                     log::debug!("CWD failure: {e}");
                     result::Error::General(
                         "Failed determining cwd for --output default".to_string(),
                     )
-                })?;
-                Utf8PathBuf::from_path_buf(cwd).map_err(|_| {
-                    result::Error::General("Unable to build default --output path".to_string())
                 })?
             };
 
-            utils::validate_path(openapi_path, &utils::PathKind::File, false)?;
-            utils::validate_path(&output, &utils::PathKind::Dir, true)?;
+            // Construct cmd input params
+            let params = cmds::generate::GenerateSdkParams {
+                source: cmds::generate::OpenApiSource::from(openapi_source),
+                destination,
+                language: language.clone(),
+                base_url: base_url.clone(),
+                package_name: package_name.clone(),
+            };
 
-            let ext = &openapi_path
-                .extension()
-                .ok_or(result::Error::ArgumentError(
-                    "Invalid file extension".to_string(),
-                ))?;
-
-            // generate sdk
-            let bytes = cmds::generate::handle_generate(
-                openapi_path,
-                ext,
-                language,
-                base_url,
-                package_name,
-            )
-            .await?;
-
-            // save to output path
-            let gz_decoder = GzDecoder::new(Cursor::new(&bytes));
-            let mut archive = Archive::new(gz_decoder);
-            if let Err(e) = archive.unpack(&output) {
-                return Err(result::Error::ArgumentError(format!(
-                    "Failed to unpack archive: {}",
-                    e
-                )));
-            }
-            log::info!(
-                "Successfully generated SDK in {}, saved to {output}",
-                language.to_string()
-            );
+            cmds::generate::handle_generate(&params).await
         }
         Commands::Login { output } => {
-            // Handle options
+            // Set defaults
             let output_path = if let Some(o) = output {
                 o.clone()
             } else {
                 let home = std::env::var("HOME")
-                    .map_err(|_| result::Error::General("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
-                let mut utf_buf = Utf8PathBuf::from_str(&home).map_err(|_| {
+                        .map_err(|_| result::Error::General("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
+                let mut utf_buf = PathBuf::from_str(&home).map_err(|_| {
                     result::Error::General("Unable to build default --output path".to_string())
                 })?;
                 utf_buf.push(".sideko");
                 utf_buf
             };
 
-            // Validate input
-            utils::validate_path(&output_path, &utils::PathKind::File, true)?;
-
-            cmds::login::handle_login(&output_path).await?;
+            cmds::login::handle_login(output_path).await
         }
-    }
+    };
 
-    Ok(())
-}
-
-pub async fn run_cli() {
-    match cli().await {
+    match &cmd_res {
         Err(result::Error::ArgumentError(message) | result::Error::General(message)) => {
             log::error!("{message}")
         }
@@ -173,5 +132,7 @@ pub async fn run_cli() {
             log::error!("{message}");
         }
         Ok(_) => (),
-    }
+    };
+
+    cmd_res
 }

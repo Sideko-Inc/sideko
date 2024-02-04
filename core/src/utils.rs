@@ -7,19 +7,19 @@ use crate::result::{Error, Result};
 pub static API_KEY_ENV_VAR: &str = "SIDEKO_API_KEY";
 
 pub fn init_logger(level: log::Level) {
-    if level == log::Level::Trace {
-        env_logger::Builder::new().init();
+    let _ = if level == log::Level::Trace {
+        env_logger::Builder::new().try_init()
     } else if level > log::Level::Info {
         env_logger::Builder::new()
             .filter_module("sideko", level.to_level_filter())
-            .init();
+            .try_init()
     } else {
         env_logger::Builder::new()
             .filter_module("sideko", level.to_level_filter())
             .format_target(false)
             .format_timestamp(None)
-            .init();
-    }
+            .try_init()
+    };
 }
 
 pub fn sideko_base_url() -> String {

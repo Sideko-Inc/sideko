@@ -1,14 +1,15 @@
-use camino::Utf8PathBuf;
 use pyo3::{
+    create_exception,
+    exceptions::PyException,
     prelude::{pyfunction, pymodule, PyModule, Python},
     pyclass, wrap_pyfunction, PyResult,
 };
-use sideko::{cmds, utils};
+use sideko::{cmds::generate, utils};
 use std::path::PathBuf;
 
 #[pyclass]
 #[derive(Clone, Debug)]
-pub enum ProgrammingLanguage {
+pub enum Language {
     Python,
     Ruby,
     Typescript,
@@ -16,22 +17,58 @@ pub enum ProgrammingLanguage {
     Go,
 }
 
+impl Language {
+    fn to_sideko_programming_lang(&self) -> generate::ProgrammingLanguage {
+        match self {
+            Language::Python => generate::ProgrammingLanguage::Python,
+            Language::Ruby => generate::ProgrammingLanguage::Ruby,
+            Language::Typescript => generate::ProgrammingLanguage::Typescript,
+            Language::Rust => generate::ProgrammingLanguage::Rust,
+            Language::Go => generate::ProgrammingLanguage::Go,
+        }
+    }
+}
+
+create_exception!(sideko_py, SidekoError, PyException);
+
 #[pyfunction]
-pub fn generate_sdk(output: PathBuf, language: ProgrammingLanguage) {
-    // let output_path = Utf8PathBuf::from_path_buf(output).expect("whoops");
-    println!("{:?}", language);
+pub fn generate_sdk(
+    language: Language,
+    source: String,
+    dest: PathBuf,
+    base_url: Option<String>,
+    package_name: Option<String>,
+) -> PyResult<()> {
+    utils::init_logger(log::Level::Warn);
 
-    // Validate input
-    // utils::validate_path(&output_path, &utils::PathKind::File, true).expect("validate path");
+    let params = generate::GenerateSdkParams {
+        source: generate::OpenApiSource::from(&source),
+        destination: dest,
+        language: language.to_sideko_programming_lang(),
+        base_url,
+        package_name,
+    };
 
-    // let _x = tokio::runtime::Runtime::new()
-    //     .expect("runtime")
-    //     .block_on(cmds::login::handle_login(&output_path));
+    let cmd_res = tokio::runtime::Runtime::new()
+        .expect("runtime")
+        .block_on(generate::handle_generate(&params));
+
+    match cmd_res {
+        Err(
+            sideko::result::Error::ArgumentError(msg)
+            | sideko::result::Error::General(msg)
+            | sideko::result::Error::ReqwestError(msg, ..)
+            | sideko::result::Error::ResponseError(msg, ..)
+            | sideko::result::Error::IoError(msg, ..),
+        ) => Err(SidekoError::new_err(msg)),
+        Ok(_) => Ok(()),
+    }
 }
 
 #[pymodule]
-pub fn sideko_py(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn sideko_py(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(generate_sdk, m)?)?;
-    m.add_class::<ProgrammingLanguage>()?;
+    m.add_class::<Language>()?;
+    m.add("SidekoError", py.get_type::<SidekoError>())?;
     Ok(())
 }

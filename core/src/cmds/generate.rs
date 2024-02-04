@@ -8,6 +8,7 @@ use reqwest::{
     multipart::{Form, Part},
     Client,
 };
+use serde::{Deserialize, Serialize};
 use std::{fs, io::Cursor, path::PathBuf, str::FromStr};
 use tar::Archive;
 
@@ -90,7 +91,7 @@ impl OpenAPIExtension {
             Ok(Self::Yaml)
         } else {
             Err(Error::General(
-                "Provided OpenAPI is neither json nor yaml".to_string(),
+                "Provided OpenAPI is neither json nor yaml object".to_string(),
             ))
         }
     }
@@ -111,6 +112,12 @@ struct GenerateForm {
     language: String,
     base_url: Option<String>,
     package_name: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct SidekoApiErr {
+    message: String,
+    data: Option<serde_json::Value>,
 }
 
 impl GenerateForm {
@@ -151,7 +158,7 @@ async fn load_and_validate_openapi(source: &OpenApiSource) -> Result<(Vec<u8>, O
                         "Failed loading OpenAPI spec from {url}: {}",
                         response.status()
                     ),
-                    response,
+                    format!("{:?}", &response),
                 ));
             }
 
@@ -222,9 +229,16 @@ pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
 
     let status = response.status();
     if !status.is_success() {
+        let debug_res = format!("{:?}", &response);
+        let mut server_msg = String::default();
+        if let Ok(err) =
+            serde_json::from_str::<SidekoApiErr>(&response.text().await.unwrap_or_default())
+        {
+            server_msg = format!(" - {}", err.message)
+        }
         return Err(Error::ResponseError(
-            format!("Generate SDK request failed: {}", status),
-            response,
+            format!("Generate SDK request failed: {status}{server_msg}"),
+            debug_res,
         ));
     }
     let bytes = response

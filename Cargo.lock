@@ -1536,6 +1536,7 @@ dependencies = [
  "open",
  "reqwest",
  "rocket",
+ "serde",
  "serde_json",
  "serde_yaml",
  "tar",
@@ -1547,7 +1548,7 @@ dependencies = [
 name = "sideko-py"
 version = "0.1.0"
 dependencies = [
- "camino",
+ "log",
  "pyo3",
  "sideko",
  "tokio",

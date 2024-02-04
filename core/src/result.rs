@@ -3,7 +3,7 @@ pub enum Error {
     General(String),
     ArgumentError(String),
     ReqwestError(String, reqwest::Error),
-    ResponseError(String, reqwest::Response),
+    ResponseError(String, String),
     IoError(String, std::io::Error),
 }
 

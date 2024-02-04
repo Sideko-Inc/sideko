@@ -5,20 +5,10 @@ use flate2::read::GzDecoder;
 use std::{io::Cursor, str::FromStr};
 use tar::Archive;
 
-mod cmds;
-mod styles;
-mod utils;
-
-#[derive(Debug)]
-pub enum CliError {
-    General(String),
-    ArgumentError(String),
-    ReqwestError(String, reqwest::Error),
-    ResponseError(String, reqwest::Response),
-    IoError(String, std::io::Error),
-}
-
-pub type CliResult<T> = std::result::Result<T, CliError>;
+pub mod cmds;
+pub mod result;
+pub mod styles;
+pub mod utils;
 
 #[derive(Parser)]
 #[command(name = "Sideko CLI")]
@@ -70,7 +60,7 @@ enum Commands {
     },
 }
 
-async fn cli() -> CliResult<()> {
+async fn cli() -> result::Result<()> {
     let cli = Cli::parse();
 
     // set up logger
@@ -104,19 +94,23 @@ async fn cli() -> CliResult<()> {
             } else {
                 let cwd = std::env::current_dir().map_err(|e| {
                     log::debug!("CWD failure: {e}");
-                    CliError::General("Failed determining cwd for --output default".to_string())
+                    result::Error::General(
+                        "Failed determining cwd for --output default".to_string(),
+                    )
                 })?;
                 Utf8PathBuf::from_path_buf(cwd).map_err(|_| {
-                    CliError::General("Unable to build default --output path".to_string())
+                    result::Error::General("Unable to build default --output path".to_string())
                 })?
             };
 
             utils::validate_path(openapi_path, &utils::PathKind::File, false)?;
             utils::validate_path(&output, &utils::PathKind::Dir, true)?;
 
-            let ext = &openapi_path.extension().ok_or(CliError::ArgumentError(
-                "Invalid file extension".to_string(),
-            ))?;
+            let ext = &openapi_path
+                .extension()
+                .ok_or(result::Error::ArgumentError(
+                    "Invalid file extension".to_string(),
+                ))?;
 
             // generate sdk
             let bytes = cmds::generate::handle_generate(
@@ -132,7 +126,7 @@ async fn cli() -> CliResult<()> {
             let gz_decoder = GzDecoder::new(Cursor::new(&bytes));
             let mut archive = Archive::new(gz_decoder);
             if let Err(e) = archive.unpack(&output) {
-                return Err(CliError::ArgumentError(format!(
+                return Err(result::Error::ArgumentError(format!(
                     "Failed to unpack archive: {}",
                     e
                 )));
@@ -148,9 +142,9 @@ async fn cli() -> CliResult<()> {
                 o.clone()
             } else {
                 let home = std::env::var("HOME")
-                    .map_err(|_| CliError::General("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
+                    .map_err(|_| result::Error::General("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
                 let mut utf_buf = Utf8PathBuf::from_str(&home).map_err(|_| {
-                    CliError::General("Unable to build default --output path".to_string())
+                    result::Error::General("Unable to build default --output path".to_string())
                 })?;
                 utf_buf.push(".sideko");
                 utf_buf
@@ -169,18 +163,18 @@ async fn cli() -> CliResult<()> {
 #[tokio::main]
 async fn main() {
     match cli().await {
-        Err(CliError::ArgumentError(message) | CliError::General(message)) => {
+        Err(result::Error::ArgumentError(message) | result::Error::General(message)) => {
             log::error!("{message}")
         }
-        Err(CliError::ReqwestError(message, err)) => {
+        Err(result::Error::ReqwestError(message, err)) => {
             log::debug!("{err}");
             log::error!("{message}");
         }
-        Err(CliError::ResponseError(message, res)) => {
+        Err(result::Error::ResponseError(message, res)) => {
             log::debug!("Error response: {:?}", res);
             log::error!("{message}");
         }
-        Err(CliError::IoError(message, err)) => {
+        Err(result::Error::IoError(message, err)) => {
             log::debug!("{err}");
             log::error!("{message}");
         }

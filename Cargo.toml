@@ -1,27 +1,12 @@
-[package]
-name = "sideko"
-version = "0.1.5"
-edition = "2021"
+[workspace]
+members = ["core", "sideko-py"]
+resolver = "2"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-anstyle = "1.0.3"
-bytes = "1.5.0"
-camino = "1.1.6"
-clap = { version = "4.4.4", features = ["derive"] }
-dotenv = "0.15.0"
-env_logger = "0.11.1"
-flate2 = "1.0.27"
-log = "0.4.20"
-mime_guess = "2.0.4"
-open = "5.0.1"
-reqwest = { version = "0.11.20", features = [
-    "multipart",
-    "rustls-tls",
-    "stream",
-], default-features = false }
-rocket = "0.5.0"
-tar = "0.4.40"
-tokio = { version = "1.35.1", features = ["time"] }
-url = "2.4.1"
+# [workspace.package]
+# homepage = "https://sideko.dev"
+# repository = "https://github.com/Sideko-Inc/sideko/tree/main/"
+# authors = [
+#     "Team Sideko <team@sideko.dev>",
+#     "Elias Posen <elias@sideko.dev>",
+#     "Patrick Kelly <patrick@sideko.dev",
+# ]

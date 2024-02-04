@@ -1,4 +1,7 @@
-use crate::{utils, CliError, CliResult};
+use crate::{
+    result::{Error, Result},
+    utils,
+};
 use bytes::Bytes;
 use camino::Utf8PathBuf;
 use reqwest::{
@@ -7,7 +10,7 @@ use reqwest::{
 };
 
 #[derive(clap::ValueEnum, Clone, Debug)]
-pub(crate) enum ProgrammingLanguage {
+pub enum ProgrammingLanguage {
     Python,
     Ruby,
     Typescript,
@@ -37,13 +40,12 @@ struct GenerateData {
 }
 
 impl GenerateData {
-    fn to_multipart(&self) -> CliResult<Form> {
+    fn to_multipart(&self) -> Result<Form> {
         let mut form = Form::new()
             .text("extension", self.extension.clone())
             .text("language", self.language.clone());
-        let file_bytes = std::fs::read(&self.file_path).map_err(|e| {
-            CliError::IoError(format!("Unable to read file: {}", &self.file_path), e)
-        })?;
+        let file_bytes = std::fs::read(&self.file_path)
+            .map_err(|e| Error::IoError(format!("Unable to read file: {}", &self.file_path), e))?;
         let file_part = Part::stream(file_bytes)
             .file_name(format!("openapi.{}", &self.extension))
             .mime_str(
@@ -64,13 +66,13 @@ impl GenerateData {
     }
 }
 
-pub(crate) async fn handle_generate(
+pub async fn handle_generate(
     openapi_path: &Utf8PathBuf,
     ext: &str,
     language: &ProgrammingLanguage,
     base_url: &Option<String>,
     package_name: &Option<String>,
-) -> CliResult<Bytes> {
+) -> Result<Bytes> {
     let api_key = utils::get_api_key()?;
     let data = GenerateData {
         api_key,
@@ -84,7 +86,7 @@ pub(crate) async fn handle_generate(
     Ok(generate_request(data).await)?
 }
 
-async fn generate_request(data: GenerateData) -> CliResult<Bytes> {
+async fn generate_request(data: GenerateData) -> Result<Bytes> {
     let form = data.to_multipart()?;
 
     let client = Client::new();
@@ -96,18 +98,19 @@ async fn generate_request(data: GenerateData) -> CliResult<Bytes> {
         .header("x-api-key", &data.api_key)
         .send()
         .await
-        .map_err(|e| CliError::ReqwestError("Failed to make network request".to_string(), e))?;
+        .map_err(|e| Error::ReqwestError("Failed to make network request".to_string(), e))?;
 
     let status = response.status();
     if !status.is_success() {
-        return Err(CliError::ResponseError(
+        return Err(Error::ResponseError(
             format!("Generate SDK request failed: {}", status),
             response,
         ));
     }
-    let bytes = response.bytes().await.map_err(|e| {
-        CliError::ReqwestError("Could not extract file from response".to_string(), e)
-    })?;
+    let bytes = response
+        .bytes()
+        .await
+        .map_err(|e| Error::ReqwestError("Could not extract file from response".to_string(), e))?;
 
     Ok(bytes)
 }

@@ -1,2 +1,4 @@
-/target
+.vscode/
+.venv/
+target/
 .sideko

@@ -3,11 +3,11 @@ use std::str::FromStr;
 use camino::Utf8PathBuf;
 use url::Url;
 
-use crate::CliResult;
+use crate::result::{Error, Result};
 
-pub(crate) static API_KEY_ENV_VAR: &str = "SIDEKO_API_KEY";
+pub static API_KEY_ENV_VAR: &str = "SIDEKO_API_KEY";
 
-pub(crate) fn init_logger(level: log::Level) {
+pub fn init_logger(level: log::Level) {
     if level == log::Level::Trace {
         env_logger::Builder::new().init();
     } else if level > log::Level::Info {
@@ -23,7 +23,7 @@ pub(crate) fn init_logger(level: log::Level) {
     }
 }
 
-pub(crate) fn sideko_base_url() -> String {
+pub fn sideko_base_url() -> String {
     let url = std::env::var("SIDKEO_BASE_URL").unwrap_or("https://api.sideko.dev".to_string());
     if url.ends_with('/') {
         url[0..url.len() - 1].to_string()
@@ -33,7 +33,7 @@ pub(crate) fn sideko_base_url() -> String {
 }
 
 /// Loads default location of .sideko config files in order
-pub(crate) fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8PathBuf> {
+pub fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8PathBuf> {
     let cwd_config = {
         if let Ok(cwd) = std::env::current_dir() {
             if let Ok(mut buf) = Utf8PathBuf::from_path_buf(cwd) {
@@ -67,7 +67,7 @@ pub(crate) fn config_bufs(user_defined: Vec<Option<Utf8PathBuf>>) -> Vec<Utf8Pat
 }
 
 /// Loads env from first path buf that exists
-pub(crate) fn load_config(bufs: Vec<Utf8PathBuf>) -> CliResult<()> {
+pub fn load_config(bufs: Vec<Utf8PathBuf>) -> Result<()> {
     for buf in &bufs {
         if !buf.is_file() {
             log::debug!("no config found at {buf}");
@@ -82,7 +82,7 @@ pub(crate) fn load_config(bufs: Vec<Utf8PathBuf>) -> CliResult<()> {
         };
     }
 
-    Err(crate::CliError::ArgumentError(format!(
+    Err(Error::ArgumentError(format!(
         "Failed loading config, no config file present in paths: {}",
         bufs.iter()
             .map(|b| b.to_string())
@@ -92,31 +92,27 @@ pub(crate) fn load_config(bufs: Vec<Utf8PathBuf>) -> CliResult<()> {
 }
 
 /// Loads API key from environment
-pub(crate) fn get_api_key() -> CliResult<String> {
+pub fn get_api_key() -> Result<String> {
     std::env::var(API_KEY_ENV_VAR).map_err(|_| {
-        crate::CliError::ArgumentError(format!(
+        Error::ArgumentError(format!(
             "Failed loading Sideko API key, ensure {API_KEY_ENV_VAR} is set in your config file, or run `sideko login` to create it"
         ))
     })
 }
 
 /// Validates string is a valid URL
-pub(crate) fn validate_url(val: &str) -> CliResult<Url> {
+pub fn validate_url(val: &str) -> Result<Url> {
     url::Url::parse(val)
-        .map_err(|_| crate::CliError::ArgumentError(format!("URL `{val}` is not a valid URL")))
+        .map_err(|_| Error::ArgumentError(format!("URL `{val}` is not a valid URL")))
 }
 
-pub(crate) enum PathKind {
+pub enum PathKind {
     File,
     Dir,
 }
 
 /// Validates path kind & if it exists (optionally)
-pub(crate) fn validate_path(
-    buf: &Utf8PathBuf,
-    path_kind: &PathKind,
-    allow_dne: bool,
-) -> CliResult<()> {
+pub fn validate_path(buf: &Utf8PathBuf, path_kind: &PathKind, allow_dne: bool) -> Result<()> {
     let (allowed, err_msg) = match (path_kind, allow_dne) {
         (PathKind::File, false) => (
             buf.is_file(),
@@ -139,6 +135,6 @@ pub(crate) fn validate_path(
     if allowed {
         Ok(())
     } else {
-        Err(crate::CliError::ArgumentError(err_msg))
+        Err(Error::ArgumentError(err_msg))
     }
 }

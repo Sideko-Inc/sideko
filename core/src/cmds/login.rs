@@ -8,10 +8,10 @@ use rocket::{
 };
 use tokio::time::sleep;
 
+use crate::result::{Error, Result};
 use crate::utils::API_KEY_ENV_VAR;
-use crate::{CliError, CliResult};
 
-pub(crate) async fn handle_login(output: &Utf8PathBuf) -> CliResult<()> {
+pub async fn handle_login(output: &Utf8PathBuf) -> Result<()> {
     let port = 65530;
     let wait_secs = 180;
     let login_url = url::Url::parse_with_params(
@@ -43,7 +43,7 @@ pub(crate) async fn handle_login(output: &Utf8PathBuf) -> CliResult<()> {
     let timeout = tokio::time::timeout(Duration::from_secs(wait_secs), server_future).await;
 
     if timeout.is_err() {
-        Err(CliError::General(format!(
+        Err(Error::General(format!(
             "Authentication was not completed within {wait_secs} seconds"
         )))
     } else {

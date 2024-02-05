@@ -6,10 +6,15 @@ build-backend = "maturin"
 name = "sideko-py"
 requires-python = ">=3.8"
 classifiers = [
+    "Topic :: Software Development :: Code Generators",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
+    "Framework :: FastAPI",
+    "Framework :: Flask",
+
 ]
+license = { file = "LICENSE" }
 dynamic = ["version"]
 
 [tool.maturin]

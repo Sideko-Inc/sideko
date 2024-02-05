@@ -73,7 +73,7 @@ The API key is read from (in order of priority):
 ### Generate
 
 ```
-sideko generate specs/myopenapi.yaml python
+sideko generate https://raw.githubusercontent.com/Sideko-Inc/sideko/main/specs/brewdog.yml python
 ```
 
 - The OpenAPI source can be a path to a local `.json` or `.yaml` file, a URL, or the raw spec as a string.

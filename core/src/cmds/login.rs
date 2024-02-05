@@ -7,7 +7,7 @@ use rocket::{
 };
 use tokio::time::sleep;
 
-use crate::config::API_KEY_ENV_VAR;
+use crate::config::{self, API_KEY_ENV_VAR};
 use crate::{
     result::{Error, Result},
     utils,
@@ -21,7 +21,7 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
 
     // open browser for login
     let login_url = url::Url::parse_with_params(
-        "http://localhost:8080/v1/auth/workos/url",
+        &format!("{}/v1/auth/workos/url", config::get_base_url()),
         &[
             ("cli_output", output.to_str().unwrap_or(".")),
             ("cli_port", &port.to_string()),

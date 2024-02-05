@@ -1,4 +1,5 @@
 use crate::{
+    config,
     result::{Error, Result},
     utils,
 };
@@ -205,12 +206,12 @@ pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
     utils::validate_path(params.destination.clone(), &utils::PathKind::Dir, true)?;
 
     let (openapi_bytes, extension) = load_and_validate_openapi(&params.source).await?;
-    let api_key = utils::get_api_key()?;
+    let api_key = config::get_api_key()?;
 
     // make request
     let client = Client::new();
 
-    let url = format!("{}/v1/sdk/generate/", utils::sideko_base_url());
+    let url = format!("{}/v1/sdk/generate/", config::get_base_url());
     let form = GenerateForm {
         extension,
         openapi_bytes,

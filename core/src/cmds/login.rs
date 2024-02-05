@@ -7,7 +7,7 @@ use rocket::{
 };
 use tokio::time::sleep;
 
-use crate::utils::API_KEY_ENV_VAR;
+use crate::config::API_KEY_ENV_VAR;
 use crate::{
     result::{Error, Result},
     utils,

@@ -52,14 +52,23 @@ curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh |
 
 ### Login
 
-You need a Sideko API Key to generate SDKs. Create one for **free** by signing up at [app.sideko.dev](http://app.sideko.dev) or login via the CLI:
+You need a Sideko API Key to generate SDKs. Create one for **free** by:
+
+1. Signing up at [app.sideko.dev](http://app.sideko.dev) (`User Icon > API Keys`), or
+2. Logging in via the CLI:
 
 ```bash
 sideko login
 # Complete login via browser pop-up
 ```
 
-Run `sideko login --help` to list all options.
+_Run `sideko login --help` to list all options._
+
+The API key is read from (in order of priority):
+
+- `$PWD/.sideko`
+- `$HOME/.sideko`
+- `SIDEKO_API_KEY` environment variable
 
 ### Generate
 
@@ -67,7 +76,10 @@ Run `sideko login --help` to list all options.
 sideko generate specs/myopenapi.yaml python
 ```
 
-Run `sideko generate --help` to list all options.
+- The OpenAPI source can be a path to a local `.json` or `.yaml` file, a URL, or the raw spec as a string.
+- Language options: `python`, `typescript`, `ruby`, `rust`, or `go`
+
+_Run `sideko generate --help` to list all options._
 
 ## Excited about the project?
 

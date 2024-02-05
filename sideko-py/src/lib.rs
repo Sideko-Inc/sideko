@@ -4,7 +4,7 @@ use pyo3::{
     prelude::{pyfunction, pymodule, PyModule, Python},
     pyclass, wrap_pyfunction, PyResult,
 };
-use sideko::{cmds::generate, utils};
+use sideko::{cmds::generate, config, utils};
 use std::path::PathBuf;
 
 #[pyclass]
@@ -40,6 +40,7 @@ pub fn generate_sdk(
     package_name: Option<String>,
 ) -> PyResult<()> {
     utils::init_logger(log::Level::Warn);
+    config::load_config(config::config_bufs(vec![]));
 
     let params = generate::GenerateSdkParams {
         source: generate::OpenApiSource::from(&source),

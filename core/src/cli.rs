@@ -1,4 +1,4 @@
-use crate::{cmds, result, styles, utils};
+use crate::{cmds, config, result, styles, utils};
 use clap::{Parser, Subcommand};
 use std::{path::PathBuf, str::FromStr};
 
@@ -64,7 +64,7 @@ pub async fn cli() -> result::Result<()> {
         log::Level::Info
     };
     utils::init_logger(level);
-    utils::load_config(utils::config_bufs(vec![cli.config]))?;
+    config::load_config(config::config_bufs(vec![cli.config]));
 
     let cmd_res = match &cli.command {
         Commands::Generate {

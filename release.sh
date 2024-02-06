@@ -40,12 +40,12 @@ printf "${CYAN}Generated these git commands:${NC}\n"
 printf "git tag -a ${tag_name} ${git_hash} -m ${tag_message}\n"
 printf "git push origin ${tag_name}\n\n"
 
-# while true; do
-#     read -p "Would you like to create and push the tag? (y/[n]) " yn
-#     case $yn in
-#         [Yy]* ) git tag -a "${tag_name}" "${git_hash}" -m "${tag_message}"; git push origin "${tag_name}"; break;;
-#         [Nn]* ) die "not tagging...";;
-#         "" ) die "not tagging..." ;;
-#         * ) echo "Please answer yes or no.";;
-#     esac
-# done
+while true; do
+    read -p "Would you like to create and push the tag? (y/[n]) " yn
+    case $yn in
+        [Yy]* ) git tag -a "${tag_name}" "${git_hash}" -m "${tag_message}"; git push origin "${tag_name}"; break;;
+        [Nn]* ) die "not tagging...";;
+        "" ) die "not tagging..." ;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done

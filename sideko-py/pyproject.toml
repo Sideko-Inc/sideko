@@ -19,3 +19,6 @@ dynamic = ["version"]
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+
+[project.scripts]
+sideko = "sideko_py:cli"

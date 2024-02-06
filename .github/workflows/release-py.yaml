@@ -233,4 +233,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.SIDEKO_PYPI_TOKEN }}
         run: |
           pip install --upgrade twine
-          twine upload --repository testpypi --skip-existing *
+          twine upload --skip-existing *

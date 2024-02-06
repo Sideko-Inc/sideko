@@ -52,8 +52,8 @@ enum Commands {
     },
 }
 
-pub async fn cli() -> result::Result<()> {
-    let cli = Cli::parse();
+pub async fn cli(args: Vec<String>) -> result::Result<()> {
+    let cli = Cli::parse_from(args);
 
     // set up logger
     let level = if cli.quiet {

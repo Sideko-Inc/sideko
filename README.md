@@ -42,20 +42,28 @@ From _OpenAPI 3.x_ specifications to SDK repos with types, tests, authentication
 
 ## Installation
 
-_Intstall via curl for macOS, Linux, Windows w/ WSL_
+_Install via curl (macOS, Linux, Windows w/ WSL)_
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
+```
+
+OR
+
+_Install via pip_
+
+```bash
+pip install sideko-py
 ```
 
 ## Usage
 
 ### Login
 
-You need a Sideko API Key to generate SDKs. Create one for **free** by:
+You need a Sideko API Key to generate SDKs. Create one for **free** by either:
 
-1. Signing up at [app.sideko.dev](http://app.sideko.dev) (`User Icon > API Keys`), or
-2. Logging in via the CLI:
+1. Signing up / logging in via the CLI, or
+2. Signing up / logging in at [app.sideko.dev](http://app.sideko.dev) (`User Icon > API Keys`)
 
 ```bash
 sideko login

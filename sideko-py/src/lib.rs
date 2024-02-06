@@ -51,7 +51,7 @@ pub fn generate_sdk(
     };
 
     let cmd_res = tokio::runtime::Runtime::new()
-        .expect("runtime")
+        .expect("Failed starting blocking async runtime")
         .block_on(generate::handle_generate(&params));
 
     match cmd_res {
@@ -66,9 +66,25 @@ pub fn generate_sdk(
     }
 }
 
+#[pyfunction]
+pub fn cli(py: Python) -> PyResult<()> {
+    // https://www.maturin.rs/bindings.html?highlight=scripts#both-binary-and-library
+    let args = py
+        .import("sys")?
+        .getattr("argv")?
+        .extract::<Vec<String>>()?;
+
+    let _ = tokio::runtime::Runtime::new()
+        .expect("Failed starting blocking async runtime")
+        .block_on(sideko::cli::cli(args));
+
+    Ok(())
+}
+
 #[pymodule]
 pub fn sideko_py(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(generate_sdk, m)?)?;
+    m.add_function(wrap_pyfunction!(cli, m)?)?;
     m.add_class::<Language>()?;
     m.add("SidekoError", py.get_type::<SidekoError>())?;
     Ok(())

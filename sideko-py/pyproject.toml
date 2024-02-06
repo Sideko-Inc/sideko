@@ -1,0 +1,24 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "sideko-py"
+requires-python = ">=3.8"
+classifiers = [
+    "Topic :: Software Development :: Code Generators",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Framework :: FastAPI",
+    "Framework :: Flask",
+
+]
+license = { file = "LICENSE" }
+dynamic = ["version"]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+
+[project.scripts]
+sideko = "sideko_py:cli"

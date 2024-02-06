@@ -1,13 +1,13 @@
 name: Build & Deploy Sideko CLI
 concurrency: deploy-cli-${{ github.ref }}
 on:
+  workflow_dispatch: {}
   push:
     tags:
       - "v*.*.*"
 env:
   CRATE_NAME: sideko
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GITHUB_REPOSITORY:
   RUST_BACKTRACE: 1
 
 jobs:
@@ -16,7 +16,8 @@ jobs:
     strategy:
       matrix:
         platform:
-          - os_name: Linux-x86_64
+          - release_for: Linux-x86_64
+            os_name: Linux-x86_64
             os: ubuntu-20.04
             target: x86_64-unknown-linux-musl
             bin: sideko
@@ -33,7 +34,8 @@ jobs:
             bin: sideko
             name: sideko-Darwin-x86_64.tar.gz
             command: both
-          - os_name: macOS-aarch64
+          - release_for: macOS-aarch64
+            os_name: macOS-aarch64
             os: macOS-latest
             target: aarch64-apple-darwin
             bin: sideko
@@ -55,7 +57,7 @@ jobs:
 
       - name: Install musl-tools on Linux
         run: sudo apt-get update --yes && sudo apt-get install --yes musl-tools
-        if: contains(matrix.platform.name, 'musl')
+        if: contains(matrix.platform.target, 'musl')
 
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v0
@@ -63,7 +65,7 @@ jobs:
           command: "build"
           target: ${{ matrix.platform.target }}
           toolchain: ${{ matrix.toolchain }}
-          args: "--locked --release"
+          args: "--locked --release --package sideko"
           strip: true
 
       - name: Package as archive
@@ -78,6 +80,7 @@ jobs:
           cd -
 
       - name: Publish release artifacts
+        if: "startsWith(github.ref, 'refs/tags/')"
         uses: actions/upload-artifact@v3
         with:
           name: sideko-${{ matrix.platform.os_name }}
@@ -86,10 +89,12 @@ jobs:
       - name: Generate SHA-256
         run: shasum -a 256 ${{ matrix.platform.name }}
         if: |
+          startsWith(github.ref, 'refs/tags/') &&
           matrix.toolchain == 'stable' &&
           matrix.platform.os == 'macOS-latest'
 
       - name: Publish GitHub release
+        if: "startsWith(github.ref, 'refs/tags/')"
         uses: softprops/action-gh-release@v1
         with:
           files: "sideko-*"

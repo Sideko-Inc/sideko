@@ -2,11 +2,11 @@
 members = ["core", "sideko-py"]
 resolver = "2"
 
-# [workspace.package]
-# homepage = "https://sideko.dev"
-# repository = "https://github.com/Sideko-Inc/sideko/tree/main/"
-# authors = [
-#     "Team Sideko <team@sideko.dev>",
-#     "Elias Posen <elias@sideko.dev>",
-#     "Patrick Kelly <patrick@sideko.dev",
-# ]
+[workspace.package]
+homepage = "https://sideko.dev"
+repository = "https://github.com/Sideko-Inc/sideko/tree/main/"
+authors = [
+    "Team Sideko <team@sideko.dev>",
+    "Elias Posen <elias@sideko.dev>",
+    "Patrick Kelly <patrick@sideko.dev",
+]

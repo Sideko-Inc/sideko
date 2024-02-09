@@ -6,7 +6,7 @@ use std::{path::PathBuf, str::FromStr};
 #[command(name = "Sideko CLI")]
 #[command(author = "Team Sideko <team@sideko.dev>")]
 #[command(about = "Authenticate & Generate SDKs with Sideko in seconds", long_about = None)]
-#[command(version = "0.1.0")]
+#[command(version)]
 #[command(propagate_version = true)]
 struct Cli {
     #[command(subcommand)]

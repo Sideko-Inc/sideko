@@ -43,10 +43,19 @@ impl Client {
         }
         req_builder
     }
-    pub fn login_url(&self) -> result::Result<serde_json::Value, error_enums::LoginUrlErrors> {
+    pub fn login_url(
+        &self,
+        request: LoginUrlRequest,
+    ) -> result::Result<serde_json::Value, error_enums::LoginUrlErrors> {
         let endpoint = "/api/auth/login-url";
         let url = format!("{}{}", self.base_url, endpoint);
-        let query_params: Vec<(&str, String)> = vec![];
+        let mut query_params: Vec<(&str, String)> = vec![];
+        if let Some(cli_output) = request.cli_output {
+            query_params.push(("cli_output", cli_output.clone()));
+        }
+        if let Some(cli_port) = request.cli_port {
+            query_params.push(("cli_port", format!("{}", &cli_port)));
+        }
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
         let authed_builder = self.builder_with_auth(unauthed_builder, &["ApiKeyAuth"]);
         let response = authed_builder.send().map_err(result::Error::Dispatch)?;

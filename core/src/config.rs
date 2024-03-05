@@ -65,8 +65,8 @@ pub fn get_base_url() -> String {
 /// Loads API key from environment
 pub fn get_api_key() -> Result<String> {
     std::env::var(API_KEY_ENV_VAR).map_err(|_| {
-        Error::ArgumentError(format!(
+        Error::arg(
             "Failed loading Sideko API key, ensure {API_KEY_ENV_VAR} is set in your environment or config file"
-        ))
+        )
     })
 }

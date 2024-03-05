@@ -21,7 +21,7 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
 
     // open browser for login
     let login_url = url::Url::parse_with_params(
-        &format!("{}/v1/auth/workos/url", config::get_base_url()),
+        &format!("{}/api/auth/login-url", config::get_base_url()),
         &[
             ("cli_output", output.to_str().unwrap_or(".")),
             ("cli_port", &port.to_string()),
@@ -53,7 +53,7 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
     let timeout = tokio::time::timeout(Duration::from_secs(wait_secs), server_future).await;
 
     if timeout.is_err() {
-        Err(Error::General(format!(
+        Err(Error::general(&format!(
             "Authentication was not completed within {wait_secs} seconds"
         )))
     } else {

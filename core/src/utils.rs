@@ -22,8 +22,7 @@ pub fn init_logger(level: log::Level) {
 
 /// Validates string is a valid URL
 pub fn validate_url(val: &str) -> Result<Url> {
-    url::Url::parse(val)
-        .map_err(|_| Error::ArgumentError(format!("URL `{val}` is not a valid URL")))
+    url::Url::parse(val).map_err(|_| Error::arg(&format!("URL `{val}` is not a valid URL")))
 }
 
 pub enum PathKind {
@@ -56,6 +55,6 @@ pub fn validate_path(buf: PathBuf, path_kind: &PathKind, allow_dne: bool) -> Res
     if allowed {
         Ok(())
     } else {
-        Err(Error::ArgumentError(err_msg))
+        Err(Error::arg(&err_msg))
     }
 }

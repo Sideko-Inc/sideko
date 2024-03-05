@@ -14,9 +14,13 @@ let client = Client::default().with_api_key_auth(&std::env::var("API_KEY").expec
 
 ```rust
 use sideko_api::Client;
+use sideko_api::request_types::*;
 let client = Client::default()
     .with_api_key_auth(&std::env::var("API_KEY").expect("API key not defined"));
-let response = client.login_url();
+let response = client
+    .login_url(LoginUrlRequest {
+        ..Default::default()
+    });
 ```
 # cli_check_updates
 

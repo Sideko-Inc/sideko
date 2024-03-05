@@ -26,6 +26,11 @@ impl Default for Client {
     }
 }
 impl Client {
+    pub fn with_base_url(mut self, base_url: &str) -> Self {
+        self.base_url = base_url.into();
+        self
+    }
+
     /// Authentication  builder function to store api-key credentials in the client
     pub fn with_api_key_auth(mut self, val: &str) -> Self {
         self.auth.insert(
@@ -57,10 +62,17 @@ impl Client {
     }
     pub async fn login_url(
         &self,
+        request: LoginUrlRequest,
     ) -> result::Result<serde_json::Value, error_enums::LoginUrlErrors> {
         let endpoint = "/api/auth/login-url";
         let url = format!("{}{}", self.base_url, endpoint);
-        let query_params: Vec<(&str, String)> = vec![];
+        let mut query_params: Vec<(&str, String)> = vec![];
+        if let Some(cli_output) = request.cli_output {
+            query_params.push(("cli_output", cli_output.clone()));
+        }
+        if let Some(cli_port) = request.cli_port {
+            query_params.push(("cli_port", format!("{}", &cli_port)));
+        }
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
         let authed_builder = self.builder_with_auth(unauthed_builder, &["ApiKeyAuth"]);
         let response = authed_builder

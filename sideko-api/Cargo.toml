@@ -1,8 +1,8 @@
 [package]
-name = "sidek_api"
+name = "sideko_api"
 version = "0.1.0"
 edition = "2021"
-description = "Rust API bindings - sidek_api"
+description = "Rust API bindings - sideko_api"
 license = "MIT"
 
 [lib]

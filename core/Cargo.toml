@@ -8,6 +8,10 @@ authors = [
 ]
 
 [dependencies]
+# Workspace
+sideko_api = { path = "../sideko-api" }
+
+# External
 anstyle = "1.0.3"
 bytes = "1.5.0"
 camino = "1.1.6"

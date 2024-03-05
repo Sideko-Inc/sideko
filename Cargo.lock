@@ -1652,19 +1652,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sidek_api"
-version = "0.1.0"
-dependencies = [
- "base64",
- "bytes",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "sideko"
 version = "0.3.0"
 dependencies = [
@@ -1683,6 +1670,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "sideko_api",
  "tar",
  "tokio",
  "url",
@@ -1695,6 +1683,20 @@ dependencies = [
  "log",
  "pyo3",
  "sideko",
+ "sideko_api",
+ "tokio",
+]
+
+[[package]]
+name = "sideko_api"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "bytes",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
  "tokio",
 ]
 

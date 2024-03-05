@@ -5,6 +5,7 @@ use pyo3::{
     pyclass, wrap_pyfunction, PyResult,
 };
 use sideko::{cmds::generate, config, utils};
+use sideko_api::schemas::GenerationLanguageEnum;
 use std::path::PathBuf;
 
 #[pyclass]
@@ -18,13 +19,13 @@ pub enum Language {
 }
 
 impl Language {
-    fn to_sideko_programming_lang(&self) -> generate::ProgrammingLanguage {
+    fn to_gen_lang(&self) -> GenerationLanguageEnum {
         match self {
-            Language::Python => generate::ProgrammingLanguage::Python,
-            Language::Ruby => generate::ProgrammingLanguage::Ruby,
-            Language::Typescript => generate::ProgrammingLanguage::Typescript,
-            Language::Rust => generate::ProgrammingLanguage::Rust,
-            Language::Go => generate::ProgrammingLanguage::Go,
+            Language::Python => GenerationLanguageEnum::Python,
+            Language::Ruby => GenerationLanguageEnum::Ruby,
+            Language::Typescript => GenerationLanguageEnum::Typescript,
+            Language::Rust => GenerationLanguageEnum::Rust,
+            Language::Go => GenerationLanguageEnum::Go,
         }
     }
 }
@@ -45,7 +46,7 @@ pub fn generate_sdk(
     let params = generate::GenerateSdkParams {
         source: generate::OpenApiSource::from(&source),
         destination: dest,
-        language: language.to_sideko_programming_lang(),
+        language: language.to_gen_lang(),
         base_url,
         package_name,
     };
@@ -55,13 +56,7 @@ pub fn generate_sdk(
         .block_on(generate::handle_generate(&params));
 
     match cmd_res {
-        Err(
-            sideko::result::Error::ArgumentError(msg)
-            | sideko::result::Error::General(msg)
-            | sideko::result::Error::ReqwestError(msg, ..)
-            | sideko::result::Error::ResponseError(msg, ..)
-            | sideko::result::Error::IoError(msg, ..),
-        ) => Err(SidekoError::new_err(msg)),
+        Err(e) => Err(SidekoError::new_err(e.error_msg())),
         Ok(_) => Ok(()),
     }
 }

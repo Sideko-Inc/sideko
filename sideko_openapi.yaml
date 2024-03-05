@@ -53,16 +53,6 @@ paths:
                 type: string
                 format: binary
 
-  # Authentication
-  /api/auth/login-url:
-    get:
-      summary: Get URL for initiating login process
-      operationId: login_url
-      security: []
-      responses:
-        "303":
-          description: URL for login
-
 components:
   securitySchemes:
     ApiKeyAuth:

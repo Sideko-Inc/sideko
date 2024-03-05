@@ -7,7 +7,10 @@ use rocket::{
 };
 use tokio::time::sleep;
 
-use crate::config::{self, API_KEY_ENV_VAR};
+use crate::{
+    config::{self, API_KEY_ENV_VAR},
+    utils::check_for_updates,
+};
 use crate::{
     result::{Error, Result},
     utils,
@@ -18,6 +21,9 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
     let port = 65530;
     let wait_secs = 180;
     utils::validate_path(output.clone(), &utils::PathKind::File, true)?;
+
+    // check for updates after all other validation passed
+    check_for_updates().await?;
 
     // open browser for login
     let login_url = url::Url::parse_with_params(

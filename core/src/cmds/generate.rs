@@ -1,7 +1,7 @@
 use crate::{
     config,
     result::{Error, Result},
-    utils,
+    utils::{self, check_for_updates},
 };
 use flate2::read::GzDecoder;
 use log::debug;
@@ -103,6 +103,9 @@ pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
     }
     utils::validate_path(params.destination.clone(), &utils::PathKind::Dir, true)?;
     let openapi = load_openapi(&params.source).await?;
+
+    // check for updates after all other validation passed
+    check_for_updates().await?;
 
     // make request
     let api_key = config::get_api_key()?;

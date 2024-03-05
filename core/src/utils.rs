@@ -1,8 +1,15 @@
 use std::path::PathBuf;
 
+use log::{debug, info, warn};
+use sideko_api::{
+    request_types as sideko_request_types, schemas as sideko_schemas, Client as SidekoClient,
+};
 use url::Url;
 
-use crate::result::{Error, Result};
+use crate::{
+    config,
+    result::{Error, Result},
+};
 
 pub fn init_logger(level: log::Level) {
     let _ = if level == log::Level::Trace {
@@ -56,5 +63,39 @@ pub fn validate_path(buf: PathBuf, path_kind: &PathKind, allow_dne: bool) -> Res
         Ok(())
     } else {
         Err(Error::arg(&err_msg))
+    }
+}
+
+pub async fn check_for_updates() -> Result<()> {
+    let cli_version = env!("CARGO_PKG_VERSION").to_string();
+    debug!("Checking for updates (CLI verion: {cli_version})...");
+
+    let client = SidekoClient::default().with_base_url(&config::get_base_url());
+    let request = sideko_request_types::CliCheckUpdatesRequest { cli_version };
+    let updates = client
+        .cli_check_updates(request)
+        .await
+        .map_err(|e| Error::api_with_debug("Failed checking for CLI updates", &format!("{e}")))?;
+
+    let mut can_continue = true;
+    for update in updates {
+        match update.severity {
+            sideko_schemas::CliUpdateSeverityEnum::Info => {
+                info!("Update info: {}", update.message);
+            }
+            sideko_schemas::CliUpdateSeverityEnum::Suggested => {
+                warn!("Update suggested: {}", update.message);
+            }
+            sideko_schemas::CliUpdateSeverityEnum::Required => {
+                warn!("Update required: {}", update.message);
+                can_continue = false;
+            }
+        }
+    }
+
+    if can_continue {
+        Ok(())
+    } else {
+        Err(Error::general("Must update CLI to continue"))
     }
 }

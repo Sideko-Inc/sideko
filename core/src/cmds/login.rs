@@ -1,10 +1,10 @@
-use std::{fs, path::PathBuf, time::Duration};
-
 use rocket::{
     get,
     response::{content::RawHtml, Redirect},
     routes, uri, Shutdown,
 };
+use sideko_api::{request_types as sideko_request_types, Client as SidekoClient};
+use std::{fs, path::PathBuf, time::Duration};
 use tokio::time::sleep;
 
 use crate::{
@@ -53,7 +53,7 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
         ..Default::default()
     };
     let server_future = rocket::build()
-        .mount("/", routes![login_callback, login_success])
+        .mount("/", routes![login_callback, login_success, login_failure])
         .configure(server_config)
         .launch();
     let timeout = tokio::time::timeout(Duration::from_secs(wait_secs), server_future).await;
@@ -70,17 +70,45 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
 // ------------ ROUTES ------------
 
 static SUCCESS_HTML: &str = include_str!("../html/success.html");
+static FAILURE_HTML: &str = include_str!("../html/failure.html");
 
 #[get("/success")]
 async fn login_success(shutdown: Shutdown) -> RawHtml<&'static str> {
+    log::info!("Authentication succeeded");
     shutdown.notify();
     RawHtml(SUCCESS_HTML)
 }
 
-#[get("/login?<key>&<output>")]
-async fn login_callback(key: String, output: String) -> Redirect {
-    let output_buff = PathBuf::from(&output);
-    fs::write(output_buff, format!("{API_KEY_ENV_VAR}={key}\n")).unwrap();
-    log::info!("Sideko API key saved in {output}");
-    Redirect::to(uri!(login_success))
+#[get("/failure")]
+async fn login_failure(shutdown: Shutdown) -> RawHtml<&'static str> {
+    shutdown.notify();
+    log::warn!("Authentication failed");
+    RawHtml(FAILURE_HTML)
+}
+
+#[get("/login?<code>&<output>")]
+async fn login_callback(code: String, output: String) -> Redirect {
+    // exchange code for api key
+    let client = SidekoClient::default().with_base_url(&config::get_base_url());
+    match client
+        .exchange_code_for_key(sideko_request_types::ExchangeCodeForKeyRequest {
+            code: code.clone(),
+        })
+        .await
+    {
+        Ok(key_res) => {
+            let output_buff = PathBuf::from(&output);
+            fs::write(
+                output_buff,
+                format!("{API_KEY_ENV_VAR}={}\n", key_res.api_key),
+            )
+            .unwrap();
+            log::info!("Sideko API key saved in {output}");
+            Redirect::to(uri!(login_success))
+        }
+        Err(e) => {
+            log::debug!("Failed exchanging code for key: {e}");
+            Redirect::to(uri!(login_failure))
+        }
+    }
 }

@@ -2,18 +2,22 @@ pub struct BinaryResponse {
     pub content: bytes::Bytes,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct ApiKey {
+    pub api_key: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct CliUpdate {
-    pub severity: CliUpdateSeverityEnum,
     pub message: String,
+    pub severity: CliUpdateSeverityEnum,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct StatelessGenerateSdk {
-    pub openapi: String,
-    pub language: GenerationLanguageEnum,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub package_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub base_url: Option<String>,
+    pub language: GenerationLanguageEnum,
+    pub openapi: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub package_name: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub enum CliUpdateSeverityEnum {

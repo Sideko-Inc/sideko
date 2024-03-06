@@ -8,6 +8,25 @@ security:
   - ApiKeyAuth: []
 
 paths:
+  # Auth exchange
+  /api/auth/exchange_key:
+    get:
+      summary: Exchange one-time auth key for api key
+      operationId: exchange_code_for_key
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      security: []
+      responses:
+        "200":
+          description: API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKey"
   # CLI-specific
   /api/cli/updates/{cli_version}:
     get:
@@ -62,6 +81,16 @@ components:
       description: API key authentication using the x-sideko-key header
 
   schemas:
+    ApiKey:
+      type: object
+      required:
+        - api_key
+      properties:
+        api_key:
+          type: string
+          example:
+            value: sk_live_1234abcd
+
     CliUpdate:
       type: object
       required:

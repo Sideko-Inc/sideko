@@ -1,10 +1,7 @@
 use crate::schemas::*;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
-pub struct LoginUrlRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cli_output: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cli_port: Option<i64>,
+pub struct ExchangeCodeForKeyRequest {
+    pub code: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct CliCheckUpdatesRequest {

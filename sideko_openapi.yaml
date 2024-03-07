@@ -1,0 +1,174 @@
+openapi: 3.0.3
+info:
+  title: Sideko API
+  description: Sideko API
+  version: "0.1.0"
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  # Auth exchange
+  /api/auth/exchange_key:
+    get:
+      summary: Exchange one-time auth key for api key
+      operationId: exchange_code_for_key
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      security: []
+      responses:
+        "200":
+          description: API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiKey"
+  # CLI-specific
+  /api/cli/updates/{cli_version}:
+    get:
+      summary: Checks if current CLI has updates
+      operationId: cli_check_updates
+      security: []
+      parameters:
+        - name: cli_version
+          required: true
+          in: path
+          schema:
+            type: string
+            description: semver of running cli
+            example:
+              value: 0.1.0
+      responses:
+        "200":
+          description: List of updates at different levels available for cli
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CliUpdate"
+
+  # Stateless Operations
+  /api/stateless/generate_sdk:
+    post:
+      summary: Generate SDK outside of Sideko's versioning flow
+      operationId: stateless_generate_sdk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatelessGenerateSdk"
+      responses:
+        "201":
+          description: Generated SDK source code as a .tar.gz
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-sideko-key
+      description: API key authentication using the x-sideko-key header
+
+  schemas:
+    ApiKey:
+      type: object
+      required:
+        - api_key
+      properties:
+        api_key:
+          type: string
+          example:
+            value: sk_live_1234abcd
+
+    CliUpdate:
+      type: object
+      required:
+        - severity
+        - message
+      properties:
+        severity:
+          $ref: "#/components/schemas/CliUpdateSeverity"
+        message:
+          type: string
+          example:
+            value: Requires update to 0.2.0 for security patch
+
+    CliUpdateSeverity:
+      type: string
+      enum:
+        - info
+        - suggested
+        - required
+
+    StatelessGenerateSdk:
+      type: object
+      required:
+        - language
+        - openapi
+      properties:
+        openapi:
+          type: string
+          description: OpenAPI content in YAML or JSON format
+          example:
+            description: OpenAPI Sample in YAML format
+            value: "openapi: 3.0.0 info: {title: Sample API, description: 'Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.', version: 0.1.9} servers: [{url: 'http://api.example.com/v1', description: 'Optional server description, e.g. Main (production) server'}, {url: 'http://staging-api.example.com', description: 'Optional server description, e.g. Internal staging server for testing'}] paths: {/users: {get: {summary: 'Returns a list of users.', description: 'Optional extended description in CommonMark or HTML.', responses: {'200': {description: 'A JSON array of user names', content: {application/json: {schema: {type: array, items: {type: string}}}}}}}}}"
+        language:
+          $ref: "#/components/schemas/GenerationLanguage"
+        package_name:
+          type: string
+          description: Name of the SDK package to be generated
+          example:
+            value: my_sdk
+        base_url:
+          type: string
+          description: The default base url to be set in the generated SDK
+          example:
+            value: http://127.0.0.1:8080/api
+
+    GenerationLanguage:
+      type: string
+      description: Programming languages available for SDK generation
+      enum:
+        - python
+        - go
+        - rust
+        - ruby
+        - typescript
+
+    # Error
+    ErrorCode:
+      type: string
+      description: Various error codes that are returned as part of a non-200 response
+      enum:
+        - forbidden
+        - unauthorized
+        - not_found
+        - internal_server_error
+        - Bad Request
+        - unavailable_subdomain
+        - invalid_openapi
+        - invalid_url
+
+    Error:
+      type: object
+      required:
+        - error
+        - description
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorCode"
+        description:
+          type: string
+          example:
+            value: Bad request

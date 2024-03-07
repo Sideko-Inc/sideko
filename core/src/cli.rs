@@ -1,6 +1,53 @@
 use crate::{cmds, config, result, styles, utils};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
+use sideko_api::schemas as sideko_schemas;
 use std::{path::PathBuf, str::FromStr};
+
+#[derive(Debug, Clone)]
+pub struct GenerationLanguageClap {
+    inner: sideko_schemas::GenerationLanguageEnum,
+}
+impl ValueEnum for GenerationLanguageClap {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            GenerationLanguageClap {
+                inner: sideko_schemas::GenerationLanguageEnum::Go,
+            },
+            GenerationLanguageClap {
+                inner: sideko_schemas::GenerationLanguageEnum::Ruby,
+            },
+            GenerationLanguageClap {
+                inner: sideko_schemas::GenerationLanguageEnum::Rust,
+            },
+            GenerationLanguageClap {
+                inner: sideko_schemas::GenerationLanguageEnum::Typescript,
+            },
+            GenerationLanguageClap {
+                inner: sideko_schemas::GenerationLanguageEnum::Python,
+            },
+        ]
+    }
+
+    fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
+        match &self.inner {
+            sideko_schemas::GenerationLanguageEnum::Go => {
+                Some(clap::builder::PossibleValue::new("go"))
+            }
+            sideko_schemas::GenerationLanguageEnum::Ruby => {
+                Some(clap::builder::PossibleValue::new("ruby"))
+            }
+            sideko_schemas::GenerationLanguageEnum::Rust => {
+                Some(clap::builder::PossibleValue::new("rust"))
+            }
+            sideko_schemas::GenerationLanguageEnum::Typescript => {
+                Some(clap::builder::PossibleValue::new("typescript"))
+            }
+            sideko_schemas::GenerationLanguageEnum::Python => {
+                Some(clap::builder::PossibleValue::new("python"))
+            }
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(name = "Sideko CLI")]
@@ -31,7 +78,7 @@ enum Commands {
     /// Log into Sideko interactively to obtain API key for generations
     Login {
         #[arg(long, short)]
-        /// Path to file to stored API key, default: $HOME/.sideko
+        /// Path to file to store API key, default: $HOME/.sideko
         output: Option<PathBuf>,
     },
     /// Generate a SDK client
@@ -39,7 +86,7 @@ enum Commands {
         /// Path or URL of OpenAPI spec
         openapi_source: String,
         /// Programming language to generate
-        language: cmds::generate::ProgrammingLanguage,
+        language: GenerationLanguageClap,
         #[arg(long, short)]
         /// Output path of generated source files, default: ./
         output: Option<PathBuf>,
@@ -80,9 +127,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
             } else {
                 std::env::current_dir().map_err(|e| {
                     log::debug!("CWD failure: {e}");
-                    result::Error::General(
-                        "Failed determining cwd for --output default".to_string(),
-                    )
+                    result::Error::general("Failed determining cwd for --output default")
                 })?
             };
 
@@ -90,7 +135,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
             let params = cmds::generate::GenerateSdkParams {
                 source: cmds::generate::OpenApiSource::from(openapi_source),
                 destination,
-                language: language.clone(),
+                language: language.inner.clone(),
                 base_url: base_url.clone(),
                 package_name: package_name.clone(),
             };
@@ -103,10 +148,9 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 o.clone()
             } else {
                 let home = std::env::var("HOME")
-                        .map_err(|_| result::Error::General("Unable to build default output path: $HOME is not set. Set environment variable or specify --output".to_string()))?;
-                let mut utf_buf = PathBuf::from_str(&home).map_err(|_| {
-                    result::Error::General("Unable to build default --output path".to_string())
-                })?;
+                        .map_err(|_| result::Error::general("Unable to build default output path: $HOME is not set. Set environment variable or specify --output"))?;
+                let mut utf_buf = PathBuf::from_str(&home)
+                    .map_err(|_| result::Error::general("Unable to build default --output path"))?;
                 utf_buf.push(".sideko");
                 utf_buf
             };
@@ -115,24 +159,12 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
         }
     };
 
-    match &cmd_res {
-        Err(result::Error::ArgumentError(message) | result::Error::General(message)) => {
-            log::error!("{message}")
+    if let Err(e) = &cmd_res {
+        if let Some(debug_msg) = e.debug_msg() {
+            log::debug!("{debug_msg}");
         }
-        Err(result::Error::ReqwestError(message, err)) => {
-            log::debug!("{err}");
-            log::error!("{message}");
-        }
-        Err(result::Error::ResponseError(message, res)) => {
-            log::debug!("Error response: {:?}", res);
-            log::error!("{message}");
-        }
-        Err(result::Error::IoError(message, err)) => {
-            log::debug!("{err}");
-            log::error!("{message}");
-        }
-        Ok(_) => (),
-    };
+        log::error!("{}", e.error_msg());
+    }
 
     cmd_res
 }

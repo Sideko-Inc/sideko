@@ -27,7 +27,7 @@ pub async fn handle_login(output: PathBuf) -> Result<()> {
 
     // open browser for login
     let login_url = url::Url::parse_with_params(
-        &format!("{}/api/auth/login-url", config::get_base_url()),
+        &format!("{}/api/auth/login_url", config::get_base_url()),
         &[
             ("cli_output", output.to_str().unwrap_or(".")),
             ("cli_port", &port.to_string()),

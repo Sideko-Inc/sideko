@@ -74,7 +74,7 @@ impl Client {
         &self,
         request: ExchangeCodeForKeyRequest,
     ) -> result::Result<ApiKey, error_enums::ExchangeCodeForKeyErrors> {
-        let endpoint = "/api/auth/exchange_key";
+        let endpoint = "/v1/auth/exchange_key";
         let url = format!("{}{}", self.base_url, endpoint);
         let mut query_params: Vec<(&str, String)> = vec![];
         query_params.push(("code", format!("{}", & request.code)));
@@ -112,7 +112,7 @@ impl Client {
         &self,
         request: CliCheckUpdatesRequest,
     ) -> result::Result<Vec<CliUpdate>, error_enums::CliCheckUpdatesErrors> {
-        let endpoint = format!("/api/cli/updates/{}", request.cli_version);
+        let endpoint = format!("/v1/cli/updates/{}", request.cli_version);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
@@ -149,7 +149,7 @@ impl Client {
         &self,
         request: StatelessGenerateSdkRequest,
     ) -> result::Result<BinaryResponse, error_enums::StatelessGenerateSdkErrors> {
-        let endpoint = "/api/stateless/generate_sdk";
+        let endpoint = "/v1/stateless/generate_sdk";
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);

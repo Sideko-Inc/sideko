@@ -17,7 +17,7 @@ pub struct Client {
 impl Default for Client {
     fn default() -> Self {
         Self {
-            base_url: "http://server-not-specified".to_string(),
+            base_url: "https://api.sideko.dev".to_string(),
             auth: BTreeMap::new(),
         }
     }

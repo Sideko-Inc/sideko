@@ -9,7 +9,7 @@ security:
 
 paths:
   # Auth exchange
-  /api/auth/exchange_key:
+  /v1/auth/exchange_key:
     get:
       summary: Exchange one-time auth key for api key
       operationId: exchange_code_for_key
@@ -28,7 +28,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiKey"
   # CLI-specific
-  /api/cli/updates/{cli_version}:
+  /v1/cli/updates/{cli_version}:
     get:
       summary: Checks if current CLI has updates
       operationId: cli_check_updates
@@ -53,7 +53,7 @@ paths:
                   $ref: "#/components/schemas/CliUpdate"
 
   # Stateless Operations
-  /api/stateless/generate_sdk:
+  /v1/stateless/generate_sdk:
     post:
       summary: Generate SDK outside of Sideko's versioning flow
       operationId: stateless_generate_sdk

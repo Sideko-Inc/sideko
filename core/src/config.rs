@@ -51,7 +51,7 @@ pub fn load_config(bufs: Vec<PathBuf>) {
 }
 
 pub static API_KEY_ENV_VAR: &str = "SIDEKO_API_KEY";
-pub static API_BASE_URL_ENV_VAR: &str = "SIDKEO_BASE_URL";
+pub static API_BASE_URL_ENV_VAR: &str = "SIDEKO_BASE_URL";
 
 pub fn get_base_url() -> String {
     let url = std::env::var(API_BASE_URL_ENV_VAR).unwrap_or("https://api.sideko.dev".to_string());

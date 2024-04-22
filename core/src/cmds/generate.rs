@@ -122,7 +122,12 @@ pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
             },
         })
         .await
-        .map_err(|e| Error::api_with_debug("Failed generating SDK", &format!("{e}")))?;
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed generating SDK. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })?;
 
     // unpack into destination
     let dest_str = params.destination.to_str().unwrap_or_default();

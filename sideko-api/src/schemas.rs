@@ -20,6 +20,11 @@ pub struct StatelessGenerateSdk {
     pub package_name: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct Error {
+    pub description: String,
+    pub error: ErrorCodeEnum,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub enum CliUpdateSeverityEnum {
     #[default]
     #[serde(rename = "info")]
@@ -61,6 +66,41 @@ impl std::fmt::Display for GenerationLanguageEnum {
             GenerationLanguageEnum::Rust => "rust",
             GenerationLanguageEnum::Ruby => "ruby",
             GenerationLanguageEnum::Typescript => "typescript",
+        };
+        write!(f, "{}", str_val)
+    }
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub enum ErrorCodeEnum {
+    #[default]
+    #[serde(rename = "forbidden")]
+    Forbidden,
+    #[serde(rename = "unauthorized")]
+    Unauthorized,
+    #[serde(rename = "not_found")]
+    NotFound,
+    #[serde(rename = "internal_server_error")]
+    InternalServerError,
+    #[serde(rename = "Bad Request")]
+    BadRequest,
+    #[serde(rename = "unavailable_subdomain")]
+    UnavailableSubdomain,
+    #[serde(rename = "invalid_openapi")]
+    InvalidOpenapi,
+    #[serde(rename = "invalid_url")]
+    InvalidUrl,
+}
+impl std::fmt::Display for ErrorCodeEnum {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_val = match self {
+            ErrorCodeEnum::Forbidden => "forbidden",
+            ErrorCodeEnum::Unauthorized => "unauthorized",
+            ErrorCodeEnum::NotFound => "not_found",
+            ErrorCodeEnum::InternalServerError => "internal_server_error",
+            ErrorCodeEnum::BadRequest => "Bad Request",
+            ErrorCodeEnum::UnavailableSubdomain => "unavailable_subdomain",
+            ErrorCodeEnum::InvalidOpenapi => "invalid_openapi",
+            ErrorCodeEnum::InvalidUrl => "invalid_url",
         };
         write!(f, "{}", str_val)
     }

@@ -9,4 +9,9 @@ pub enum ExchangeCodeForKeyErrors {}
 pub enum CliCheckUpdatesErrors {}
 /// Unifies the possible errors from stateless_generate_sdk
 #[derive(Debug, Clone)]
-pub enum StatelessGenerateSdkErrors {}
+pub enum StatelessGenerateSdkErrors {
+    /// Expected response body for status code 400
+    Status400(Error),
+    /// Expected response body for status code 401
+    Status401(Error),
+}

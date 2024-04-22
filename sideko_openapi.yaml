@@ -7,6 +7,9 @@ info:
 security:
   - ApiKeyAuth: []
 
+servers:
+  - url: https://api.sideko.dev
+
 paths:
   # Auth exchange
   /v1/auth/exchange_key:

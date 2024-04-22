@@ -2,7 +2,7 @@
 
 SDK client generator for HTTP APIs using OpenApi.
 
-Supports OpenApi 3 and can generate clients in Python, Ruby, Rust, Typescript, and Go.
+Supports OpenApi 3.x and can generate clients in Python, Ruby, Rust, Typescript, and Go.
 
 This package will also install the `sideko` CLI, find the CLI's documentation on our [Github](https://github.com/Sideko-Inc/sideko).
 
@@ -40,7 +40,7 @@ The API key is read from (in order of priority):
 import sideko_py
 
 # The openAPI source can be a URL, Path, or json/yml raw spec (as a string)
-openapi_src = "https://raw.githubusercontent.com/Sideko-Inc/sideko/main/specs/brewdog.yml"
+openapi_src = "https://your-spec.yml"
 sideko_py.generate_sdk(sideko_py.Language.Python, openapi_src, "./sdk-out")
 ```
 

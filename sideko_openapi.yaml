@@ -7,6 +7,9 @@ info:
 security:
   - ApiKeyAuth: []
 
+servers:
+  - url: https://api.sideko.dev
+
 paths:
   # Auth exchange
   /v1/auth/exchange_key:
@@ -71,6 +74,18 @@ paths:
               schema:
                 type: string
                 format: binary
+        "400":
+          description: Error generating SDK
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: 
+                $ref: "#/components/schemas/Error"
 
 components:
   securitySchemes:

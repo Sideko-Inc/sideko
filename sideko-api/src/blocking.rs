@@ -147,8 +147,47 @@ impl Client {
                 let data = BinaryResponse { content: res_bytes };
                 Ok(data)
             }
+            400 => {
+                let response_text = response.text().unwrap_or_default();
+                let data = serde_json::from_str::<Error>(&response_text).map_err(|serde_err| {
+                    result::Error::UnexpectedResponseBody {
+                        status_code,
+                        method: "POST".to_string(),
+                        url: url.to_string(),
+                        response_text,
+                        expected_signature: "Error".to_string(),
+                        serde_err,
+                    }
+                })?;
+                Err(result::Error::Response {
+                    status_code,
+                    method: "POST".to_string(),
+                    url: url.to_string(),
+                    data: error_enums::StatelessGenerateSdkErrors::Status400(data),
+                })
+            }
+            401 => {
+                let response_text = response.text().unwrap_or_default();
+                let data = serde_json::from_str::<Error>(&response_text).map_err(|serde_err| {
+                    result::Error::UnexpectedResponseBody {
+                        status_code,
+                        method: "POST".to_string(),
+                        url: url.to_string(),
+                        response_text,
+                        expected_signature: "Error".to_string(),
+                        serde_err,
+                    }
+                })?;
+                Err(result::Error::Response {
+                    status_code,
+                    method: "POST".to_string(),
+                    url: url.to_string(),
+                    data: error_enums::StatelessGenerateSdkErrors::Status401(data),
+                })
+            }
             _ => {
-                let expected_status_codes: Vec<String> = vec!["201".to_string()];
+                let expected_status_codes: Vec<String> =
+                    vec!["201".to_string(), "400".to_string(), "401".to_string()];
                 Err(result::Error::BlockingUnexpectedStatus {
                     status_code,
                     method: "".to_string(),

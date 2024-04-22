@@ -1,4 +1,7 @@
-use crate::{cmds, config, result, styles, utils};
+use crate::{
+    cmds::{self, generate::OpenApiSource},
+    config, result, styles, utils,
+};
 use clap::{Parser, Subcommand, ValueEnum};
 use sideko_api::schemas as sideko_schemas;
 use std::{path::PathBuf, str::FromStr};
@@ -138,6 +141,13 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 language: language.inner.clone(),
                 base_url: base_url.clone(),
                 package_name: package_name.clone(),
+            };
+
+            if let OpenApiSource::Raw(_) = params.source {
+                log::error!("Unable to parse OpenAPI as a URL or Path");
+                return Err(result::Error::general(
+                    "Unable to parse OpenAPI as a URL or Path",
+                ));
             };
 
             cmds::generate::handle_generate(&params).await

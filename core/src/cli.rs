@@ -1,9 +1,13 @@
 use crate::{
-    cmds::{self, generate::OpenApiSource},
+    cmds::{
+        self,
+        generate::{load_openapi, OpenApiSource},
+    },
     config, result, styles, utils,
 };
 use clap::{Parser, Subcommand, ValueEnum};
-use sideko_api::schemas as sideko_schemas;
+use sideko_api::schemas::{self as sideko_schemas, NewApiVersion};
+
 use std::{path::PathBuf, str::FromStr};
 
 #[derive(Debug, Clone)]
@@ -84,7 +88,16 @@ enum Commands {
         /// Path to file to store API key, default: $HOME/.sideko
         output: Option<PathBuf>,
     },
-    /// Generate a SDK client
+    /// Generate and configure SDK clients
+    #[command(subcommand)]
+    Sdk(SdkCommands),
+    /// Manage API specifications in the Sideko Portal
+    #[command(subcommand)]
+    Api(ApiCommands),
+}
+
+#[derive(Debug, Subcommand)]
+enum SdkCommands {
     Generate {
         /// Path or URL of OpenAPI spec
         openapi_source: String,
@@ -99,6 +112,21 @@ enum Commands {
         #[arg(long, short)]
         /// Name of SDK package to generate
         package_name: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum ApiCommands {
+    List {},
+    Create {
+        openapi_source: String,
+        semver: String,
+        title: Option<String>,
+    },
+    NewVersion {
+        api_id: uuid::Uuid,
+        openapi_source: String,
+        semver: String,
     },
 }
 
@@ -117,40 +145,44 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
     config::load_config(config::config_bufs(vec![cli.config]));
 
     let cmd_res = match &cli.command {
-        Commands::Generate {
-            openapi_source,
-            language,
-            output,
-            base_url,
-            package_name,
-        } => {
-            // Set defaults
-            let destination = if let Some(o) = output {
-                o.clone()
-            } else {
-                std::env::current_dir().map_err(|e| {
-                    log::debug!("CWD failure: {e}");
-                    result::Error::general("Failed determining cwd for --output default")
-                })?
-            };
+        Commands::Sdk(sdk_command) => {
+            match sdk_command {
+                SdkCommands::Generate {
+                    openapi_source,
+                    language,
+                    output,
+                    base_url,
+                    package_name,
+                } => {
+                    // Set defaults
+                    let destination = if let Some(o) = output {
+                        o.clone()
+                    } else {
+                        std::env::current_dir().map_err(|e| {
+                            log::debug!("CWD failure: {e}");
+                            result::Error::general("Failed determining cwd for --output default")
+                        })?
+                    };
 
-            // Construct cmd input params
-            let params = cmds::generate::GenerateSdkParams {
-                source: cmds::generate::OpenApiSource::from(openapi_source),
-                destination,
-                language: language.inner.clone(),
-                base_url: base_url.clone(),
-                package_name: package_name.clone(),
-            };
+                    // Construct cmd input params
+                    let params = cmds::generate::GenerateSdkParams {
+                        source: cmds::generate::OpenApiSource::from(openapi_source),
+                        destination,
+                        language: language.inner.clone(),
+                        base_url: base_url.clone(),
+                        package_name: package_name.clone(),
+                    };
 
-            if let OpenApiSource::Raw(_) = params.source {
-                log::error!("Unable to parse OpenAPI as a URL or Path");
-                return Err(result::Error::general(
-                    "Unable to parse OpenAPI as a URL or Path",
-                ));
-            };
+                    if let OpenApiSource::Raw(_) = params.source {
+                        log::error!("Unable to parse OpenAPI as a URL or Path");
+                        return Err(result::Error::general(
+                            "Unable to parse OpenAPI as a URL or Path",
+                        ));
+                    };
 
-            cmds::generate::handle_generate(&params).await
+                    cmds::generate::handle_generate(&params).await
+                }
+            }
         }
         Commands::Login { output } => {
             // Set defaults
@@ -167,6 +199,39 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
 
             cmds::login::handle_login(output_path).await
         }
+        Commands::Api(api_command) => match api_command {
+            ApiCommands::List {} => cmds::apis::handle_list_apis().await,
+            ApiCommands::Create {
+                openapi_source,
+                semver,
+                title,
+            } => {
+                cmds::apis::create_new_api_project(
+                    &NewApiVersion {
+                        semver: semver.clone(),
+                        openapi: load_openapi(&cmds::generate::OpenApiSource::from(openapi_source))
+                            .await?,
+                    },
+                    title.clone(),
+                )
+                .await
+            }
+            ApiCommands::NewVersion {
+                api_id,
+                openapi_source,
+                semver,
+            } => {
+                cmds::apis::create_new_api_project_version(
+                    *api_id,
+                    &NewApiVersion {
+                        openapi: load_openapi(&cmds::generate::OpenApiSource::from(openapi_source))
+                            .await?,
+                        semver: semver.clone(),
+                    },
+                )
+                .await
+            }
+        },
     };
 
     if let Err(e) = &cmd_res {

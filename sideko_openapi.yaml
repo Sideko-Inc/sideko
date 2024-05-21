@@ -43,8 +43,7 @@ paths:
           schema:
             type: string
             description: semver of running cli
-            example:
-              value: 0.1.0
+            example: 0.1.0
       responses:
         "200":
           description: List of updates at different levels available for cli
@@ -78,13 +77,100 @@ paths:
           description: Error generating SDK
           content:
             application/json:
-              schema: 
+              schema:
                 $ref: "#/components/schemas/Error"
         "401":
           description: Unauthorized
           content:
             application/json:
-              schema: 
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # API Project
+  /v1/api_project:
+    post:
+      summary: Create a new API Project
+      operationId: create_api_project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewApiProject"
+      responses:
+        "201":
+          description: API Project created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiProject"
+    get:
+      summary: List API Projects
+      operationId: list_api_projects
+      responses:
+        "200":
+          description: List of API projects you have access to
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiProject"
+
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # API Project Version
+  /v1/api_project/{project_id}/version:
+    parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: List versions of a specific API Project
+      operationId: list_api_versions
+      responses:
+        "200":
+          description: A JSON array of versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiVersion"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create a new version for a specific API Project
+      operationId: create_api_version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewApiVersion"
+      responses:
+        "201":
+          description: Version created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiVersion"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
                 $ref: "#/components/schemas/Error"
 
 components:
@@ -187,3 +273,77 @@ components:
           type: string
           example:
             value: Bad request
+
+    ApiProject:
+      type: object
+      required:
+        - id
+        - title
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    NewApiProject:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          example: A New API Project
+
+    ApiVersion:
+      type: object
+      required:
+        - id
+        - semver
+        - api_project_id
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        semver:
+          type: string
+        api_project_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+
+    NewApiVersion:
+      type: object
+      required:
+        - semver
+        - openapi
+      properties:
+        semver:
+          type: string
+          description: Semantic Version of the API
+        openapi:
+          type: string
+          description: An OpenAPI Specification in JSON or YAML Format
+
+    OpenAPI:
+      type: object
+      required:
+        - openapi
+        - is_valid
+      properties:
+        openapi:
+          type: string
+          description: OpenAPI content as a string in JSON format
+          example:
+            description: OpenAPI Sample in YAML format
+            value: "openapi: 3.0.0 info: {title: Sample API, description: 'Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.', version: 0.1.9} servers: [{url: 'http://api.example.com/v1', description: 'Optional server description, e.g. Main (production) server'}, {url: 'http://staging-api.example.com', description: 'Optional server description, e.g. Internal staging server for testing'}] paths: {/users: {get: {summary: 'Returns a list of users.', description: 'Optional extended description in CommonMark or HTML.', responses: {'200': {description: 'A JSON array of user names', content: {application/json: {schema: {type: array, items: {type: string}}}}}}}}}"
+        is_valid:
+          type: boolean
+          description: Whether or not your OpenAPI Specification is valid

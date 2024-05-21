@@ -49,7 +49,7 @@ struct SidekoApiErr {
     data: Option<serde_json::Value>,
 }
 
-async fn load_openapi(source: &OpenApiSource) -> Result<String> {
+pub async fn load_openapi(source: &OpenApiSource) -> Result<String> {
     match source {
         OpenApiSource::Url(url) => {
             debug!("Loading OpenAPI spec from url: {url}");

@@ -19,12 +19,11 @@ jobs:
         with:
           python-version: 3.8
       - uses: dtolnay/rust-toolchain@stable
-      - name: Build wheels - x86_64
+      - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
-          target: x86_64
           args: --release --out dist --sdist -m sideko-py/Cargo.toml
-      - name: Install built wheel - x86_64
+      - name: Install built wheel
         run: |
           pip install sideko-py --no-index --find-links dist --force-reinstall
           python -c "import sideko_py"

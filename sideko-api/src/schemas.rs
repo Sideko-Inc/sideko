@@ -2,6 +2,24 @@ pub struct BinaryResponse {
     pub content: bytes::Bytes,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct ApiProject {
+    pub created_at: String,
+    pub id: String,
+    pub title: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct Error {
+    pub description: String,
+    pub error: ErrorCodeEnum,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct ApiVersion {
+    pub api_project_id: String,
+    pub created_at: String,
+    pub id: String,
+    pub semver: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ApiKey {
     pub api_key: String,
 }
@@ -9,6 +27,15 @@ pub struct ApiKey {
 pub struct CliUpdate {
     pub message: String,
     pub severity: CliUpdateSeverityEnum,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct NewApiProject {
+    pub title: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct NewApiVersion {
+    pub openapi: String,
+    pub semver: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct StatelessGenerateSdk {
@@ -20,9 +47,39 @@ pub struct StatelessGenerateSdk {
     pub package_name: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
-pub struct Error {
-    pub description: String,
-    pub error: ErrorCodeEnum,
+pub enum ErrorCodeEnum {
+    #[default]
+    #[serde(rename = "forbidden")]
+    Forbidden,
+    #[serde(rename = "unauthorized")]
+    Unauthorized,
+    #[serde(rename = "not_found")]
+    NotFound,
+    #[serde(rename = "internal_server_error")]
+    InternalServerError,
+    #[serde(rename = "Bad Request")]
+    BadRequest,
+    #[serde(rename = "unavailable_subdomain")]
+    UnavailableSubdomain,
+    #[serde(rename = "invalid_openapi")]
+    InvalidOpenapi,
+    #[serde(rename = "invalid_url")]
+    InvalidUrl,
+}
+impl std::fmt::Display for ErrorCodeEnum {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str_val = match self {
+            ErrorCodeEnum::Forbidden => "forbidden",
+            ErrorCodeEnum::Unauthorized => "unauthorized",
+            ErrorCodeEnum::NotFound => "not_found",
+            ErrorCodeEnum::InternalServerError => "internal_server_error",
+            ErrorCodeEnum::BadRequest => "Bad Request",
+            ErrorCodeEnum::UnavailableSubdomain => "unavailable_subdomain",
+            ErrorCodeEnum::InvalidOpenapi => "invalid_openapi",
+            ErrorCodeEnum::InvalidUrl => "invalid_url",
+        };
+        write!(f, "{}", str_val)
+    }
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub enum CliUpdateSeverityEnum {
@@ -66,41 +123,6 @@ impl std::fmt::Display for GenerationLanguageEnum {
             GenerationLanguageEnum::Rust => "rust",
             GenerationLanguageEnum::Ruby => "ruby",
             GenerationLanguageEnum::Typescript => "typescript",
-        };
-        write!(f, "{}", str_val)
-    }
-}
-#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
-pub enum ErrorCodeEnum {
-    #[default]
-    #[serde(rename = "forbidden")]
-    Forbidden,
-    #[serde(rename = "unauthorized")]
-    Unauthorized,
-    #[serde(rename = "not_found")]
-    NotFound,
-    #[serde(rename = "internal_server_error")]
-    InternalServerError,
-    #[serde(rename = "Bad Request")]
-    BadRequest,
-    #[serde(rename = "unavailable_subdomain")]
-    UnavailableSubdomain,
-    #[serde(rename = "invalid_openapi")]
-    InvalidOpenapi,
-    #[serde(rename = "invalid_url")]
-    InvalidUrl,
-}
-impl std::fmt::Display for ErrorCodeEnum {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let str_val = match self {
-            ErrorCodeEnum::Forbidden => "forbidden",
-            ErrorCodeEnum::Unauthorized => "unauthorized",
-            ErrorCodeEnum::NotFound => "not_found",
-            ErrorCodeEnum::InternalServerError => "internal_server_error",
-            ErrorCodeEnum::BadRequest => "Bad Request",
-            ErrorCodeEnum::UnavailableSubdomain => "unavailable_subdomain",
-            ErrorCodeEnum::InvalidOpenapi => "invalid_openapi",
-            ErrorCodeEnum::InvalidUrl => "invalid_url",
         };
         write!(f, "{}", str_val)
     }

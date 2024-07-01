@@ -81,13 +81,13 @@ The API key is read from (in order of priority):
 ### Generate
 
 ```
-sideko generate https://raw.githubusercontent.com/Sideko-Inc/sideko/main/sideko_openapi.yaml python
+sideko sdk generate https://raw.githubusercontent.com/Sideko-Inc/sideko/main/sideko_openapi.yaml python
 ```
 
 - The OpenAPI source can be a path to a local `.json` or `.yaml` file, a URL, or the raw spec as a string.
 - Language options: `python`, `typescript`, `ruby`, `rust`, or `go`
 
-_Run `sideko generate --help` to list all options._
+_Run `sideko --help` to list all options._
 
 ## Excited about the project?
 

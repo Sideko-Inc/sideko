@@ -41,6 +41,7 @@ pub struct GenerateSdkParams {
     // options
     pub base_url: Option<String>,
     pub package_name: Option<String>,
+    pub tests_mock_server_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -119,6 +120,7 @@ pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
                 language: params.language.clone(),
                 package_name: params.package_name.clone(),
                 base_url: params.base_url.clone(),
+                tests_mock_server_url: params.tests_mock_server_url.clone(),
             },
         })
         .await

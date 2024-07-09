@@ -39,6 +39,7 @@ pub fn generate_sdk(
     dest: PathBuf,
     base_url: Option<String>,
     package_name: Option<String>,
+    tests_mock_server_url: Option<String>,
 ) -> PyResult<()> {
     utils::init_logger(log::Level::Warn);
     config::load_config(config::config_bufs(vec![]));
@@ -49,6 +50,7 @@ pub fn generate_sdk(
         language: language.to_gen_lang(),
         base_url,
         package_name,
+        tests_mock_server_url,
     };
 
     let cmd_res = tokio::runtime::Runtime::new()

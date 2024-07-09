@@ -107,6 +107,7 @@ let response = client
                 }
             ),
             package_name: Some(serde_json::json!({ "value" : "my_sdk" })),
+            tests_mock_server_url: Some("http://api.sideko.dev/mock".to_string()),
         },
     });
 ```

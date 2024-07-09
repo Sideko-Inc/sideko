@@ -112,6 +112,9 @@ enum SdkCommands {
         #[arg(long, short)]
         /// Name of SDK package to generate
         package_name: Option<String>,
+        #[arg(long, short)]
+        /// URL of Sideko Mock Server for generated testing suite
+        tests_mock_server_url: Option<String>,
     },
 }
 
@@ -153,6 +156,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                     output,
                     base_url,
                     package_name,
+                    tests_mock_server_url,
                 } => {
                     // Set defaults
                     let destination = if let Some(o) = output {
@@ -171,6 +175,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         language: language.inner.clone(),
                         base_url: base_url.clone(),
                         package_name: package_name.clone(),
+                        tests_mock_server_url: tests_mock_server_url.clone(),
                     };
 
                     if let OpenApiSource::Raw(_) = params.source {

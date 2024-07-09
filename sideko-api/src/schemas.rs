@@ -45,6 +45,8 @@ pub struct StatelessGenerateSdk {
     pub openapi: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub package_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tests_mock_server_url: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub enum ErrorCodeEnum {
@@ -65,6 +67,8 @@ pub enum ErrorCodeEnum {
     InvalidOpenapi,
     #[serde(rename = "invalid_url")]
     InvalidUrl,
+    #[serde(rename = "insufficient_features")]
+    InsufficientFeatures,
 }
 impl std::fmt::Display for ErrorCodeEnum {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -77,6 +81,7 @@ impl std::fmt::Display for ErrorCodeEnum {
             ErrorCodeEnum::UnavailableSubdomain => "unavailable_subdomain",
             ErrorCodeEnum::InvalidOpenapi => "invalid_openapi",
             ErrorCodeEnum::InvalidUrl => "invalid_url",
+            ErrorCodeEnum::InsufficientFeatures => "insufficient_features",
         };
         write!(f, "{}", str_val)
     }

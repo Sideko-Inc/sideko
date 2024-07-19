@@ -54,7 +54,8 @@ pub static API_KEY_ENV_VAR: &str = "SIDEKO_API_KEY";
 pub static API_BASE_URL_ENV_VAR: &str = "SIDEKO_BASE_URL";
 
 pub fn get_base_url() -> String {
-    let url = std::env::var(API_BASE_URL_ENV_VAR).unwrap_or("https://api.sideko.dev".to_string());
+    let url =
+        std::env::var(API_BASE_URL_ENV_VAR).unwrap_or("https://api.sideko.dev/v1".to_string());
     if url.ends_with('/') {
         url[0..url.len() - 1].to_string()
     } else {

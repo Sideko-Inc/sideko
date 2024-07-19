@@ -3,10 +3,12 @@ use crate::{
     result::{Error, Result},
     utils::check_for_updates,
 };
+use prettytable::Table;
+use prettytable::{format, row};
 use serde_json::Value as JsonValue;
 use serde_yaml::Value as YamlValue;
 use sideko_api::{
-    request_types::{CreateApiProjectRequest, CreateApiVersionRequest},
+    request_types::{CreateApiProjectRequest, CreateApiVersionRequest, ListApiVersionsRequest},
     schemas::{NewApiProject, NewApiVersion},
     Client as SidekoClient,
 };
@@ -42,13 +44,38 @@ pub async fn handle_list_apis() -> Result<()> {
     })?;
 
     log::info!("Listing API Projects...");
+    println!("\n");
     for api_project in api_projects.clone().into_iter() {
         let id = api_project.id;
         let title = api_project.title;
-        log::info!("title: {title} id: {id}");
-    }
-    if api_projects.is_empty() {
-        log::warn!("No API Projects to list");
+
+        let mut table = Table::new();
+        table.set_format(*format::consts::FORMAT_BOX_CHARS);
+
+        let versions = client
+            .list_api_versions(ListApiVersionsRequest {
+                project_id: id.clone(),
+            })
+            .await
+            .map_err(|e| {
+                Error::api_with_debug(
+                    "Failed listing API project versions. Re-run the command with -v to debug.",
+                    &format!("{e}"),
+                )
+            })?;
+
+        if versions.is_empty() {
+            table.add_row(row!["No versions available"]);
+        } else {
+            table.add_row(row![b -> "Semver" , b -> "Version ID"]);
+            for version in &versions {
+                table.add_row(row![version.semver, version.id]);
+            }
+        }
+
+        println!("{}\nID: {}", title, id);
+        table.printstd();
+        println!("\n");
     }
 
     Ok(())

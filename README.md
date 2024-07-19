@@ -6,54 +6,35 @@
 </p>
 
 <p align="center">
-  Accelerate API Adoption
+  Put the spotlight on your API
 </p>
 
 <p align="center">
-  <a href="https://sideko.dev"><strong>Site</strong></a>
+  <a href="https://sideko.dev"><strong>Website</strong></a>
 </p>
 <br/>
 
-## Generate SDKs for your API
+## Generate API developer experience tools with Sideko
 
-<img width="1209" alt="generate-cmd" src="assets/generate_cmd.png">
-
-From _OpenAPI 3.x_ specifications to SDK repos with types, tests, authentication, and code snippets in seconds!
-
-| Language   | Supported |
-| ---------- | :-------: |
-| Python     |    ✅     |
-| Ruby       |    ✅     |
-| Go         |    ✅     |
-| Typescript |    ✅     |
-| Rust       |    ✅     |
-| C#         |    🚧     |
-| Java       |    🚧     |
-
-| Feature      | Supported |
-| ------------ | :-------: |
-| All Auth     |    ✅     |
-| Native Types |    ✅     |
-| Tests        |    ✅     |
-| Form data    |    ✅     |
-| Files        |    ✅     |
-| Websockets   |    🚧     |
-| Graphql      |    🚧     |
+Use _OpenAPI 3.x_ specifications to generate:
+- SDKs with types, tests, authentication, and code snippets
+- Mock servers that mimic the behavior of your API
+- Hosted API Documentation that stays up to date automatically
 
 ## Installation
-
-_Install via curl (macOS, Linux, Windows w/ WSL)_
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
-```
-
-OR
 
 _Install via pip_
 
 ```bash
 pip install sideko-py
+```
+
+OR
+
+_Install via curl (macOS, Linux, Windows w/ WSL)_
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
 ```
 
 ## Usage
@@ -78,16 +59,43 @@ The API key is read from (in order of priority):
 - `$HOME/.sideko`
 - `SIDEKO_API_KEY` environment variable
 
-### Generate
+## Free features
 
-```
-sideko sdk generate https://raw.githubusercontent.com/Sideko-Inc/sideko/main/sideko_openapi.yaml python
+### Generate a Stateless SDK
+
+| Language   | Supported |
+| ---------- | :-------: |
+| Python     |    ✅     |
+| Ruby       |    ✅     |
+| Go         |    ✅     |
+| Typescript |    ✅     |
+| Rust       |    ✅     |
+| C#         |    🚧     |
+| Java       |    🚧     |
+
+```bash
+sideko sdk generate (your Swagger/OpenAPI spec) python
 ```
 
 - The OpenAPI source can be a path to a local `.json` or `.yaml` file, a URL, or the raw spec as a string.
 - Language options: `python`, `typescript`, `ruby`, `rust`, or `go`
 
 _Run `sideko --help` to list all options._
+
+## Enterprise features
+
+### API Specification Management
+Use the api subcommand to learn how to manage your API specifications and create mock servers
+```
+sideko api
+```
+
+### Documentation Management
+Use the doc subcommand to learn how to trigger updates to API documentation 
+```
+sideko doc
+```
+
 
 ## Excited about the project?
 

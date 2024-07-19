@@ -91,9 +91,12 @@ enum Commands {
     /// Generate and configure SDK clients
     #[command(subcommand)]
     Sdk(SdkCommands),
-    /// Manage API specifications in the Sideko Portal
+    /// Manage API specifications
     #[command(subcommand)]
     Api(ApiCommands),
+    /// Manage API documentation projects
+    #[command(subcommand)]
+    Doc(DocCommands),
 }
 
 #[derive(Debug, Subcommand)]
@@ -125,11 +128,25 @@ enum ApiCommands {
         openapi_source: String,
         semver: String,
         title: Option<String>,
+        notes: Option<String>,
     },
     NewVersion {
         api_id: uuid::Uuid,
         openapi_source: String,
         semver: String,
+        /// Plain text or HTML notes about the new API specification version
+        notes: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum DocCommands {
+    List {},
+    Deploy {
+        doc_project_id: uuid::Uuid,
+        #[arg(long, short)]
+        /// Deploy to production environment
+        prod: bool,
     },
 }
 
@@ -210,12 +227,15 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 openapi_source,
                 semver,
                 title,
+                notes,
             } => {
                 cmds::apis::create_new_api_project(
                     &NewApiVersion {
                         semver: semver.clone(),
                         openapi: load_openapi(&cmds::generate::OpenApiSource::from(openapi_source))
                             .await?,
+                        mock_server_enabled: Some(true), // default to turning on the mock server
+                        notes: notes.clone(),
                     },
                     title.clone(),
                 )
@@ -225,6 +245,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 api_id,
                 openapi_source,
                 semver,
+                notes,
             } => {
                 cmds::apis::create_new_api_project_version(
                     *api_id,
@@ -232,10 +253,19 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         openapi: load_openapi(&cmds::generate::OpenApiSource::from(openapi_source))
                             .await?,
                         semver: semver.clone(),
+                        mock_server_enabled: Some(true),
+                        notes: notes.clone(),
                     },
                 )
                 .await
             }
+        },
+        Commands::Doc(doc_command) => match doc_command {
+            DocCommands::List {} => cmds::docs::handle_list_docs().await,
+            DocCommands::Deploy {
+                doc_project_id,
+                prod,
+            } => cmds::docs::handle_deploy_docs(doc_project_id, prod).await,
         },
     };
 

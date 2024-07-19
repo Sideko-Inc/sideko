@@ -75,20 +75,22 @@ pub async fn check_for_updates() -> Result<()> {
     let updates = client
         .cli_check_updates(request)
         .await
-        .map_err(|e| Error::api_with_debug("Failed checking for CLI updates", &format!("{e}")))?;
+        .map_err(|e| info!("Failed checking for CLI updates: {}", e));
 
     let mut can_continue = true;
-    for update in updates {
-        match update.severity {
-            sideko_schemas::CliUpdateSeverityEnum::Info => {
-                info!("Update info: {}", update.message);
-            }
-            sideko_schemas::CliUpdateSeverityEnum::Suggested => {
-                warn!("Update suggested: {}", update.message);
-            }
-            sideko_schemas::CliUpdateSeverityEnum::Required => {
-                warn!("Update required: {}", update.message);
-                can_continue = false;
+    if let Ok(updates) = updates {
+        for update in updates {
+            match update.severity {
+                sideko_schemas::CliUpdateSeverityEnum::Info => {
+                    info!("Update info: {}", update.message);
+                }
+                sideko_schemas::CliUpdateSeverityEnum::Suggested => {
+                    warn!("Update suggested: {}", update.message);
+                }
+                sideko_schemas::CliUpdateSeverityEnum::Required => {
+                    warn!("Update required: {}", update.message);
+                    can_continue = false;
+                }
             }
         }
     }

@@ -94,7 +94,7 @@ enum Commands {
     /// Manage API specifications
     #[command(subcommand)]
     Api(ApiCommands),
-    /// Manage API documentation projects
+    /// Manage documentation projects
     #[command(subcommand)]
     Doc(DocCommands),
 }
@@ -123,29 +123,34 @@ enum SdkCommands {
 
 #[derive(Debug, Subcommand)]
 enum ApiCommands {
+    /// List the existing project titles and ids
     List {},
+    /// Create a new project
     Create {
         openapi_source: String,
         semver: String,
         title: Option<String>,
         notes: Option<String>,
     },
+    /// Upload a new version to an existing project
     NewVersion {
         api_id: uuid::Uuid,
         openapi_source: String,
         semver: String,
-        /// Plain text or HTML notes about the new API specification version
+        /// Plain text or HTML notes about the new API specification
         notes: Option<String>,
     },
 }
 
 #[derive(Debug, Subcommand)]
 enum DocCommands {
+    /// List all titles and ids
     List {},
+    /// Trigger a deployment to preview or production
     Deploy {
         doc_project_id: uuid::Uuid,
         #[arg(long, short)]
-        /// Deploy to production environment
+        /// Flag to deploy to production environment. If not set, it will deploy to preview
         prod: bool,
     },
 }

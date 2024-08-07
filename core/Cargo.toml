@@ -39,3 +39,5 @@ tokio = { version = "1.35.1", features = ["time"] }
 url = "2.4.1"
 uuid = "1.8.0"
 prettytable = "0.10.0"
+semver = "1.0.23"
+heck = "0.5.0"

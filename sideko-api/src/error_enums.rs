@@ -46,6 +46,16 @@ pub enum DeleteGuideHrefErrors {
 pub enum DeleteServiceAccountErrors {
     ApiError(serde_json::Value),
 }
+/// Unifies the possible errors from health_check
+#[derive(Debug, Clone)]
+pub enum HealthCheckErrors {
+    ApiError(serde_json::Value),
+}
+/// Unifies the possible errors from ping_check
+#[derive(Debug, Clone)]
+pub enum PingCheckErrors {
+    ApiError(serde_json::Value),
+}
 /// Unifies the possible errors from list_api_links
 #[derive(Debug, Clone)]
 pub enum ListApiLinksErrors {
@@ -143,9 +153,9 @@ pub enum GetDeploymentErrors {
 pub enum ListDocProjectMembersErrors {
     ApiError(serde_json::Value),
 }
-/// Unifies the possible errors from get_doc_project_version
+/// Unifies the possible errors from check_preview
 #[derive(Debug, Clone)]
-pub enum GetDocProjectVersionErrors {
+pub enum CheckPreviewErrors {
     ApiError(serde_json::Value),
 }
 /// Unifies the possible errors from get_doc_project_theme
@@ -313,6 +323,16 @@ pub enum CreateOrganizationErrors {
 pub enum UploadAssetsErrors {
     ApiError(serde_json::Value),
 }
+/// Unifies the possible errors from create_sdk
+#[derive(Debug, Clone)]
+pub enum CreateSdkErrors {
+    ApiError(serde_json::Value),
+}
+/// Unifies the possible errors from update_sdk
+#[derive(Debug, Clone)]
+pub enum UpdateSdkErrors {
+    ApiError(serde_json::Value),
+}
 /// Unifies the possible errors from stateless_generate_sdk
 #[derive(Debug, Clone)]
 pub enum StatelessGenerateSdkErrors {
@@ -326,6 +346,11 @@ pub enum InviteUserErrors {
 /// Unifies the possible errors from create_service_account
 #[derive(Debug, Clone)]
 pub enum CreateServiceAccountErrors {
+    ApiError(serde_json::Value),
+}
+/// Unifies the possible errors from vercel_webhook
+#[derive(Debug, Clone)]
+pub enum VercelWebhookErrors {
     ApiError(serde_json::Value),
 }
 /// Unifies the possible errors from update_doc_project_theme

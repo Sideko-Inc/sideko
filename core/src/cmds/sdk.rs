@@ -8,9 +8,11 @@ use log::debug;
 
 use serde::{Deserialize, Serialize};
 use sideko_api::{
-    request_types as sideko_request_types, schemas as sideko_schemas, Client as SidekoClient,
+    request_types::{self as sideko_request_types, UpdateSdkRequest},
+    schemas::{self as sideko_schemas, GenerationLanguageEnum, UpdateSdkProject},
+    Client as SidekoClient,
 };
-use std::{fs, io::Cursor, path::PathBuf};
+use std::{fs, io::Cursor, path::PathBuf, process::Command};
 use tar::Archive;
 
 pub enum OpenApiSource {
@@ -37,7 +39,7 @@ impl From<&String> for OpenApiSource {
 pub struct GenerateSdkParams {
     pub source: OpenApiSource,
     pub destination: PathBuf,
-    pub language: sideko_schemas::GenerationLanguageEnum,
+    pub language: GenerationLanguageEnum,
     // options
     pub base_url: Option<String>,
     pub package_name: Option<String>,
@@ -95,8 +97,11 @@ pub async fn load_openapi(source: &OpenApiSource) -> Result<String> {
     }
 }
 
-pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
-    log::info!("Generating Sideko SDK in {}", &params.language.to_string());
+pub async fn handle_try(params: &GenerateSdkParams) -> Result<()> {
+    log::info!(
+        "Generating unmanaged Sideko SDK in {}",
+        &params.language.to_string()
+    );
 
     // validate input
     if let Some(base) = &params.base_url {
@@ -146,5 +151,120 @@ pub async fn handle_generate(params: &GenerateSdkParams) -> Result<()> {
         "Successfully generated SDK in {}, saved to {dest_str}",
         params.language.to_string(),
     );
+    Ok(())
+}
+
+pub async fn handle_update(
+    repo_path: &PathBuf,
+    api_project_version_id: &str,
+    language: &GenerationLanguageEnum,
+    semver: &str,
+) -> Result<()> {
+    log::info!(
+        "Creating a git patch file for the new version of your Sideko Managed SDK in {}",
+        &language.to_string().to_uppercase()
+    );
+
+    // Make request
+    let api_key = config::get_api_key()?;
+    let client = SidekoClient::default()
+        .with_base_url(&config::get_base_url())
+        .with_api_key_auth(&api_key);
+    let patch_response = client
+        .update_sdk(UpdateSdkRequest {
+            data: UpdateSdkProject {
+                api_project_version_id: api_project_version_id.into(),
+                language: language.clone(),
+                semver: semver.into(),
+            },
+        })
+        .await
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed updating SDK. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })?;
+
+    // Assuming the patch content is in patch_response.patch
+    let patch_content = patch_response.patch;
+
+    // Save the patch content to a file
+    let file_path = repo_path.join("update.patch");
+    fs::write(&file_path, patch_content.as_bytes()).unwrap();
+    // Apply the git patch
+    let output = Command::new("git")
+        .current_dir(repo_path)
+        .arg("apply")
+        .arg("update.patch")
+        .output()
+        .unwrap();
+
+    if output.status.success() {
+        log::info!("Git patch applied successfully");
+        fs::remove_file(&file_path).unwrap();
+    } else {
+        return Err(Error::general("Failed to apply git patch"));
+    }
+
+    Ok(())
+}
+
+pub async fn handle_create(
+    language: &GenerationLanguageEnum,
+    api_project_version_id: &str,
+    repo_name: &str,
+    semver: &str,
+    destination: &PathBuf,
+) -> Result<()> {
+    check_for_updates().await?;
+    let dest_str = destination.to_str().unwrap();
+
+    log::info!(
+        "Creating the initial version of a Sideko Managed SDK in {}",
+        &language.to_string().to_uppercase()
+    );
+    log::info!(
+        "The SDK will be saved in the following location: {}",
+        &dest_str
+    );
+
+    utils::validate_path(destination.clone(), &utils::PathKind::Dir, true)?;
+    // check for updates after all other validation passed
+
+    // make request
+    let api_key = config::get_api_key()?;
+    let client = SidekoClient::default()
+        .with_base_url(&config::get_base_url())
+        .with_api_key_auth(&api_key);
+    let gen_response = client
+        .create_sdk(sideko_request_types::CreateSdkRequest {
+            data: sideko_schemas::SdkProject {
+                language: language.clone(),
+                api_project_version_id: api_project_version_id.into(),
+                repo_name: Some(repo_name.into()),
+                semver: semver.into(),
+            },
+        })
+        .await
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed creating SDK. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })
+        .unwrap();
+    // unpack into destination
+    let gz_decoder = GzDecoder::new(Cursor::new(&gen_response.content));
+    let mut archive = Archive::new(gz_decoder);
+    archive
+        .unpack(destination)
+        .map_err(|err| Error::Io {
+            msg: format!("Failed to unpack archive into {dest_str}"),
+            err,
+        })
+        .unwrap();
+
+    log::info!("Successfully generated SDK. Saved to {dest_str}",);
     Ok(())
 }

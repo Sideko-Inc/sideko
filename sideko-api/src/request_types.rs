@@ -9,31 +9,31 @@ pub struct DeleteApiLinkGroupRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct DeleteApiProjectRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct DeleteApiProjectRoleRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub user_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct DeleteDocProjectRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct DeleteDocProjectRoleRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub user_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct DeleteGuideRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub guide_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct DeleteGuideHrefRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub guide_id: String,
     pub variant: GuideHrefVariantEnum,
@@ -56,30 +56,30 @@ pub struct ListApiLinkGroupsRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetApiProjectRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ListApiProjectMembersRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ListApiVersionsRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetApiVersionRequest {
-    pub project_id: String,
-    pub version_id: String,
+    pub project_id_or_name: String,
+    pub version_id_or_semver: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetApiVersionOpenapiRequest {
-    pub project_id: String,
-    pub version_id: String,
+    pub project_id_or_name: String,
+    pub version_id_or_semver: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetApiVersionStatsRequest {
-    pub project_id: String,
-    pub version_id: String,
+    pub project_id_or_name: String,
+    pub version_id_or_semver: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ExchangeCodeForKeyRequest {
@@ -104,11 +104,11 @@ pub struct CliCheckUpdatesRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetDocProjectRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ListDeploymentsRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,51 +116,52 @@ pub struct ListDeploymentsRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetDeploymentRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub deployment_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ListDocProjectMembersRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
-pub struct GetDocProjectVersionRequest {
-    pub project_id: String,
+pub struct CheckPreviewRequest {
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetDocProjectThemeRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ListDocVersionsRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetDocVersionRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ListGuidesRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetGuideRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub guide_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetGuideContentRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub guide_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GetUserProjectRoleRequest {
-    pub project_id: String,
     pub project_type: ProjectTypeEnum,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub project_id_or_name: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UpdateApiLinkRequest {
@@ -174,23 +175,23 @@ pub struct UpdateApiLinkGroupRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UpdateApiProjectRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: UpdateApiProject,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UpdateApiVersionRequest {
-    pub project_id: String,
-    pub version_id: String,
+    pub project_id_or_name: String,
+    pub version_id_or_semver: String,
     pub data: UpdateApiVersion,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UpdateDocProjectRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: UpdateDocProject,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UpdateGuideRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub guide_id: String,
     pub data: UpdateGuide,
@@ -213,12 +214,12 @@ pub struct CreateApiProjectRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GrantApiProjectRoleRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: NewProjectRole,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct CreateApiVersionRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: NewApiVersion,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
@@ -227,23 +228,23 @@ pub struct CreateDocProjectRequest {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct TriggerDeploymentRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: NewDeployment,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct GrantDocProjectRoleRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: NewProjectRole,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct CreateGuideRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub data: NewGuide,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ReorderGuidesRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub version_id: String,
     pub data: Vec<ReorderGuide>,
 }
@@ -254,6 +255,14 @@ pub struct CreateOrganizationRequest {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UploadAssetsRequest {
     pub data: AssetUpload,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct CreateSdkRequest {
+    pub data: SdkProject,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct UpdateSdkRequest {
+    pub data: UpdateSdkProject,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct StatelessGenerateSdkRequest {
@@ -268,8 +277,12 @@ pub struct CreateServiceAccountRequest {
     pub data: CreateServiceAccount,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct VercelWebhookRequest {
+    pub data: serde_json::Value,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UpdateDocProjectThemeRequest {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub data: ThemeValues,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]

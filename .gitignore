@@ -2,3 +2,4 @@
 .venv/
 target/
 .sideko
+.DS_STORE/

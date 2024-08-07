@@ -347,10 +347,18 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         .expect("API must exist to create an update update");
                     let api_version = api_versions
                         .iter()
-                        .find(|v| v.semver == latest_semver.to_string())
-                        .unwrap();
-                    cmds::sdk::handle_update(repo_path, &api_version.id, &language.inner, semver)
+                        .find(|v| v.semver == latest_semver.to_string());
+                    if let Some(api_version) = api_version {
+                        cmds::sdk::handle_update(
+                            repo_path,
+                            &api_version.id,
+                            &language.inner,
+                            semver,
+                        )
                         .await?;
+                    } else {
+                        return Err(result::Error::general("No SDK found to update"));
+                    }
 
                     Ok(())
                 }
@@ -420,7 +428,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                             }
                             new_semver.to_string()
                         } else {
-                            panic!()
+                            return Err(result::Error::general("No API Version to update"));
                         }
                     }
                     SemverOrIncrement::Semver(semver) => {
@@ -469,7 +477,7 @@ fn extract_title(input: &str) -> String {
             return title.to_string();
         }
     }
-    panic!("Could not find info.title in the supplied openapi")
+    panic!("Could not find info.title field in the OpenAPI file")
 }
 
 fn find_latest_version(api_versions: &[ApiVersion]) -> Option<Version> {

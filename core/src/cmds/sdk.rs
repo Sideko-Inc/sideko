@@ -191,20 +191,22 @@ pub async fn handle_update(
 
     // Save the patch content to a file
     let file_path = repo_path.join("update.patch");
-    fs::write(&file_path, patch_content.as_bytes()).unwrap();
+    fs::write(&file_path, patch_content.as_bytes()).expect("could not write file");
     // Apply the git patch
     let output = Command::new("git")
         .current_dir(repo_path)
         .arg("apply")
         .arg("update.patch")
         .output()
-        .unwrap();
+        .expect("failed to execute process");
 
     if output.status.success() {
         log::info!("Git patch applied successfully");
-        fs::remove_file(&file_path).unwrap();
+        fs::remove_file(&file_path).expect("failed to delete patch file");
     } else {
-        return Err(Error::general("Failed to apply git patch"));
+        return Err(Error::general(
+            "Failed to apply git patch. The patch has been saved.",
+        ));
     }
 
     Ok(())
@@ -218,7 +220,9 @@ pub async fn handle_create(
     destination: &PathBuf,
 ) -> Result<()> {
     check_for_updates().await?;
-    let dest_str = destination.to_str().unwrap();
+    let dest_str = destination
+        .to_str()
+        .expect("could not create destination path");
 
     log::info!(
         "Creating the initial version of a Sideko Managed SDK in {}",
@@ -252,8 +256,7 @@ pub async fn handle_create(
                 "Failed creating SDK. Re-run the command with -v to debug.",
                 &format!("{e}"),
             )
-        })
-        .unwrap();
+        })?;
     // unpack into destination
     let gz_decoder = GzDecoder::new(Cursor::new(&gen_response.content));
     let mut archive = Archive::new(gz_decoder);
@@ -263,7 +266,7 @@ pub async fn handle_create(
             msg: format!("Failed to unpack archive into {dest_str}"),
             err,
         })
-        .unwrap();
+        .expect("could not unpack archive");
 
     log::info!("Successfully generated SDK. Saved to {dest_str}",);
     Ok(())

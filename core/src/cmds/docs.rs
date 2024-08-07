@@ -4,6 +4,8 @@ use crate::{
     utils::check_for_updates,
 };
 use log::info;
+use prettytable::Table;
+use prettytable::{format, row};
 use sideko_api::{
     request_types::{ListDocVersionsRequest, TriggerDeploymentRequest},
     schemas::{DocVersionStatusEnum, NewDeployment},
@@ -27,16 +29,31 @@ pub async fn handle_list_docs() -> Result<()> {
     })?;
 
     log::info!("Listing Doc Projects...");
-    println!("\n");
-    for doc_project in doc_projects.clone().into_iter() {
-        println!("{}\nID: {}", doc_project.title, doc_project.id);
-        println!("\n");
+    let mut table = Table::new();
+    table.set_format(*format::consts::FORMAT_BOX_CHARS);
+    if doc_projects.is_empty() {
+        table.add_row(row!["No doc projects"]);
+    } else {
+        table.add_row(row![b -> "Name", b -> "Preview URL", b -> "Production URL",]);
+        for doc_project in &doc_projects {
+            table.add_row(row![
+                doc_project.title,
+                doc_project.domains.preview.clone().unwrap_or_default(),
+                doc_project
+                    .domains
+                    .production
+                    .clone()
+                    .unwrap_or_default()
+                    .clone()
+            ]);
+        }
     }
+    table.printstd();
 
     Ok(())
 }
 
-pub async fn handle_deploy_docs(project_id: &uuid::Uuid, prod: &bool) -> Result<()> {
+pub async fn handle_deploy_docs(name: &str, prod: &bool) -> Result<()> {
     // check for updates after all other validation passed
     check_for_updates().await?;
 
@@ -48,7 +65,7 @@ pub async fn handle_deploy_docs(project_id: &uuid::Uuid, prod: &bool) -> Result<
 
     // get the (one) draft version for the project
     let doc_versions = client.list_doc_versions(ListDocVersionsRequest {
-        project_id: project_id.to_string()
+        project_id_or_name: name.to_string()
     }).await.map_err(|e| {
         Error::api_with_debug(
             "Could not find doc versions for the given project id. Re-run the command with -v to debug.",
@@ -75,7 +92,7 @@ pub async fn handle_deploy_docs(project_id: &uuid::Uuid, prod: &bool) -> Result<
     };
     client
         .trigger_deployment(TriggerDeploymentRequest {
-            project_id: project_id.to_string(),
+            project_id_or_name: name.to_string(),
             data: NewDeployment {
                 doc_version_id: draft_version.id.clone(),
                 target,

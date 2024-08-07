@@ -4,7 +4,7 @@ use pyo3::{
     prelude::{pyfunction, pymodule, PyModule, Python},
     pyclass, wrap_pyfunction, PyResult,
 };
-use sideko::{cmds::generate, config, utils};
+use sideko::{cmds::sdk, config, utils};
 use sideko_api::schemas::GenerationLanguageEnum;
 use std::path::PathBuf;
 
@@ -44,8 +44,8 @@ pub fn generate_sdk(
     utils::init_logger(log::Level::Warn);
     config::load_config(config::config_bufs(vec![]));
 
-    let params = generate::GenerateSdkParams {
-        source: generate::OpenApiSource::from(&source),
+    let params = sdk::GenerateSdkParams {
+        source: sdk::OpenApiSource::from(&source),
         destination: dest,
         language: language.to_gen_lang(),
         base_url,
@@ -55,7 +55,7 @@ pub fn generate_sdk(
 
     let cmd_res = tokio::runtime::Runtime::new()
         .expect("Failed starting blocking async runtime")
-        .block_on(generate::handle_generate(&params));
+        .block_on(sdk::handle_try(&params));
 
     match cmd_res {
         Err(e) => Err(SidekoError::new_err(e.error_msg())),

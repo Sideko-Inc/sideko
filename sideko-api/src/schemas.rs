@@ -2,6 +2,14 @@ pub struct BinaryResponse {
     pub content: bytes::Bytes,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct GetHealthResponse {
+    pub ok: bool,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct GetPingResponse {
+    pub ok: bool,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct ApiLinkApiVersion {
     pub api_project_id: String,
     pub api_project_title: String,
@@ -181,7 +189,7 @@ pub struct User {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct UserProjectRole {
-    pub project_id: String,
+    pub project_id_or_name: String,
     pub project_type: ProjectTypeEnum,
     pub role: ProjectRoleEnum,
 }
@@ -349,6 +357,24 @@ pub struct NewOrganization {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct AssetUpload {
     pub file: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct SdkProject {
+    pub api_project_version_id: String,
+    pub language: GenerationLanguageEnum,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repo_name: Option<String>,
+    pub semver: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct UpdateSdkProject {
+    pub api_project_version_id: String,
+    pub language: GenerationLanguageEnum,
+    pub semver: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
+pub struct NewSdkResponse {
+    pub patch: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Default, Clone)]
 pub struct StatelessGenerateSdk {

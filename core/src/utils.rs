@@ -68,7 +68,7 @@ pub fn validate_path(buf: PathBuf, path_kind: &PathKind, allow_dne: bool) -> Res
 
 pub async fn check_for_updates() -> Result<()> {
     let cli_version = env!("CARGO_PKG_VERSION").to_string();
-    debug!("Checking for updates (CLI verion: {cli_version})...");
+    debug!("Checking for updates (CLI version: {cli_version})...");
 
     let client = SidekoClient::default().with_base_url(&config::get_base_url());
     let request = sideko_request_types::CliCheckUpdatesRequest { cli_version };

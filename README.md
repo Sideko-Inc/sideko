@@ -74,7 +74,7 @@ The API key is read from (in order of priority):
 | Java       |    🚧     |
 
 ```bash
-sideko sdk generate (your Swagger/OpenAPI spec) python
+sideko sdk try (your Swagger/OpenAPI spec) python
 ```
 
 - The OpenAPI source can be a path to a local `.json` or `.yaml` file, a URL, or the raw spec as a string.
@@ -84,8 +84,17 @@ _Run `sideko --help` to list all options._
 
 ## Enterprise features
 
+The following features are only available if you have an enterprise account with Sidkeo. Reach us at team@sideko.dev to talk about upgrading.
+
+### SDK Management
+Use the sdk subcommand to learn how to generate and maintain SDKs
+```
+sideko sdk
+```
+
+
 ### API Specification Management
-Use the api subcommand to learn how to manage your API specifications and create mock servers
+Use the api subcommand to learn how to manage API specifications and create mock servers
 ```
 sideko api
 ```

@@ -7,10 +7,10 @@ pub mod request_types;
 pub mod result;
 pub mod schemas;
 use request_types::*;
-use schemas::*;
+use reqwest::multipart as reqwest_multipart;
 use reqwest::Client as ReqwestClient;
 use reqwest::RequestBuilder as ReqwestRequestBuilder;
-use reqwest::multipart as reqwest_multipart;
+use schemas::*;
 use std::collections::BTreeMap;
 #[derive(Clone, Debug)]
 pub struct Client {
@@ -33,23 +33,18 @@ impl Client {
     }
     /// Authentication  builder function to store api-key credentials in the client
     pub fn with_api_key_auth(mut self, val: &str) -> Self {
-        self.auth
-            .insert(
-                "ApiKeyAuth".to_string(),
-                auth::AuthProvider::KeyHeader(
-                    "x-sideko-key".to_string(),
-                    val.to_string(),
-                ),
-            );
+        self.auth.insert(
+            "ApiKeyAuth".to_string(),
+            auth::AuthProvider::KeyHeader("x-sideko-key".to_string(), val.to_string()),
+        );
         self
     }
     /// Authentication  builder function to store api-key credentials in the client
     pub fn with_cookie_auth(mut self, val: &str) -> Self {
-        self.auth
-            .insert(
-                "CookieAuth".to_string(),
-                auth::AuthProvider::KeyCookie("sideko_jwt".to_string(), val.to_string()),
-            );
+        self.auth.insert(
+            "CookieAuth".to_string(),
+            auth::AuthProvider::KeyCookie("sideko_jwt".to_string(), val.to_string()),
+        );
         self
     }
     fn builder_with_auth(
@@ -65,19 +60,13 @@ impl Client {
         req_builder
     }
     #[allow(unused)]
-    fn async_multipart_file(
-        &self,
-        path: &str,
-    ) -> std::io::Result<reqwest_multipart::Part> {
+    fn async_multipart_file(&self, path: &str) -> std::io::Result<reqwest_multipart::Part> {
         let path: &std::path::Path = path.as_ref();
         let file_name = path
             .file_name()
             .map(|filename| filename.to_string_lossy().into_owned());
         let file_bytes = std::fs::read(path)?;
-        Ok(
-            reqwest_multipart::Part::bytes(file_bytes)
-                .file_name(file_name.unwrap_or_default()),
-        )
+        Ok(reqwest_multipart::Part::bytes(file_bytes).file_name(file_name.unwrap_or_default()))
     }
     pub async fn delete_api_link(
         &self,
@@ -86,12 +75,13 @@ impl Client {
         let endpoint = format!("/api_link/{}", request.link_id);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -99,18 +89,15 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_api_link_group(
@@ -120,12 +107,13 @@ impl Client {
         let endpoint = format!("/api_link_group/{}", request.group_id);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -133,33 +121,31 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_api_project(
         &self,
         request: DeleteApiProjectRequest,
     ) -> result::Result<serde_json::Value, error_enums::DeleteApiProjectErrors> {
-        let endpoint = format!("/api_project/{}", request.project_id);
+        let endpoint = format!("/api_project/{}", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -167,18 +153,15 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_api_project_role(
@@ -186,16 +169,18 @@ impl Client {
         request: DeleteApiProjectRoleRequest,
     ) -> result::Result<serde_json::Value, error_enums::DeleteApiProjectRoleErrors> {
         let endpoint = format!(
-            "/api_project/{}/role/{}", request.project_id, request.user_id
+            "/api_project/{}/role/{}",
+            request.project_id_or_name, request.user_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -203,33 +188,31 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_doc_project(
         &self,
         request: DeleteDocProjectRequest,
     ) -> result::Result<serde_json::Value, error_enums::DeleteDocProjectErrors> {
-        let endpoint = format!("/doc_project/{}", request.project_id);
+        let endpoint = format!("/doc_project/{}", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -237,18 +220,15 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_doc_project_role(
@@ -256,16 +236,18 @@ impl Client {
         request: DeleteDocProjectRoleRequest,
     ) -> result::Result<serde_json::Value, error_enums::DeleteDocProjectRoleErrors> {
         let endpoint = format!(
-            "/doc_project/{}/role/{}", request.project_id, request.user_id
+            "/doc_project/{}/role/{}",
+            request.project_id_or_name, request.user_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -273,18 +255,15 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_guide(
@@ -292,17 +271,18 @@ impl Client {
         request: DeleteGuideRequest,
     ) -> result::Result<serde_json::Value, error_enums::DeleteGuideErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide/{}", request.project_id, request
-            .version_id, request.guide_id
+            "/doc_project/{}/version/{}/guide/{}",
+            request.project_id_or_name, request.version_id, request.guide_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -310,18 +290,15 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_guide_href(
@@ -329,18 +306,19 @@ impl Client {
         request: DeleteGuideHrefRequest,
     ) -> result::Result<serde_json::Value, error_enums::DeleteGuideHrefErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide/{}/href", request.project_id, request
-            .version_id, request.guide_id
+            "/doc_project/{}/version/{}/guide/{}/href",
+            request.project_id_or_name, request.version_id, request.guide_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let mut query_params: Vec<(&str, String)> = vec![];
         query_params.push(("variant", request.variant.to_string()));
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -348,18 +326,15 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn delete_service_account(
@@ -369,12 +344,13 @@ impl Client {
         let endpoint = format!("/user/service_account/{}", request.service_account_id);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
-        let unauthed_builder = ReqwestClient::default()
-            .delete(&url)
-            .query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let unauthed_builder = ReqwestClient::default().delete(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             204 => {
@@ -382,18 +358,70 @@ impl Client {
                 if response_text.is_empty() {
                     return Ok(serde_json::json!({}));
                 }
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
+        }
+    }
+    pub async fn health_check(
+        &self,
+    ) -> result::Result<GetHealthResponse, error_enums::HealthCheckErrors> {
+        let endpoint = "/_health";
+        let url = format!("{}{}", self.base_url, endpoint);
+        let query_params: Vec<(&str, String)> = vec![];
+        let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
+        let status_code = response.status().as_u16();
+        match status_code {
+            200 => {
+                let response_text = response.text().await.unwrap_or_default();
+                let data = serde_json::from_str::<GetHealthResponse>(&response_text).unwrap();
+                Ok(data)
             }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
+        }
+    }
+    pub async fn ping_check(
+        &self,
+    ) -> result::Result<GetPingResponse, error_enums::PingCheckErrors> {
+        let endpoint = "/_ping";
+        let url = format!("{}{}", self.base_url, endpoint);
+        let query_params: Vec<(&str, String)> = vec![];
+        let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
+        let authed_builder = self.builder_with_auth(unauthed_builder, &[]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
+        let status_code = response.status().as_u16();
+        match status_code {
+            200 => {
+                let response_text = response.text().await.unwrap_or_default();
+                let data = serde_json::from_str::<GetPingResponse>(&response_text).unwrap();
+                Ok(data)
+            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_api_links(
@@ -405,9 +433,12 @@ impl Client {
         let mut query_params: Vec<(&str, String)> = vec![];
         query_params.push(("doc_version_id", request.doc_version_id.to_string()));
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -415,14 +446,12 @@ impl Client {
                 let data = serde_json::from_str::<Vec<ApiLink>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_api_link(
@@ -433,9 +462,12 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -443,14 +475,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiLink>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_api_link_groups(
@@ -462,25 +492,25 @@ impl Client {
         let mut query_params: Vec<(&str, String)> = vec![];
         query_params.push(("doc_version_id", request.doc_version_id.to_string()));
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<ApiLinkGroup>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<ApiLinkGroup>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_api_projects(
@@ -490,38 +520,41 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<ApiProject>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<ApiProject>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_api_project(
         &self,
         request: GetApiProjectRequest,
     ) -> result::Result<ApiProject, error_enums::GetApiProjectErrors> {
-        let endpoint = format!("/api_project/{}", request.project_id);
+        let endpoint = format!("/api_project/{}", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -529,72 +562,70 @@ impl Client {
                 let data = serde_json::from_str::<ApiProject>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_api_project_members(
         &self,
         request: ListApiProjectMembersRequest,
     ) -> result::Result<Vec<ProjectMember>, error_enums::ListApiProjectMembersErrors> {
-        let endpoint = format!("/api_project/{}/members", request.project_id);
+        let endpoint = format!("/api_project/{}/members", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<ProjectMember>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<ProjectMember>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_api_versions(
         &self,
         request: ListApiVersionsRequest,
     ) -> result::Result<Vec<ApiVersion>, error_enums::ListApiVersionsErrors> {
-        let endpoint = format!("/api_project/{}/version", request.project_id);
+        let endpoint = format!("/api_project/{}/version", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<ApiVersion>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<ApiVersion>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_api_version(
@@ -602,14 +633,18 @@ impl Client {
         request: GetApiVersionRequest,
     ) -> result::Result<ApiVersion, error_enums::GetApiVersionErrors> {
         let endpoint = format!(
-            "/api_project/{}/version/{}", request.project_id, request.version_id
+            "/api_project/{}/version/{}",
+            request.project_id_or_name, request.version_id_or_semver
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -617,14 +652,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiVersion>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_api_version_openapi(
@@ -632,14 +665,18 @@ impl Client {
         request: GetApiVersionOpenapiRequest,
     ) -> result::Result<OpenApi, error_enums::GetApiVersionOpenapiErrors> {
         let endpoint = format!(
-            "/api_project/{}/version/{}/openapi", request.project_id, request.version_id
+            "/api_project/{}/version/{}/openapi",
+            request.project_id_or_name, request.version_id_or_semver
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -647,14 +684,12 @@ impl Client {
                 let data = serde_json::from_str::<OpenApi>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_api_version_stats(
@@ -662,14 +697,18 @@ impl Client {
         request: GetApiVersionStatsRequest,
     ) -> result::Result<Stats, error_enums::GetApiVersionStatsErrors> {
         let endpoint = format!(
-            "/api_project/{}/version/{}/stats", request.project_id, request.version_id
+            "/api_project/{}/version/{}/stats",
+            request.project_id_or_name, request.version_id_or_semver
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -677,14 +716,12 @@ impl Client {
                 let data = serde_json::from_str::<Stats>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn exchange_code_for_key(
@@ -696,9 +733,11 @@ impl Client {
         let mut query_params: Vec<(&str, String)> = vec![];
         query_params.push(("code", request.code.to_string()));
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder = self.builder_with_auth(unauthed_builder, &[]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -706,14 +745,12 @@ impl Client {
                 let data = serde_json::from_str::<UserApiKey>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn login_callback(
@@ -728,15 +765,16 @@ impl Client {
             query_params.push(("state", state.to_string()));
         }
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder = self.builder_with_auth(unauthed_builder, &[]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             303 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
             401 => {
@@ -749,14 +787,12 @@ impl Client {
                     data: error_enums::LoginCallbackErrors::Status401(data),
                 })
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn login_url(
@@ -773,25 +809,24 @@ impl Client {
             query_params.push(("cli_port", cli_port.to_string()));
         }
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder = self.builder_with_auth(unauthed_builder, &[]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             303 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn cli_check_updates(
@@ -802,25 +837,24 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder = self.builder_with_auth(unauthed_builder, &[]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<CliUpdate>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<CliUpdate>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_doc_projects(
@@ -830,38 +864,41 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<DocProject>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<DocProject>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_doc_project(
         &self,
         request: GetDocProjectRequest,
     ) -> result::Result<DocProject, error_enums::GetDocProjectErrors> {
-        let endpoint = format!("/doc_project/{}", request.project_id);
+        let endpoint = format!("/doc_project/{}", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -869,14 +906,12 @@ impl Client {
                 let data = serde_json::from_str::<DocProject>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Retrieves all deployments for a doc project
@@ -884,7 +919,7 @@ impl Client {
         &self,
         request: ListDeploymentsRequest,
     ) -> result::Result<Vec<Deployment>, error_enums::ListDeploymentsErrors> {
-        let endpoint = format!("/doc_project/{}/deployment", request.project_id);
+        let endpoint = format!("/doc_project/{}/deployment", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let mut query_params: Vec<(&str, String)> = vec![];
         if let Some(limit) = request.limit {
@@ -894,25 +929,25 @@ impl Client {
             query_params.push(("target", target.to_string()));
         }
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<Deployment>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<Deployment>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Retrieves single deployment
@@ -921,14 +956,18 @@ impl Client {
         request: GetDeploymentRequest,
     ) -> result::Result<Deployment, error_enums::GetDeploymentErrors> {
         let endpoint = format!(
-            "/doc_project/{}/deployment/{}", request.project_id, request.deployment_id
+            "/doc_project/{}/deployment/{}",
+            request.project_id_or_name, request.deployment_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -936,56 +975,57 @@ impl Client {
                 let data = serde_json::from_str::<Deployment>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_doc_project_members(
         &self,
         request: ListDocProjectMembersRequest,
     ) -> result::Result<Vec<ProjectMember>, error_enums::ListDocProjectMembersErrors> {
-        let endpoint = format!("/doc_project/{}/members", request.project_id);
+        let endpoint = format!("/doc_project/{}/members", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<ProjectMember>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<ProjectMember>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
-    pub async fn get_doc_project_version(
+    pub async fn check_preview(
         &self,
-        request: GetDocProjectVersionRequest,
-    ) -> result::Result<bool, error_enums::GetDocProjectVersionErrors> {
-        let endpoint = format!("/doc_project/{}/preview", request.project_id);
+        request: CheckPreviewRequest,
+    ) -> result::Result<bool, error_enums::CheckPreviewErrors> {
+        let endpoint = format!("/doc_project/{}/preview", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -993,28 +1033,28 @@ impl Client {
                 let data = serde_json::from_str::<bool>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
-    /// Get the theme attached to a documentation project
     pub async fn get_doc_project_theme(
         &self,
         request: GetDocProjectThemeRequest,
     ) -> result::Result<Theme, error_enums::GetDocProjectThemeErrors> {
-        let endpoint = format!("/doc_project/{}/theme", request.project_id);
+        let endpoint = format!("/doc_project/{}/theme", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1022,43 +1062,41 @@ impl Client {
                 let data = serde_json::from_str::<Theme>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_doc_versions(
         &self,
         request: ListDocVersionsRequest,
     ) -> result::Result<Vec<DocVersion>, error_enums::ListDocVersionsErrors> {
-        let endpoint = format!("/doc_project/{}/version", request.project_id);
+        let endpoint = format!("/doc_project/{}/version", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<DocVersion>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<DocVersion>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_doc_version(
@@ -1066,14 +1104,18 @@ impl Client {
         request: GetDocVersionRequest,
     ) -> result::Result<DocVersion, error_enums::GetDocVersionErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}", request.project_id, request.version_id
+            "/doc_project/{}/version/{}",
+            request.project_id_or_name, request.version_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1081,14 +1123,12 @@ impl Client {
                 let data = serde_json::from_str::<DocVersion>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn list_guides(
@@ -1096,30 +1136,31 @@ impl Client {
         request: ListGuidesRequest,
     ) -> result::Result<Vec<GuideWithChildren>, error_enums::ListGuidesErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide", request.project_id, request.version_id
+            "/doc_project/{}/version/{}/guide",
+            request.project_id_or_name, request.version_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<GuideWithChildren>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<GuideWithChildren>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_guide(
@@ -1127,15 +1168,18 @@ impl Client {
         request: GetGuideRequest,
     ) -> result::Result<Guide, error_enums::GetGuideErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide/{}", request.project_id, request
-            .version_id, request.guide_id
+            "/doc_project/{}/version/{}/guide/{}",
+            request.project_id_or_name, request.version_id, request.guide_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1143,14 +1187,12 @@ impl Client {
                 let data = serde_json::from_str::<Guide>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_guide_content(
@@ -1158,15 +1200,18 @@ impl Client {
         request: GetGuideContentRequest,
     ) -> result::Result<GuideContent, error_enums::GetGuideContentErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide/{}/content", request.project_id, request
-            .version_id, request.guide_id
+            "/doc_project/{}/version/{}/guide/{}/content",
+            request.project_id_or_name, request.version_id, request.guide_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1174,14 +1219,12 @@ impl Client {
                 let data = serde_json::from_str::<GuideContent>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Get user organization
@@ -1192,9 +1235,12 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1202,27 +1248,26 @@ impl Client {
                 let data = serde_json::from_str::<Organization>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Get all assets for an organization
-    pub async fn get_assets(
-        &self,
-    ) -> result::Result<Vec<Asset>, error_enums::GetAssetsErrors> {
+    pub async fn get_assets(&self) -> result::Result<Vec<Asset>, error_enums::GetAssetsErrors> {
         let endpoint = "/organization/asset";
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1230,48 +1275,41 @@ impl Client {
                 let data = serde_json::from_str::<Vec<Asset>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Get users in the organization
     pub async fn list_organization_members(
         &self,
-    ) -> result::Result<
-        Vec<OrganizationMember>,
-        error_enums::ListOrganizationMembersErrors,
-    > {
+    ) -> result::Result<Vec<OrganizationMember>, error_enums::ListOrganizationMembersErrors> {
         let endpoint = "/organization/members";
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<
-                    Vec<OrganizationMember>,
-                >(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<OrganizationMember>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Get documentation project theme configured at the organization level
@@ -1282,9 +1320,12 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1292,14 +1333,12 @@ impl Client {
                 let data = serde_json::from_str::<Theme>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_current_user(
@@ -1309,9 +1348,12 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1319,26 +1361,25 @@ impl Client {
                 let data = serde_json::from_str::<User>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
-    pub async fn get_api_key(
-        &self,
-    ) -> result::Result<UserApiKey, error_enums::GetApiKeyErrors> {
+    pub async fn get_api_key(&self) -> result::Result<UserApiKey, error_enums::GetApiKeyErrors> {
         let endpoint = "/user/me/api_key";
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
@@ -1346,14 +1387,12 @@ impl Client {
                 let data = serde_json::from_str::<UserApiKey>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// retrieve current user role for a given project type/id
@@ -1364,28 +1403,30 @@ impl Client {
         let endpoint = "/user/me/project_role";
         let url = format!("{}{}", self.base_url, endpoint);
         let mut query_params: Vec<(&str, String)> = vec![];
-        query_params.push(("project_id", request.project_id.to_string()));
         query_params.push(("project_type", request.project_type.to_string()));
+        if let Some(project_id_or_name) = request.project_id_or_name {
+            query_params.push(("project_id_or_name", project_id_or_name.to_string()));
+        }
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<UserProjectRole>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<UserProjectRole>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn get_service_accounts(
@@ -1395,25 +1436,25 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().get(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let response = authed_builder.send().await.map_err(result::Error::Dispatch)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let response = authed_builder
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
         let status_code = response.status().as_u16();
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<ServiceAccount>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<ServiceAccount>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn update_api_link(
@@ -1424,10 +1465,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().patch(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1440,14 +1481,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiLink>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn update_api_link_group(
@@ -1458,10 +1497,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().patch(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1474,28 +1513,26 @@ impl Client {
                 let data = serde_json::from_str::<ApiLinkGroup>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn update_api_project(
         &self,
         request: UpdateApiProjectRequest,
     ) -> result::Result<ApiProject, error_enums::UpdateApiProjectErrors> {
-        let endpoint = format!("/api_project/{}", request.project_id);
+        let endpoint = format!("/api_project/{}", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().patch(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1508,14 +1545,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiProject>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn update_api_version(
@@ -1523,15 +1558,16 @@ impl Client {
         request: UpdateApiVersionRequest,
     ) -> result::Result<ApiVersion, error_enums::UpdateApiVersionErrors> {
         let endpoint = format!(
-            "/api_project/{}/version/{}", request.project_id, request.version_id
+            "/api_project/{}/version/{}",
+            request.project_id_or_name, request.version_id_or_semver
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().patch(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1544,28 +1580,26 @@ impl Client {
                 let data = serde_json::from_str::<ApiVersion>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn update_doc_project(
         &self,
         request: UpdateDocProjectRequest,
     ) -> result::Result<DocProject, error_enums::UpdateDocProjectErrors> {
-        let endpoint = format!("/doc_project/{}", request.project_id);
+        let endpoint = format!("/doc_project/{}", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().patch(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1578,14 +1612,12 @@ impl Client {
                 let data = serde_json::from_str::<DocProject>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn update_guide(
@@ -1593,16 +1625,16 @@ impl Client {
         request: UpdateGuideRequest,
     ) -> result::Result<Guide, error_enums::UpdateGuideErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide/{}", request.project_id, request
-            .version_id, request.guide_id
+            "/doc_project/{}/version/{}/guide/{}",
+            request.project_id_or_name, request.version_id, request.guide_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().patch(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1615,14 +1647,12 @@ impl Client {
                 let data = serde_json::from_str::<Guide>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_api_link(
@@ -1633,10 +1663,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1649,14 +1679,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiLink>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn reorder_api_links(
@@ -1667,10 +1695,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1683,14 +1711,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiReorder>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_api_link_group(
@@ -1701,10 +1727,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1717,14 +1743,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiLinkGroup>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_api_project(
@@ -1735,10 +1759,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1751,28 +1775,26 @@ impl Client {
                 let data = serde_json::from_str::<ApiProject>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn grant_api_project_role(
         &self,
         request: GrantApiProjectRoleRequest,
     ) -> result::Result<serde_json::Value, error_enums::GrantApiProjectRoleErrors> {
-        let endpoint = format!("/api_project/{}/role", request.project_id);
+        let endpoint = format!("/api_project/{}/role", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1782,32 +1804,29 @@ impl Client {
         match status_code {
             201 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_api_version(
         &self,
         request: CreateApiVersionRequest,
     ) -> result::Result<ApiVersion, error_enums::CreateApiVersionErrors> {
-        let endpoint = format!("/api_project/{}/version", request.project_id);
+        let endpoint = format!("/api_project/{}/version", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1820,14 +1839,12 @@ impl Client {
                 let data = serde_json::from_str::<ApiVersion>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_doc_project(
@@ -1838,10 +1855,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1854,14 +1871,12 @@ impl Client {
                 let data = serde_json::from_str::<DocProject>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Deploys a new generated version of documentation with linked guides & APIs
@@ -1869,14 +1884,14 @@ impl Client {
         &self,
         request: TriggerDeploymentRequest,
     ) -> result::Result<Deployment, error_enums::TriggerDeploymentErrors> {
-        let endpoint = format!("/doc_project/{}/deployment", request.project_id);
+        let endpoint = format!("/doc_project/{}/deployment", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1889,28 +1904,26 @@ impl Client {
                 let data = serde_json::from_str::<Deployment>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn grant_doc_project_role(
         &self,
         request: GrantDocProjectRoleRequest,
     ) -> result::Result<serde_json::Value, error_enums::GrantDocProjectRoleErrors> {
-        let endpoint = format!("/doc_project/{}/role", request.project_id);
+        let endpoint = format!("/doc_project/{}/role", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1920,18 +1933,15 @@ impl Client {
         match status_code {
             201 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_guide(
@@ -1939,15 +1949,16 @@ impl Client {
         request: CreateGuideRequest,
     ) -> result::Result<Guide, error_enums::CreateGuideErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide", request.project_id, request.version_id
+            "/doc_project/{}/version/{}/guide",
+            request.project_id_or_name, request.version_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1960,14 +1971,12 @@ impl Client {
                 let data = serde_json::from_str::<Guide>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn reorder_guides(
@@ -1975,16 +1984,16 @@ impl Client {
         request: ReorderGuidesRequest,
     ) -> result::Result<Vec<GuideWithChildren>, error_enums::ReorderGuidesErrors> {
         let endpoint = format!(
-            "/doc_project/{}/version/{}/guide/reorder", request.project_id, request
-            .version_id
+            "/doc_project/{}/version/{}/guide/reorder",
+            request.project_id_or_name, request.version_id
         );
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -1994,35 +2003,29 @@ impl Client {
         match status_code {
             200 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<Vec<GuideWithChildren>>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<Vec<GuideWithChildren>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_organization(
         &self,
         request: CreateOrganizationRequest,
-    ) -> result::Result<
-        OrganizationWithRedirect,
-        error_enums::CreateOrganizationErrors,
-    > {
+    ) -> result::Result<OrganizationWithRedirect, error_enums::CreateOrganizationErrors> {
         let endpoint = "/organization";
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -2032,20 +2035,16 @@ impl Client {
         match status_code {
             201 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<
-                    OrganizationWithRedirect,
-                >(&response_text)
-                    .unwrap();
+                let data =
+                    serde_json::from_str::<OrganizationWithRedirect>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Add a assets like logos to an organization
@@ -2057,16 +2056,14 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
         let mut form_data_body = reqwest_multipart::Form::new();
-        form_data_body = form_data_body
-            .part(
-                "file",
-                self
-                    .async_multipart_file(&request.data.file)
-                    .map_err(result::Error::File)?,
-            );
+        form_data_body = form_data_body.part(
+            "file",
+            self.async_multipart_file(&request.data.file)
+                .map_err(result::Error::File)?,
+        );
         let response = authed_builder
             .multipart(form_data_body)
             .send()
@@ -2079,28 +2076,26 @@ impl Client {
                 let data = serde_json::from_str::<Vec<Asset>>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
-    pub async fn stateless_generate_sdk(
+    pub async fn create_sdk(
         &self,
-        request: StatelessGenerateSdkRequest,
-    ) -> result::Result<BinaryResponse, error_enums::StatelessGenerateSdkErrors> {
-        let endpoint = "/stateless/generate_sdk";
+        request: CreateSdkRequest,
+    ) -> result::Result<BinaryResponse, error_enums::CreateSdkErrors> {
+        let endpoint = "/sdk";
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -2113,19 +2108,82 @@ impl Client {
                     .bytes()
                     .await
                     .map_err(result::Error::ResponseBytes)?;
-                let data = BinaryResponse {
-                    content: res_bytes,
-                };
+                let data = BinaryResponse { content: res_bytes };
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
+        }
+    }
+    pub async fn update_sdk(
+        &self,
+        request: UpdateSdkRequest,
+    ) -> result::Result<NewSdkResponse, error_enums::UpdateSdkErrors> {
+        let endpoint = "/sdk/new_version";
+        let url = format!("{}{}", self.base_url, endpoint);
+        let query_params: Vec<(&str, String)> = vec![];
+        let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
+        let response = authed_builder
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
+        let status_code = response.status().as_u16();
+        match status_code {
+            200 => {
+                let response_text = response.text().await.unwrap_or_default();
+                let data = serde_json::from_str::<NewSdkResponse>(&response_text).unwrap();
+                Ok(data)
             }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
+        }
+    }
+    pub async fn stateless_generate_sdk(
+        &self,
+        request: StatelessGenerateSdkRequest,
+    ) -> result::Result<BinaryResponse, error_enums::StatelessGenerateSdkErrors> {
+        let endpoint = "/stateless/generate_sdk";
+        let url = format!("{}{}", self.base_url, endpoint);
+        let query_params: Vec<(&str, String)> = vec![];
+        let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
+        let response = authed_builder
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
+        let status_code = response.status().as_u16();
+        match status_code {
+            201 => {
+                let res_bytes = response
+                    .bytes()
+                    .await
+                    .map_err(result::Error::ResponseBytes)?;
+                let data = BinaryResponse { content: res_bytes };
+                Ok(data)
+            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn invite_user(
@@ -2136,10 +2194,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -2149,18 +2207,15 @@ impl Client {
         match status_code {
             201 => {
                 let response_text = response.text().await.unwrap_or_default();
-                let data = serde_json::from_str::<serde_json::Value>(&response_text)
-                    .unwrap();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     pub async fn create_service_account(
@@ -2171,10 +2226,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -2187,29 +2242,58 @@ impl Client {
                 let data = serde_json::from_str::<UserApiKey>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
-    /// Update a document project theme
+    pub async fn vercel_webhook(
+        &self,
+        request: VercelWebhookRequest,
+    ) -> result::Result<serde_json::Value, error_enums::VercelWebhookErrors> {
+        let endpoint = "/webhook/vercel";
+        let url = format!("{}{}", self.base_url, endpoint);
+        let query_params: Vec<(&str, String)> = vec![];
+        let unauthed_builder = ReqwestClient::default().post(&url).query(&query_params);
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
+        let response = authed_builder
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(result::Error::Dispatch)?;
+        let status_code = response.status().as_u16();
+        match status_code {
+            202 => {
+                let response_text = response.text().await.unwrap_or_default();
+                let data = serde_json::from_str::<serde_json::Value>(&response_text).unwrap();
+                Ok(data)
+            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
+        }
+    }
     pub async fn update_doc_project_theme(
         &self,
         request: UpdateDocProjectThemeRequest,
     ) -> result::Result<Theme, error_enums::UpdateDocProjectThemeErrors> {
-        let endpoint = format!("/doc_project/{}/theme", request.project_id);
+        let endpoint = format!("/doc_project/{}/theme", request.project_id_or_name);
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().put(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -2222,14 +2306,12 @@ impl Client {
                 let data = serde_json::from_str::<Theme>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
     /// Update  documentation project theme configured at the organization level
@@ -2241,10 +2323,10 @@ impl Client {
         let url = format!("{}{}", self.base_url, endpoint);
         let query_params: Vec<(&str, String)> = vec![];
         let unauthed_builder = ReqwestClient::default().put(&url).query(&query_params);
-        let authed_builder = self
-            .builder_with_auth(unauthed_builder, &["CookieAuth", "ApiKeyAuth"]);
-        let request_body: serde_json::Value = serde_json::to_value(request.data)
-            .map_err(result::Error::Serialize)?;
+        let authed_builder =
+            self.builder_with_auth(unauthed_builder, &["ApiKeyAuth", "CookieAuth"]);
+        let request_body: serde_json::Value =
+            serde_json::to_value(request.data).map_err(result::Error::Serialize)?;
         let response = authed_builder
             .json(&request_body)
             .send()
@@ -2257,14 +2339,12 @@ impl Client {
                 let data = serde_json::from_str::<Theme>(&response_text).unwrap();
                 Ok(data)
             }
-            _ => {
-                Err(result::Error::ApiError {
-                    status_code,
-                    method: "".to_string(),
-                    url: url.to_string(),
-                    response,
-                })
-            }
+            _ => Err(result::Error::ApiError {
+                status_code,
+                method: "".to_string(),
+                url: url.to_string(),
+                response,
+            }),
         }
     }
 }

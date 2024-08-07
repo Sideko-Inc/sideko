@@ -1709,6 +1709,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "semver"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
+
+[[package]]
 name = "serde"
 version = "1.0.204"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1785,7 +1791,7 @@ dependencies = [
 
 [[package]]
 name = "sideko"
-version = "0.5.5"
+version = "0.6.0"
 dependencies = [
  "anstyle",
  "bytes",
@@ -1794,6 +1800,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "flate2",
+ "heck 0.5.0",
  "log",
  "mime_guess",
  "open",
@@ -1801,6 +1808,7 @@ dependencies = [
  "prettytable",
  "reqwest",
  "rocket",
+ "semver",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -1813,7 +1821,7 @@ dependencies = [
 
 [[package]]
 name = "sideko-py"
-version = "0.5.5"
+version = "0.6.0"
 dependencies = [
  "log",
  "pyo3",

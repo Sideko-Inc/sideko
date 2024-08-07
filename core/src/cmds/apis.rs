@@ -5,29 +5,52 @@ use crate::{
 };
 use prettytable::Table;
 use prettytable::{format, row};
-use serde_json::Value as JsonValue;
-use serde_yaml::Value as YamlValue;
 use sideko_api::{
-    request_types::{CreateApiProjectRequest, CreateApiVersionRequest, ListApiVersionsRequest},
-    schemas::{NewApiProject, NewApiVersion},
+    request_types::{
+        CreateApiProjectRequest, CreateApiVersionRequest, GetApiProjectRequest,
+        ListApiVersionsRequest,
+    },
+    schemas::{ApiProject, ApiVersion, NewApiProject, NewApiVersion},
     Client as SidekoClient,
 };
 
-fn extract_title(input: &str) -> String {
-    if let Ok(json_value) = serde_json::from_str::<JsonValue>(input) {
-        if let Some(title) = json_value.pointer("/info/title").and_then(|v| v.as_str()) {
-            return title.to_string();
-        }
-    }
-    if let Ok(yaml_value) = serde_yaml::from_str::<YamlValue>(input) {
-        if let Some(title) = yaml_value["info"]["title"].as_str() {
-            return title.to_string();
-        }
-    }
-    panic!("Could not find info.title in the supplied openapi")
+pub async fn data_get_api_project(name: String) -> Result<ApiProject> {
+    let api_key = config::get_api_key()?;
+    let client = SidekoClient::default()
+        .with_base_url(&config::get_base_url())
+        .with_api_key_auth(&api_key);
+    client
+        .get_api_project(GetApiProjectRequest {
+            project_id_or_name: name,
+        })
+        .await
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed finding API project with the given name. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })
 }
 
-pub async fn handle_list_apis() -> Result<()> {
+pub async fn data_list_versions(name: String) -> Result<Vec<ApiVersion>> {
+    let api_key = config::get_api_key()?;
+    let client = SidekoClient::default()
+        .with_base_url(&config::get_base_url())
+        .with_api_key_auth(&api_key);
+    client
+        .list_api_versions(ListApiVersionsRequest {
+            project_id_or_name: name,
+        })
+        .await
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed finding listing API versions for the API with the provided name. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })
+}
+
+pub async fn handle_list_apis(name: &Option<String>) -> Result<()> {
     // check for updates after all other validation passed
     check_for_updates().await?;
 
@@ -36,52 +59,41 @@ pub async fn handle_list_apis() -> Result<()> {
     let client = SidekoClient::default()
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
-    let api_projects = client.list_api_projects().await.map_err(|e| {
-        Error::api_with_debug(
-            "Failed listing API projects. Re-run the command with -v to debug.",
-            &format!("{e}"),
-        )
-    })?;
+    let api_projects = {
+        if let Some(name) = name {
+            vec![data_get_api_project(name.clone()).await?]
+        } else {
+            log::info!("Listing API Projects...");
 
-    log::info!("Listing API Projects...");
-    println!("\n");
-    for api_project in api_projects.clone().into_iter() {
-        let id = api_project.id;
-        let title = api_project.title;
-
-        let mut table = Table::new();
-        table.set_format(*format::consts::FORMAT_BOX_CHARS);
-
-        let versions = client
-            .list_api_versions(ListApiVersionsRequest {
-                project_id: id.clone(),
-            })
-            .await
-            .map_err(|e| {
+            client.list_api_projects().await.map_err(|e| {
                 Error::api_with_debug(
-                    "Failed listing API project versions. Re-run the command with -v to debug.",
+                    "Failed listing API projects. Re-run the command with -v to debug.",
                     &format!("{e}"),
                 )
-            })?;
+            })?
+        }
+    };
 
+    for api_project in api_projects.clone().into_iter() {
+        let name = api_project.title;
+        let mut table = Table::new();
+        table.set_format(*format::consts::FORMAT_BOX_CHARS);
+        let versions = data_list_versions(name.clone()).await?;
         if versions.is_empty() {
             table.add_row(row!["No versions available"]);
         } else {
-            table.add_row(row![b -> "Semver" , b -> "Version ID"]);
+            table.add_row(row![b -> "Semver" , b -> "Notes"]);
             for version in &versions {
-                table.add_row(row![version.semver, version.id]);
+                table.add_row(row![version.semver, version.notes]);
             }
         }
-
-        println!("{}\nID: {}", title, id);
+        println!("{}", name);
         table.printstd();
-        println!("\n");
     }
-
     Ok(())
 }
 
-pub async fn create_new_api_project(params: &NewApiVersion, title: Option<String>) -> Result<()> {
+pub async fn create_new_api_project(params: &NewApiVersion, title: String) -> Result<()> {
     // check for updates after all other validation passed
     check_for_updates().await?;
 
@@ -90,7 +102,6 @@ pub async fn create_new_api_project(params: &NewApiVersion, title: Option<String
     let client = SidekoClient::default()
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
-    let title = title.unwrap_or(extract_title(&params.openapi));
     let api_project = client
         .create_api_project(CreateApiProjectRequest {
             data: NewApiProject { title },
@@ -104,7 +115,7 @@ pub async fn create_new_api_project(params: &NewApiVersion, title: Option<String
         })?;
     let first_version = client
         .create_api_version(CreateApiVersionRequest {
-            project_id: api_project.id,
+            project_id_or_name: api_project.id,
             data: params.clone(),
         })
         .await
@@ -123,10 +134,7 @@ pub async fn create_new_api_project(params: &NewApiVersion, title: Option<String
     Ok(())
 }
 
-pub async fn create_new_api_project_version(
-    project_id: uuid::Uuid,
-    params: &NewApiVersion,
-) -> Result<()> {
+pub async fn create_new_api_project_version(name: String, params: &NewApiVersion) -> Result<()> {
     // check for updates after all other validation passed
     check_for_updates().await?;
     // make request
@@ -136,7 +144,7 @@ pub async fn create_new_api_project_version(
         .with_api_key_auth(&api_key);
     let new_version = client
         .create_api_version(CreateApiVersionRequest {
-            project_id: project_id.into(),
+            project_id_or_name: name,
             data: params.clone(),
         })
         .await

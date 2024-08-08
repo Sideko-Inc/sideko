@@ -10,7 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://sideko.dev"><strong>Website</strong></a>
+  <a href="https://sideko.dev"><strong>Website</strong></a> |
+  <a href="https://docs.sideko.dev"><strong>Docs</strong></a>
 </p>
 <br/>
 
@@ -41,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh |
 
 ### Login
 
-You need a Sideko API Key to generate SDKs. Create one for **free** by either:
+You need a Sideko API Key to generate SDKs. Start generating **free** SDKs by either:
 
 1. Signing up / logging in via the CLI, or
 2. Signing up / logging in at [app.sideko.dev](http://app.sideko.dev) (`User Icon > API Keys`)
@@ -59,9 +60,9 @@ The API key is read from (in order of priority):
 - `$HOME/.sideko`
 - `SIDEKO_API_KEY` environment variable
 
-## Free features
+## Free tier
 
-### Generate a Stateless SDK
+### Generate an unmanaged SDK with "sideko sdk try"
 
 | Language   | Supported |
 | ---------- | :-------: |
@@ -84,33 +85,14 @@ _Run `sideko --help` to list all options._
 
 ## Enterprise features
 
-The following features are only available if you have an enterprise account with Sidkeo. Reach us at team@sideko.dev to talk about upgrading.
+Head over to the complete [CLI Documentation Page](./docs/CLI.md) for instructions on how to programmatically maintain your complete API toolset. 
 
-### SDK Management
-Use the sdk subcommand to learn how to generate and maintain SDKs
-```
-sideko sdk
-```
+## Excited about Sideko?
 
-
-### API Specification Management
-Use the api subcommand to learn how to manage API specifications and create mock servers
-```
-sideko api
-```
-
-### Documentation Management
-Use the doc subcommand to learn how to trigger updates to API documentation 
-```
-sideko doc
-```
-
-
-## Excited about the project?
-
-Reach us at team@sideko.dev
+Reach us at `team@sideko.dev`
 
 ## Reference
 
+- [Complete CLI Documentation](./docs/CLI.md)
 - [License](./LICENSE)
 - [Issues](https://github.com/Sideko-Inc/sideko/issues/new)

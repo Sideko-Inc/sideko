@@ -9,11 +9,63 @@ use crate::{
     styles, utils,
 };
 use clap::{Parser, Subcommand, ValueEnum};
+use clap_markdown::MarkdownOptions;
 use heck::ToKebabCase;
 use semver::Version;
 use sideko_api::schemas::{self as sideko_schemas, ApiVersion, NewApiVersion};
 
 use std::{path::PathBuf, str::FromStr};
+
+#[derive(Parser)]
+#[command(name = "Sideko CLI")]
+#[command(author = "Team Sideko <team@sideko.dev>")]
+#[command(about = "Login to start generating tools for your APIs", long_about = None)]
+#[command(version)]
+#[command(propagate_version = true)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+    #[arg(long, short)]
+    /// Path to .sideko file containing api key, default locations: ./.sideko then $HOME/.sideko
+    config: Option<PathBuf>,
+    #[arg(
+        long,
+        short = 'q',
+        global = true,
+        help = "No logging except for errors"
+    )]
+    quiet: bool,
+    #[arg(long, short = 'v', global = true, help = "Verbose logging")]
+    verbose: bool,
+}
+
+#[derive(Subcommand)]
+#[command(styles=styles::get_styles())]
+enum Commands {
+    /// Log into Sideko interactively to obtain API key for generations
+    Login {
+        #[arg(long, short)]
+        /// Path to file to store API key, default: $HOME/.sideko
+        output: Option<PathBuf>,
+    },
+    /// Generate and configure SDK clients
+    #[command(subcommand)]
+    Sdk(SdkCommands),
+    /// **Enterprise Only!**
+    /// Manage API specifications
+    #[command(subcommand)]
+    Api(ApiCommands),
+    /// **Enterprise Only!**
+    /// Manage documentation projects
+    #[command(subcommand)]
+    Doc(DocCommands),
+    /// Private command to generate CLI docs for the the Sideko CLI
+    #[clap(hide = true)]
+    MdDocs {
+        #[arg(long)]
+        save: bool,
+    },
+}
 
 #[derive(Debug, Clone, ValueEnum)]
 pub enum SemverIncrement {
@@ -90,52 +142,9 @@ impl ValueEnum for GenerationLanguageClap {
     }
 }
 
-#[derive(Parser)]
-#[command(name = "Sideko CLI")]
-#[command(author = "Team Sideko <team@sideko.dev>")]
-#[command(about = "Authenticate & start using Sideko in seconds", long_about = None)]
-#[command(version)]
-#[command(propagate_version = true)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-    #[arg(long, short)]
-    /// Path to .sideko file containing api key, default locations: ./.sideko then $HOME/.sideko
-    config: Option<PathBuf>,
-    #[arg(
-        long,
-        short = 'q',
-        global = true,
-        help = "No logging except for errors"
-    )]
-    quiet: bool,
-    #[arg(long, short = 'v', global = true, help = "Verbose logging")]
-    verbose: bool,
-}
-
-#[derive(Subcommand)]
-#[command(styles=styles::get_styles())]
-enum Commands {
-    /// Log into Sideko interactively to obtain API key for generations
-    Login {
-        #[arg(long, short)]
-        /// Path to file to store API key, default: $HOME/.sideko
-        output: Option<PathBuf>,
-    },
-    /// Generate and configure SDK clients
-    #[command(subcommand)]
-    Sdk(SdkCommands),
-    /// Manage API specifications
-    #[command(subcommand)]
-    Api(ApiCommands),
-    /// Manage documentation projects
-    #[command(subcommand)]
-    Doc(DocCommands),
-}
-
 #[derive(Debug, Subcommand)]
 enum SdkCommands {
-    /// Generate a point-in-time SDK (unmanaged)
+    /// Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users.
     Try {
         /// Path or URL of OpenAPI spec
         openapi_source: String,
@@ -154,6 +163,8 @@ enum SdkCommands {
         /// URL of Sideko Mock Server for generated testing suite
         tests_mock_server_url: Option<String>,
     },
+    /// **Enterprise Only!**
+    /// Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
     Create {
         /// Name of the API Project
         api: String,
@@ -170,6 +181,8 @@ enum SdkCommands {
         /// Output path of generated source files, default: ./
         output: Option<PathBuf>,
     },
+    /// **Enterprise Only!**
+    /// Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
     Update {
         // Path to the existing SDK
         repo_path: PathBuf,
@@ -184,13 +197,13 @@ enum SdkCommands {
 
 #[derive(Debug, Subcommand)]
 enum ApiCommands {
-    /// List the existing project titles and ids
+    /// List your API projects
     List {
         /// Pass name to filter by api name to see the versions of a single API e.g. my-rest-api
         #[arg(long, short)]
         name: Option<String>,
     },
-    /// Create a new project
+    /// Create a new API project
     Create {
         /// Either a file path to an OpenAPI yml/json OR a public URL hosting the OpenAPI specification yml/json
         openapi_source: String,
@@ -203,9 +216,9 @@ enum ApiCommands {
         #[arg(long)]
         notes: Option<String>,
     },
-    /// Upload a new version to an existing project
+    /// Upload a new version of a spec to your existing API project
     Update {
-        /// The name of the API in Sideko. e.g. my-rest-api
+        /// The name of your API in Sideko. e.g. my-rest-api
         name: String,
         /// Either a file path to an OpenAPI yml/json OR a public URL hosting the OpenAPI specification yml/json
         openapi_source: String,
@@ -220,9 +233,9 @@ enum ApiCommands {
 
 #[derive(Debug, Subcommand)]
 enum DocCommands {
-    /// List all titles and ids
+    /// List your documentation projects
     List {},
-    /// Trigger a deployment to preview or production
+    /// Trigger a documentation deployment to preview or production
     Deploy {
         /// The name of the Doc Project in Sideko. e.g. my-rest-api-docs
         name: String,
@@ -247,6 +260,26 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
     config::load_config(config::config_bufs(vec![cli.config]));
 
     let cmd_res = match &cli.command {
+        Commands::MdDocs { save } => {
+            if *save {
+                let options = MarkdownOptions::new();
+                let options = options.title(
+                    "The Sideko Command Line Interface for programmatically generating API tools"
+                        .into(),
+                );
+                let options = options.show_footer(false);
+                let options = options.show_table_of_contents(false);
+                let docs = clap_markdown::help_markdown_custom::<Cli>(&options);
+                let docs_path = std::env::current_dir().unwrap();
+                let docs_path = docs_path.join("../docs/CLI.md");
+                println!("{:?}", docs_path.to_str());
+                std::fs::write(docs_path, docs.as_bytes()).expect("could not write docs");
+                Ok(())
+            } else {
+                clap_markdown::print_help_markdown::<Cli>();
+                Ok(())
+            }
+        }
         Commands::Sdk(sdk_command) => {
             match sdk_command {
                 SdkCommands::Try {

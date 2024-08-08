@@ -92,7 +92,7 @@ pub async fn handle_deploy_docs(name: &str, prod: &bool) -> Result<()> {
     };
     client
         .trigger_deployment(TriggerDeploymentRequest {
-            project_id_or_name: name.to_string(),
+            project_id_or_name: draft_version.doc_project_id.clone(),
             data: NewDeployment {
                 doc_version_id: draft_version.id.clone(),
                 target,

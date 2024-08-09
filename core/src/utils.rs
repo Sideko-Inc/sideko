@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use log::{debug, info, warn};
-use sideko_api::{
+use sideko_rest_api::{
     request_types as sideko_request_types, schemas as sideko_schemas, Client as SidekoClient,
 };
 use url::Url;

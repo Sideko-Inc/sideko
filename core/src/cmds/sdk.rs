@@ -7,7 +7,7 @@ use flate2::read::GzDecoder;
 use log::debug;
 
 use serde::{Deserialize, Serialize};
-use sideko_api::{
+use sideko_rest_api::{
     request_types::{self as sideko_request_types, UpdateSdkRequest},
     schemas::{self as sideko_schemas, GenerationLanguageEnum, UpdateSdkProject},
     Client as SidekoClient,

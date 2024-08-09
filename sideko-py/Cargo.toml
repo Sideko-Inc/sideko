@@ -14,7 +14,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # Workspace
-sideko_api = { path = "../sideko-api" }
 sideko = { path = "../core" }
 
 # External
@@ -22,3 +21,4 @@ sideko = { path = "../core" }
 pyo3 = { version = "0.20.0", features = ["abi3-py38"] }
 tokio = "1.36.0"
 log = "0.4.20"
+sideko_rest_api = "0.1.0"

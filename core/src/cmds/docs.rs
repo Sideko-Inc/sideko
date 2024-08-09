@@ -6,7 +6,7 @@ use crate::{
 use log::info;
 use prettytable::Table;
 use prettytable::{format, row};
-use sideko_api::{
+use sideko_rest_api::{
     request_types::{ListDocVersionsRequest, TriggerDeploymentRequest},
     schemas::{DocVersionStatusEnum, NewDeployment},
     Client as SidekoClient,
@@ -83,11 +83,11 @@ pub async fn handle_deploy_docs(name: &str, prod: &bool) -> Result<()> {
     let target = match prod {
         true => {
             info!("Creating product deployment...");
-            sideko_api::schemas::DeploymentTargetEnum::Production
+            sideko_rest_api::schemas::DeploymentTargetEnum::Production
         }
         false => {
             info!("Creating preview deployment...");
-            sideko_api::schemas::DeploymentTargetEnum::Preview
+            sideko_rest_api::schemas::DeploymentTargetEnum::Preview
         }
     };
     client

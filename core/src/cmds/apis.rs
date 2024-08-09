@@ -5,7 +5,7 @@ use crate::{
 };
 use prettytable::Table;
 use prettytable::{format, row};
-use sideko_api::{
+use sideko_rest_api::{
     request_types::{
         CreateApiProjectRequest, CreateApiVersionRequest, GetApiProjectRequest,
         ListApiVersionsRequest,

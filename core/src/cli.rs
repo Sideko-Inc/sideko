@@ -12,7 +12,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use clap_markdown::MarkdownOptions;
 use heck::ToKebabCase;
 use semver::Version;
-use sideko_api::schemas::{self as sideko_schemas, ApiVersion, NewApiVersion};
+use sideko_rest_api::schemas::{self as sideko_schemas, ApiVersion, NewApiVersion};
 
 use std::{path::PathBuf, str::FromStr};
 

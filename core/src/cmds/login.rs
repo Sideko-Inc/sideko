@@ -3,7 +3,7 @@ use rocket::{
     response::{content::RawHtml, Redirect},
     routes, uri, Shutdown,
 };
-use sideko_api::{request_types as sideko_request_types, Client as SidekoClient};
+use sideko_rest_api::{request_types as sideko_request_types, Client as SidekoClient};
 use std::{fs, path::PathBuf, time::Duration};
 use tokio::time::sleep;
 

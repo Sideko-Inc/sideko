@@ -5,7 +5,7 @@ use pyo3::{
     pyclass, wrap_pyfunction, PyResult,
 };
 use sideko::{cmds::sdk, config, utils};
-use sideko_api::schemas::GenerationLanguageEnum;
+use sideko_rest_api::schemas::GenerationLanguageEnum;
 use std::path::PathBuf;
 
 #[pyclass]

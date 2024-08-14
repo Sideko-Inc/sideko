@@ -15,7 +15,7 @@
 </p>
 <br/>
 
-## Generate API developer experience tools with Sideko
+## Welcome to Sideko, the platform for creating REST API tools and documentation.
 
 Use _OpenAPI 3.x_ specifications to generate:
 - SDKs with types, tests, authentication, and code snippets

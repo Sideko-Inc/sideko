@@ -1,12 +1,12 @@
 # The Sideko Command Line Interface for programmatically generating API tools
 
-This document contains the help content for the `Sideko CLI` command-line program.
+This document contains the help content for the `sideko` command-line program.
 
-## `Sideko CLI`
+## `sideko`
 
 Login to start generating tools for your APIs
 
-**Usage:** `Sideko CLI [OPTIONS] <COMMAND>`
+**Usage:** `sideko [OPTIONS] <COMMAND>`
 
 ###### **Subcommands:**
 
@@ -23,11 +23,11 @@ Login to start generating tools for your APIs
 
 
 
-## `Sideko CLI login`
+## `sideko login`
 
 Log into Sideko interactively to obtain API key for generations
 
-**Usage:** `Sideko CLI login [OPTIONS]`
+**Usage:** `sideko login [OPTIONS]`
 
 ###### **Options:**
 
@@ -35,11 +35,11 @@ Log into Sideko interactively to obtain API key for generations
 
 
 
-## `Sideko CLI sdk`
+## `sideko sdk`
 
 Generate and configure SDK clients
 
-**Usage:** `Sideko CLI sdk <COMMAND>`
+**Usage:** `sideko sdk <COMMAND>`
 
 ###### **Subcommands:**
 
@@ -49,11 +49,11 @@ Generate and configure SDK clients
 
 
 
-## `Sideko CLI sdk try`
+## `sideko sdk try`
 
 Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users
 
-**Usage:** `Sideko CLI sdk try [OPTIONS] <OPENAPI_SOURCE> <LANGUAGE>`
+**Usage:** `sideko sdk try [OPTIONS] <OPENAPI_SOURCE> <LANGUAGE>`
 
 ###### **Arguments:**
 
@@ -72,11 +72,11 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 
 
-## `Sideko CLI sdk create`
+## `sideko sdk create`
 
 **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
 
-**Usage:** `Sideko CLI sdk create [OPTIONS] <API> <LANGUAGE> <REPO_NAME> <SEMVER>`
+**Usage:** `sideko sdk create [OPTIONS] <API> <LANGUAGE> <REPO_NAME> <SEMVER>`
 
 ###### **Arguments:**
 
@@ -95,11 +95,11 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 
 
-## `Sideko CLI sdk update`
+## `sideko sdk update`
 
 **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
 
-**Usage:** `Sideko CLI sdk update <REPO_PATH> <API> <LANGUAGE> <SEMVER>`
+**Usage:** `sideko sdk update <REPO_PATH> <API> <LANGUAGE> <SEMVER>`
 
 ###### **Arguments:**
 
@@ -113,11 +113,11 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 
 
-## `Sideko CLI api`
+## `sideko api`
 
 **Enterprise Only!** Manage API specifications
 
-**Usage:** `Sideko CLI api <COMMAND>`
+**Usage:** `sideko api <COMMAND>`
 
 ###### **Subcommands:**
 
@@ -127,11 +127,11 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 
 
-## `Sideko CLI api list`
+## `sideko api list`
 
 List your API projects
 
-**Usage:** `Sideko CLI api list [OPTIONS]`
+**Usage:** `sideko api list [OPTIONS]`
 
 ###### **Options:**
 
@@ -139,11 +139,11 @@ List your API projects
 
 
 
-## `Sideko CLI api create`
+## `sideko api create`
 
 Create a new API project
 
-**Usage:** `Sideko CLI api create [OPTIONS] <OPENAPI_SOURCE> <SEMVER>`
+**Usage:** `sideko api create [OPTIONS] <OPENAPI_SOURCE> <SEMVER>`
 
 ###### **Arguments:**
 
@@ -157,11 +157,11 @@ Create a new API project
 
 
 
-## `Sideko CLI api update`
+## `sideko api update`
 
 Upload a new version of a spec to your existing API project
 
-**Usage:** `Sideko CLI api update [OPTIONS] <NAME> <OPENAPI_SOURCE> <SEMVER>`
+**Usage:** `sideko api update [OPTIONS] <NAME> <OPENAPI_SOURCE> <SEMVER>`
 
 ###### **Arguments:**
 
@@ -175,11 +175,11 @@ Upload a new version of a spec to your existing API project
 
 
 
-## `Sideko CLI doc`
+## `sideko doc`
 
 **Enterprise Only!** Manage documentation projects
 
-**Usage:** `Sideko CLI doc <COMMAND>`
+**Usage:** `sideko doc <COMMAND>`
 
 ###### **Subcommands:**
 
@@ -188,19 +188,19 @@ Upload a new version of a spec to your existing API project
 
 
 
-## `Sideko CLI doc list`
+## `sideko doc list`
 
 List your documentation projects
 
-**Usage:** `Sideko CLI doc list`
+**Usage:** `sideko doc list`
 
 
 
-## `Sideko CLI doc deploy`
+## `sideko doc deploy`
 
 Trigger a documentation deployment to preview or production
 
-**Usage:** `Sideko CLI doc deploy [OPTIONS] <NAME>`
+**Usage:** `sideko doc deploy [OPTIONS] <NAME>`
 
 ###### **Arguments:**
 

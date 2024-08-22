@@ -17,7 +17,7 @@ use sideko_rest_api::schemas::{self as sideko_schemas, ApiVersion, NewApiVersion
 use std::{path::PathBuf, str::FromStr};
 
 #[derive(Parser)]
-#[command(name = "Sideko CLI")]
+#[command(name = "sideko")]
 #[command(author = "Team Sideko <team@sideko.dev>")]
 #[command(about = "Login to start generating tools for your APIs", long_about = None)]
 #[command(version)]

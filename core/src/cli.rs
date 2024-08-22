@@ -239,9 +239,12 @@ enum DocCommands {
     Deploy {
         /// The name of the Doc Project in Sideko. e.g. my-rest-api-docs
         name: String,
-        #[arg(long, short)]
+        #[arg(long)]
         /// Flag to deploy to production environment. If not set, it will deploy to preview
         prod: bool,
+        #[arg(long)]
+        /// Flag to not poll until the deployment has completed
+        no_wait: bool,
     },
 }
 
@@ -485,7 +488,11 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
         },
         Commands::Doc(doc_command) => match doc_command {
             DocCommands::List {} => cmds::docs::handle_list_docs().await,
-            DocCommands::Deploy { name, prod } => cmds::docs::handle_deploy_docs(name, prod).await,
+            DocCommands::Deploy {
+                name,
+                prod,
+                no_wait,
+            } => cmds::docs::handle_deploy_docs(name, *prod, *no_wait).await,
         },
     };
 

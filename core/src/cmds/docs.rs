@@ -1,14 +1,21 @@
+use std::time::Duration;
+
 use crate::{
     config,
     result::{Error, Result},
     utils::check_for_updates,
 };
-use log::info;
+use log::{debug, info, warn};
 use prettytable::Table;
 use prettytable::{format, row};
 use sideko_rest_api::{
-    request_types::{ListDocVersionsRequest, TriggerDeploymentRequest},
-    schemas::{DocVersionStatusEnum, NewDeployment},
+    request_types::{
+        GetDeploymentRequest, GetDocProjectRequest, ListDocVersionsRequest,
+        TriggerDeploymentRequest,
+    },
+    schemas::{
+        Deployment, DeploymentStatusEnum, DeploymentTargetEnum, DocVersionStatusEnum, NewDeployment,
+    },
     Client as SidekoClient,
 };
 
@@ -53,7 +60,7 @@ pub async fn handle_list_docs() -> Result<()> {
     Ok(())
 }
 
-pub async fn handle_deploy_docs(name: &str, prod: &bool) -> Result<()> {
+pub async fn handle_deploy_docs(name: &str, prod: bool, no_wait: bool) -> Result<()> {
     // check for updates after all other validation passed
     check_for_updates().await?;
 
@@ -90,7 +97,7 @@ pub async fn handle_deploy_docs(name: &str, prod: &bool) -> Result<()> {
             sideko_rest_api::schemas::DeploymentTargetEnum::Preview
         }
     };
-    client
+    let deployment = client
         .trigger_deployment(TriggerDeploymentRequest {
             project_id_or_name: draft_version.doc_project_id.clone(),
             data: NewDeployment {
@@ -106,7 +113,105 @@ pub async fn handle_deploy_docs(name: &str, prod: &bool) -> Result<()> {
             )
         })?;
 
-    info!("A new documentation deployment has been triggered",);
+    if matches!(deployment.status, DeploymentStatusEnum::Error) {
+        return Err(Error::general_with_debug(
+            "Deployment has failed to trigger",
+            &format!(
+                "Deployment details: {}",
+                serde_json::to_string(&deployment)
+                    .unwrap_or("failed displaying deployment object".to_string())
+            ),
+        ));
+    }
+
+    info!("A new documentation deployment has been triggered");
+    debug!(
+        "Deployment metadata:\n{}",
+        serde_json::to_string_pretty(&deployment.metadata).unwrap_or_default()
+    );
+
+    if no_wait {
+        info!("User specified --no-wait, not polling until completion");
+        return Ok(());
+    }
+
+    info!("Polling for completion, this may take a few minutes...");
+
+    // poll
+    let terminal_deployment = poll_deployment(&deployment).await?;
+
+    if terminal_deployment.status.to_string() == DeploymentStatusEnum::Complete.to_string() {
+        if let Ok(doc_project) = client
+            .get_doc_project(GetDocProjectRequest {
+                project_id_or_name: name.to_string(),
+            })
+            .await
+        {
+            let url = match &terminal_deployment.target {
+                DeploymentTargetEnum::Preview => doc_project.domains.preview.unwrap_or_default(),
+                DeploymentTargetEnum::Production => {
+                    doc_project.domains.production.unwrap_or_default()
+                }
+            };
+
+            info!(
+                "{} deployment complete, available at https://{url}",
+                &terminal_deployment.target
+            );
+        } else {
+            info!("{} deployment complete", &terminal_deployment.target)
+        }
+    }
 
     Ok(())
+}
+
+async fn poll_deployment(deployment: &Deployment) -> Result<Deployment> {
+    let api_key = config::get_api_key()?;
+    let client = SidekoClient::default()
+        .with_base_url(&config::get_base_url())
+        .with_api_key_auth(&api_key);
+    let mut current_status: DeploymentStatusEnum = deployment.status.clone();
+
+    loop {
+        tokio::time::sleep(Duration::from_secs(2)).await;
+
+        let d = client
+            .get_deployment(GetDeploymentRequest {
+                project_id_or_name: deployment.doc_version.doc_project_id.clone(),
+                deployment_id: deployment.id.clone(),
+            })
+            .await
+            .map_err(|e| {
+                Error::api_with_debug(
+                    "Failed retrieving deployment for polling",
+                    &format!(
+                        "Retrieving deployment with id {} encotered error: {e}",
+                        &deployment.id
+                    ),
+                )
+            })?;
+
+        let status_str = d.status.to_string();
+        if current_status.to_string() != status_str {
+            debug!("Deployment status updated to {}", &d.status);
+            current_status = d.status.clone();
+        }
+
+        if status_str == DeploymentStatusEnum::Cancelled.to_string() {
+            warn!("Deployment has been cancelled");
+            return Ok(d);
+        } else if status_str == DeploymentStatusEnum::Error.to_string() {
+            return Err(Error::general_with_debug(
+                "Deployment failed",
+                &format!(
+                    "Deployment details: {}",
+                    serde_json::to_string(&deployment)
+                        .unwrap_or("failed displaying deployment object".to_string())
+                ),
+            ));
+        } else if status_str == DeploymentStatusEnum::Complete.to_string() {
+            return Ok(d);
+        }
+    }
 }

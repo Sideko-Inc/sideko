@@ -18,6 +18,7 @@ use sideko_rest_api::{
     },
     Client as SidekoClient,
 };
+use spinners::{Spinner, Spinners};
 
 pub async fn handle_list_docs() -> Result<()> {
     // check for updates after all other validation passed
@@ -173,6 +174,8 @@ async fn poll_deployment(deployment: &Deployment) -> Result<Deployment> {
         .with_api_key_auth(&api_key);
     let mut current_status: DeploymentStatusEnum = deployment.status.clone();
 
+    let mut sp = Spinner::new(Spinners::Dots, "Polling deployment...".into());
+
     loop {
         tokio::time::sleep(Duration::from_secs(2)).await;
 
@@ -194,14 +197,18 @@ async fn poll_deployment(deployment: &Deployment) -> Result<Deployment> {
 
         let status_str = d.status.to_string();
         if current_status.to_string() != status_str {
+            sp.stop_with_newline();
             debug!("Deployment status updated to {}", &d.status);
+            sp = Spinner::new(Spinners::Dots, "Polling deployment...".into());
             current_status = d.status.clone();
         }
 
         if status_str == DeploymentStatusEnum::Cancelled.to_string() {
+            sp.stop_with_newline();
             warn!("Deployment has been cancelled");
             return Ok(d);
         } else if status_str == DeploymentStatusEnum::Error.to_string() {
+            sp.stop_with_newline();
             return Err(Error::general_with_debug(
                 "Deployment failed",
                 &format!(
@@ -211,6 +218,7 @@ async fn poll_deployment(deployment: &Deployment) -> Result<Deployment> {
                 ),
             ));
         } else if status_str == DeploymentStatusEnum::Complete.to_string() {
+            sp.stop_with_newline();
             return Ok(d);
         }
     }

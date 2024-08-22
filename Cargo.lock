@@ -1807,7 +1807,7 @@ dependencies = [
 
 [[package]]
 name = "sideko"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "anstyle",
  "bytes",
@@ -1839,7 +1839,7 @@ dependencies = [
 
 [[package]]
 name = "sideko-py"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "log",
  "pyo3",

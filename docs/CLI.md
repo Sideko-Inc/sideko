@@ -208,7 +208,8 @@ Trigger a documentation deployment to preview or production
 
 ###### **Options:**
 
-* `-p`, `--prod` — Flag to deploy to production environment. If not set, it will deploy to preview
+* `--prod` — Flag to deploy to production environment. If not set, it will deploy to preview
+* `--no-wait` — Flag to not poll until the deployment has completed
 
 
 

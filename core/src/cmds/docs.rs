@@ -139,28 +139,40 @@ pub async fn handle_deploy_docs(name: &str, prod: bool, no_wait: bool) -> Result
     info!("Polling for completion, this may take a few minutes...");
 
     // poll
-    let terminal_deployment = poll_deployment(&deployment).await?;
+    let poll_future = poll_deployment(&deployment);
+    match tokio::time::timeout(Duration::from_secs(600), poll_future).await {
+        Err(_timeout) => {
+            return Err(Error::general(
+                "Deployment did not complete within time out (10min)",
+            ));
+        }
+        Ok(poll_result) => {
+            let terminal_deployment = poll_result?;
+            if terminal_deployment.status.to_string() == DeploymentStatusEnum::Complete.to_string()
+            {
+                if let Ok(doc_project) = client
+                    .get_doc_project(GetDocProjectRequest {
+                        project_id_or_name: name.to_string(),
+                    })
+                    .await
+                {
+                    let url = match &terminal_deployment.target {
+                        DeploymentTargetEnum::Preview => {
+                            doc_project.domains.preview.unwrap_or_default()
+                        }
+                        DeploymentTargetEnum::Production => {
+                            doc_project.domains.production.unwrap_or_default()
+                        }
+                    };
 
-    if terminal_deployment.status.to_string() == DeploymentStatusEnum::Complete.to_string() {
-        if let Ok(doc_project) = client
-            .get_doc_project(GetDocProjectRequest {
-                project_id_or_name: name.to_string(),
-            })
-            .await
-        {
-            let url = match &terminal_deployment.target {
-                DeploymentTargetEnum::Preview => doc_project.domains.preview.unwrap_or_default(),
-                DeploymentTargetEnum::Production => {
-                    doc_project.domains.production.unwrap_or_default()
+                    info!(
+                        "{} deployment complete, available at https://{url}",
+                        &terminal_deployment.target
+                    );
+                } else {
+                    info!("{} deployment complete", &terminal_deployment.target)
                 }
-            };
-
-            info!(
-                "{} deployment complete, available at https://{url}",
-                &terminal_deployment.target
-            );
-        } else {
-            info!("{} deployment complete", &terminal_deployment.target)
+            }
         }
     }
 

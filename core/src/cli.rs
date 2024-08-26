@@ -186,12 +186,16 @@ enum SdkCommands {
     Update {
         // Path to the existing SDK
         repo_path: PathBuf,
-        /// Name of the API Project
-        api: String,
-        /// Programming language of the existing SDK
-        language: GenerationLanguageClap,
+        /// Name of the SDK. Use sdk list to see existing SDKs
+        sdk_name: String,
         /// The semantic version to assign to this updated SDK
         semver: String,
+        #[arg(long, short)]
+        /// Optionally specify The API Project Semantic Version to generate from
+        api_project_semver: Option<String>,
+    },
+    List {
+        api_name: String,
     },
 }
 
@@ -372,29 +376,23 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                     };
                     Ok(())
                 }
+                SdkCommands::List { api_name } => {
+                    cmds::sdk::handle_list_sdks(api_name).await?;
+                    Ok(())
+                }
                 SdkCommands::Update {
                     repo_path,
-                    api,
-                    language,
+                    sdk_name,
                     semver,
+                    api_project_semver,
                 } => {
-                    let api_versions = data_list_versions(api.clone()).await?;
-                    let latest_semver = find_latest_version(&api_versions)
-                        .expect("API must exist to create an update update");
-                    let api_version = api_versions
-                        .iter()
-                        .find(|v| v.semver == latest_semver.to_string());
-                    if let Some(api_version) = api_version {
-                        cmds::sdk::handle_update(
-                            repo_path,
-                            &api_version.id,
-                            &language.inner,
-                            semver,
-                        )
-                        .await?;
-                    } else {
-                        return Err(result::Error::general("No SDK found to update"));
-                    }
+                    cmds::sdk::handle_update(
+                        repo_path,
+                        sdk_name,
+                        semver,
+                        api_project_semver.clone(),
+                    )
+                    .await?;
 
                     Ok(())
                 }

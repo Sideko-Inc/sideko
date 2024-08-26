@@ -46,6 +46,7 @@ Generate and configure SDK clients
 * `try` — Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users
 * `create` — **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
 * `update` — **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
+* `list` — 
 
 
 
@@ -99,17 +100,27 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
 
-**Usage:** `sideko sdk update <REPO_PATH> <API> <LANGUAGE> <SEMVER>`
+**Usage:** `sideko sdk update [OPTIONS] <REPO_PATH> <SDK_NAME> <SEMVER>`
 
 ###### **Arguments:**
 
 * `<REPO_PATH>`
-* `<API>` — Name of the API Project
-* `<LANGUAGE>` — Programming language of the existing SDK
-
-  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`
-
+* `<SDK_NAME>` — Name of the SDK. Use sdk list to see existing SDKs
 * `<SEMVER>` — The semantic version to assign to this updated SDK
+
+###### **Options:**
+
+* `-a`, `--api-project-semver <API_PROJECT_SEMVER>` — Optionally specify The API Project Semantic Version to generate from
+
+
+
+## `sideko sdk list`
+
+**Usage:** `sideko sdk list <API_NAME>`
+
+###### **Arguments:**
+
+* `<API_NAME>`
 
 
 

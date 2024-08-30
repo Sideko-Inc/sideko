@@ -46,7 +46,7 @@ Generate and configure SDK clients
 * `try` — Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users
 * `create` — **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
 * `update` — **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
-* `list` — 
+* `list` — **Enterprise Only!** List all Sideko managed SDKs for an API Project
 
 
 
@@ -116,11 +116,13 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 ## `sideko sdk list`
 
+**Enterprise Only!** List all Sideko managed SDKs for an API Project
+
 **Usage:** `sideko sdk list <API_NAME>`
 
 ###### **Arguments:**
 
-* `<API_NAME>`
+* `<API_NAME>` — The name of the API in Sideko. e.g. my-rest-api
 
 
 

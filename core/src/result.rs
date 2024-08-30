@@ -48,7 +48,7 @@ impl Error {
 
     pub fn error_msg(&self) -> String {
         match self {
-            Error::General { msg, .. } => format!("Error: {msg}"),
+            Error::General { msg, .. } => msg.clone(),
             Error::Argument { msg, .. } => format!("Argument Error: {msg}"),
             Error::Api { msg, .. } => format!("API Error: {msg}"),
             Error::Io { msg, .. } => format!("IO Error: {msg}"),

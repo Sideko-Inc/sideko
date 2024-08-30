@@ -194,7 +194,10 @@ enum SdkCommands {
         /// Optionally specify The API Project Semantic Version to generate from
         api_project_semver: Option<String>,
     },
+    /// **Enterprise Only!**
+    /// List all Sideko managed SDKs for an API Project
     List {
+        /// The name of the API in Sideko. e.g. my-rest-api
         api_name: String,
     },
 }
@@ -279,7 +282,6 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 let docs = clap_markdown::help_markdown_custom::<Cli>(&options);
                 let docs_path = std::env::current_dir().unwrap();
                 let docs_path = docs_path.join("../docs/CLI.md");
-                println!("{:?}", docs_path.to_str());
                 std::fs::write(docs_path, docs.as_bytes()).expect("could not write docs");
                 Ok(())
             } else {
@@ -368,18 +370,14 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                             semver,
                             &destination,
                         )
-                        .await?
+                        .await
                     } else {
                         Err(result::Error::general(
                             "Unable to determine API version to generate an SDK from",
-                        ))?
-                    };
-                    Ok(())
+                        ))
+                    }
                 }
-                SdkCommands::List { api_name } => {
-                    cmds::sdk::handle_list_sdks(api_name).await?;
-                    Ok(())
-                }
+                SdkCommands::List { api_name } => cmds::sdk::handle_list_sdks(api_name).await,
                 SdkCommands::Update {
                     repo_path,
                     sdk_name,
@@ -392,9 +390,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         semver,
                         api_project_semver.clone(),
                     )
-                    .await?;
-
-                    Ok(())
+                    .await
                 }
             }
         }

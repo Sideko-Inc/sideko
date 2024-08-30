@@ -276,6 +276,12 @@ pub async fn handle_update(
 
     // Copy .git directory to temporary directory
     let git_path = repo_path.join(".git");
+    if !git_path.exists() {
+        return Err(Error::general(&format!(
+            "{} is not a git repository",
+            repo_path.to_string_lossy()
+        )));
+    }
     copy_dir_all(&git_path, temp_dir.path())?;
 
     // Create tar.gz file

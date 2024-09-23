@@ -1826,7 +1826,6 @@ dependencies = [
  "dotenv",
  "env_logger",
  "flate2",
- "heck 0.5.0",
  "log",
  "mime_guess",
  "open",

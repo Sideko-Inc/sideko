@@ -10,7 +10,6 @@ use crate::{
 };
 use clap::{Parser, Subcommand, ValueEnum};
 use clap_markdown::MarkdownOptions;
-use heck::ToKebabCase;
 use semver::Version;
 use sideko_rest_api::schemas::{self as sideko_schemas, ApiVersion, NewApiVersion};
 
@@ -217,8 +216,7 @@ enum ApiCommands {
         /// The semantic version to assign to the API
         semver: String,
         /// The name of the API in Sideko. e.g. my-rest-api
-        #[arg(long, short, value_parser = parse_and_kebab_case)]
-        name: Option<String>,
+        name: String,
         /// Plain text or HTML notes about the new API specification
         #[arg(long)]
         notes: Option<String>,
@@ -418,7 +416,6 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 notes,
             } => {
                 let openapi = load_openapi(&cmds::sdk::OpenApiSource::from(openapi_source)).await?;
-                let name = name.clone().unwrap_or(extract_title(&openapi));
                 cmds::apis::create_new_api_project(
                     &NewApiVersion {
                         semver: semver.clone(),
@@ -426,7 +423,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         mock_server_enabled: Some(true), // default to turning on the mock server
                         notes: notes.clone(),
                     },
-                    name,
+                    name.clone(),
                 )
                 .await
             }
@@ -500,20 +497,6 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
     cmd_res
 }
 
-fn extract_title(input: &str) -> String {
-    if let Ok(json_value) = serde_json::from_str::<serde_json::Value>(input) {
-        if let Some(title) = json_value.pointer("/info/title").and_then(|v| v.as_str()) {
-            return title.to_string();
-        }
-    }
-    if let Ok(yaml_value) = serde_yaml::from_str::<serde_yaml::Value>(input) {
-        if let Some(title) = yaml_value["info"]["title"].as_str() {
-            return title.to_string();
-        }
-    }
-    panic!("Could not find info.title field in the OpenAPI file")
-}
-
 fn find_latest_version(api_versions: &[ApiVersion]) -> Option<Version> {
     api_versions
         .iter()
@@ -523,10 +506,6 @@ fn find_latest_version(api_versions: &[ApiVersion]) -> Option<Version> {
                 .filter(|parsed_version| parsed_version.pre.is_empty())
         })
         .max()
-}
-
-fn parse_and_kebab_case(s: &str) -> Result<String, String> {
-    Ok(s.to_kebab_case())
 }
 
 fn parse_semver_or_increment(s: &str) -> Result<SemverOrIncrement, String> {

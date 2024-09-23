@@ -21,6 +21,7 @@ Use _OpenAPI 3.x_ specifications to generate:
 - SDKs with types, tests, authentication, and code snippets
 - Mock servers that mimic the behavior of your API
 - Hosted API Documentation that stays up to date automatically
+- A command line interface for your API
 
 ## Installation
 
@@ -72,7 +73,9 @@ The API key is read from (in order of priority):
 | Typescript |    ✅     |
 | Rust       |    ✅     |
 | C#         |    🚧     |
-| Java       |    🚧     |
+| Java       |    ✅     |
+| CLI        |    ✅     |
+
 
 ```bash
 sideko sdk try (your Swagger/OpenAPI spec) python

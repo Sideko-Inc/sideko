@@ -117,6 +117,9 @@ impl ValueEnum for GenerationLanguageClap {
             GenerationLanguageClap {
                 inner: sideko_schemas::GenerationLanguageEnum::Python,
             },
+            GenerationLanguageClap {
+                inner: sideko_schemas::GenerationLanguageEnum::Java,
+            },
         ]
     }
 
@@ -136,6 +139,9 @@ impl ValueEnum for GenerationLanguageClap {
             }
             sideko_schemas::GenerationLanguageEnum::Python => {
                 Some(clap::builder::PossibleValue::new("python"))
+            }
+            sideko_schemas::GenerationLanguageEnum::Java => {
+                Some(clap::builder::PossibleValue::new("java"))
             }
         }
     }

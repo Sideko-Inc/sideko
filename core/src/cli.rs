@@ -11,7 +11,7 @@ use crate::{
 use clap::{Parser, Subcommand, ValueEnum};
 use clap_markdown::MarkdownOptions;
 use semver::Version;
-use sideko_rest_api::schemas::{self as sideko_schemas, ApiVersion, NewApiVersion};
+use sideko_rest_api::models::{ApiSpec, NewApiSpec};
 
 use std::{path::PathBuf, str::FromStr};
 
@@ -97,50 +97,50 @@ impl FromStr for SemverOrIncrement {
 
 #[derive(Debug, Clone)]
 pub struct GenerationLanguageClap {
-    inner: sideko_schemas::GenerationLanguageEnum,
+    inner: sideko_rest_api::models::GenerationLanguageEnum,
 }
 impl ValueEnum for GenerationLanguageClap {
     fn value_variants<'a>() -> &'a [Self] {
         &[
             GenerationLanguageClap {
-                inner: sideko_schemas::GenerationLanguageEnum::Go,
+                inner: sideko_rest_api::models::GenerationLanguageEnum::Go,
             },
             GenerationLanguageClap {
-                inner: sideko_schemas::GenerationLanguageEnum::Ruby,
+                inner: sideko_rest_api::models::GenerationLanguageEnum::Ruby,
             },
             GenerationLanguageClap {
-                inner: sideko_schemas::GenerationLanguageEnum::Rust,
+                inner: sideko_rest_api::models::GenerationLanguageEnum::Rust,
             },
             GenerationLanguageClap {
-                inner: sideko_schemas::GenerationLanguageEnum::Typescript,
+                inner: sideko_rest_api::models::GenerationLanguageEnum::Typescript,
             },
             GenerationLanguageClap {
-                inner: sideko_schemas::GenerationLanguageEnum::Python,
+                inner: sideko_rest_api::models::GenerationLanguageEnum::Python,
             },
             GenerationLanguageClap {
-                inner: sideko_schemas::GenerationLanguageEnum::Java,
+                inner: sideko_rest_api::models::GenerationLanguageEnum::Java,
             },
         ]
     }
 
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
         match &self.inner {
-            sideko_schemas::GenerationLanguageEnum::Go => {
+            sideko_rest_api::models::GenerationLanguageEnum::Go => {
                 Some(clap::builder::PossibleValue::new("go"))
             }
-            sideko_schemas::GenerationLanguageEnum::Ruby => {
+            sideko_rest_api::models::GenerationLanguageEnum::Ruby => {
                 Some(clap::builder::PossibleValue::new("ruby"))
             }
-            sideko_schemas::GenerationLanguageEnum::Rust => {
+            sideko_rest_api::models::GenerationLanguageEnum::Rust => {
                 Some(clap::builder::PossibleValue::new("rust"))
             }
-            sideko_schemas::GenerationLanguageEnum::Typescript => {
+            sideko_rest_api::models::GenerationLanguageEnum::Typescript => {
                 Some(clap::builder::PossibleValue::new("typescript"))
             }
-            sideko_schemas::GenerationLanguageEnum::Python => {
+            sideko_rest_api::models::GenerationLanguageEnum::Python => {
                 Some(clap::builder::PossibleValue::new("python"))
             }
-            sideko_schemas::GenerationLanguageEnum::Java => {
+            sideko_rest_api::models::GenerationLanguageEnum::Java => {
                 Some(clap::builder::PossibleValue::new("java"))
             }
         }
@@ -164,22 +164,16 @@ enum SdkCommands {
         #[arg(long, short)]
         /// Name of SDK package to generate
         package_name: Option<String>,
-        #[arg(long, short)]
-        /// URL of Sideko Mock Server for generated testing suite
-        tests_mock_server_url: Option<String>,
     },
     /// **Enterprise Only!**
     /// Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
     Create {
-        /// Name of the API Project
+        /// Name of the API Specification Collection
         api: String,
         /// Programming language to generate an SDK for
         language: GenerationLanguageClap,
         /// The name of the repository
         repo_name: String,
-        #[arg(long, short)]
-        /// The semantic version of the API to generate from
-        api_semver: Option<String>,
         /// The semantic version to assign to the SDK
         semver: String,
         #[arg(long, short)]
@@ -195,12 +189,9 @@ enum SdkCommands {
         sdk_name: String,
         /// The semantic version to assign to this updated SDK
         semver: String,
-        #[arg(long, short)]
-        /// Optionally specify The API Project Semantic Version to generate from
-        api_project_semver: Option<String>,
     },
     /// **Enterprise Only!**
-    /// List all Sideko managed SDKs for an API Project
+    /// List all Sideko managed SDKs for an API Specification Collection
     List {
         /// The name of the API in Sideko. e.g. my-rest-api
         api_name: String,
@@ -209,13 +200,13 @@ enum SdkCommands {
 
 #[derive(Debug, Subcommand)]
 enum ApiCommands {
-    /// List your API projects
+    /// List your API Specification Collections
     List {
         /// Pass name to filter by api name to see the versions of a single API e.g. my-rest-api
         #[arg(long, short)]
         name: Option<String>,
     },
-    /// Create a new API project
+    /// Create a new API Specification Collection
     Create {
         /// Either a file path to an OpenAPI yml/json OR a public URL hosting the OpenAPI specification yml/json
         openapi_source: String,
@@ -227,7 +218,7 @@ enum ApiCommands {
         #[arg(long)]
         notes: Option<String>,
     },
-    /// Upload a new version of a spec to your existing API project
+    /// Upload a new version of a spec to your existing API Specification Collection
     Update {
         /// The name of your API in Sideko. e.g. my-rest-api
         name: String,
@@ -301,7 +292,6 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                     output,
                     base_url,
                     package_name,
-                    tests_mock_server_url,
                 } => {
                     // Set defaults
                     let destination = if let Some(o) = output {
@@ -320,7 +310,6 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         language: language.inner.clone(),
                         base_url: base_url.clone(),
                         package_name: package_name.clone(),
-                        tests_mock_server_url: tests_mock_server_url.clone(),
                     };
 
                     if let OpenApiSource::Raw(_) = params.source {
@@ -336,7 +325,6 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                     api,
                     language,
                     repo_name,
-                    api_semver,
                     semver,
                     output,
                 } => {
@@ -349,53 +337,15 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                             result::Error::general("Failed determining cwd for --output default")
                         })?
                     };
-                    let api_versions = data_list_versions(api.clone()).await?;
-                    let version = {
-                        if let Some(api_semver) = api_semver {
-                            api_versions.iter().find(|v| v.semver == *api_semver)
-                        } else {
-                            let latest_semver = find_latest_version(&api_versions);
-                            if let Some(latest_semver) = latest_semver {
-                                api_versions
-                                    .iter()
-                                    .find(|v| v.semver == latest_semver.to_string())
-                            } else {
-                                return Err(result::Error::general(
-                                    "Unable to determine API version to generate an SDK from",
-                                ))?;
-                            }
-                        }
-                    };
-                    if let Some(version) = version {
-                        cmds::sdk::handle_create(
-                            &language.inner,
-                            &version.id,
-                            repo_name,
-                            semver,
-                            &destination,
-                        )
+                    cmds::sdk::handle_create(&language.inner, api, repo_name, semver, &destination)
                         .await
-                    } else {
-                        Err(result::Error::general(
-                            "Unable to determine API version to generate an SDK from",
-                        ))
-                    }
                 }
                 SdkCommands::List { api_name } => cmds::sdk::handle_list_sdks(api_name).await,
                 SdkCommands::Update {
                     repo_path,
                     sdk_name,
                     semver,
-                    api_project_semver,
-                } => {
-                    cmds::sdk::handle_update(
-                        repo_path,
-                        sdk_name,
-                        semver,
-                        api_project_semver.clone(),
-                    )
-                    .await
-                }
+                } => cmds::sdk::handle_update(repo_path, sdk_name, semver).await,
             }
         }
         Commands::Login { output } => {
@@ -423,8 +373,8 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
             } => {
                 let openapi = load_openapi(&cmds::sdk::OpenApiSource::from(openapi_source)).await?;
                 cmds::apis::create_new_api_project(
-                    &NewApiVersion {
-                        semver: semver.clone(),
+                    &NewApiSpec {
+                        version: semver.clone(),
                         openapi,
                         mock_server_enabled: Some(true), // default to turning on the mock server
                         notes: notes.clone(),
@@ -472,10 +422,10 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                 };
                 cmds::apis::create_new_api_project_version(
                     name.clone(),
-                    &NewApiVersion {
+                    &NewApiSpec {
                         openapi: load_openapi(&cmds::sdk::OpenApiSource::from(openapi_source))
                             .await?,
-                        semver: semver.clone(),
+                        version: semver.clone(),
                         mock_server_enabled: Some(true),
                         notes: notes.clone(),
                     },
@@ -503,11 +453,11 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
     cmd_res
 }
 
-fn find_latest_version(api_versions: &[ApiVersion]) -> Option<Version> {
+fn find_latest_version(api_versions: &[ApiSpec]) -> Option<Version> {
     api_versions
         .iter()
         .filter_map(|v| {
-            semver::Version::parse(&v.semver)
+            semver::Version::parse(&v.version)
                 .ok()
                 .filter(|parsed_version| parsed_version.pre.is_empty())
         })

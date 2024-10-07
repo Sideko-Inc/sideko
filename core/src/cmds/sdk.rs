@@ -3,6 +3,7 @@ use crate::{
     result::{Error, Result},
     utils::{self, check_for_updates},
 };
+use bytes::Bytes;
 use flate2::{write::GzEncoder, Compression};
 use tempfile::TempDir;
 
@@ -12,9 +13,9 @@ use log::debug;
 use prettytable::{format, row, Table};
 use serde::{Deserialize, Serialize};
 use sideko_rest_api::{
-    request_types::{self as sideko_request_types, ListSdksRequest, UpdateSdkRequest},
-    schemas::{self as sideko_schemas, File as SidekoFile, GenerationLanguageEnum},
-    Client as SidekoClient,
+    models::{self as sideko_schemas, File as SidekoFile, GenerationLanguageEnum},
+    Client as SidekoClient, CreateSdkRequest, ListSdksRequest, StatelessGenerateSdkRequest,
+    UpdateSdkRequest, UploadFile,
 };
 use std::{
     fs::{self, File},
@@ -53,7 +54,6 @@ pub struct GenerateSdkParams {
     // options
     pub base_url: Option<String>,
     pub package_name: Option<String>,
-    pub tests_mock_server_url: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -62,7 +62,7 @@ struct SidekoApiErr {
     data: Option<serde_json::Value>,
 }
 
-pub async fn load_openapi(source: &OpenApiSource) -> Result<String> {
+pub async fn load_openapi(source: &OpenApiSource) -> Result<UploadFile> {
     match source {
         OpenApiSource::Url(url) => {
             debug!("Loading OpenAPI spec from url: {url}");
@@ -81,28 +81,36 @@ pub async fn load_openapi(source: &OpenApiSource) -> Result<String> {
                     &format!("response: {:#?}", &response),
                 ));
             }
-
-            let openapi = response.text().await.map_err(|e| {
+            let content = response.bytes().await.map_err(|e| {
                 Error::arg_with_debug(
-                    "Could not extract OpenAPI text from response",
+                    "Could not extract OpenAPI bytes from response",
                     &format!("error: {:#?}", e),
                 )
             })?;
-            Ok(openapi)
+            Ok(UploadFile {
+                file_name: url
+                    .path()
+                    .split('/')
+                    .last()
+                    .unwrap_or("openapi.json")
+                    .to_string(),
+                content,
+            })
         }
         OpenApiSource::Path(buf) => {
             let path_str = buf.to_str().unwrap_or_default();
             debug!("Reading OpenAPI from path: {path_str}");
-            let openapi = fs::read_to_string(buf.clone()).map_err(|err| Error::Io {
+            UploadFile::from_path(path_str).map_err(|err| Error::Io {
                 msg: format!("Failed reading OpenAPI from path {path_str}"),
                 err,
-            })?;
-
-            Ok(openapi)
+            })
         }
         OpenApiSource::Raw(raw) => {
             debug!("OpenAPI provided as raw string");
-            Ok(raw.clone())
+            Ok(UploadFile {
+                file_name: "openapi.json".to_string(),
+                content: Bytes::from(raw.clone()),
+            })
         }
     }
 }
@@ -129,13 +137,12 @@ pub async fn handle_try(params: &GenerateSdkParams) -> Result<()> {
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
     let gen_response = client
-        .stateless_generate_sdk(sideko_request_types::StatelessGenerateSdkRequest {
+        .stateless_generate_sdk(StatelessGenerateSdkRequest {
             data: sideko_schemas::StatelessGenerateSdk {
                 openapi,
                 language: params.language.clone(),
                 package_name: params.package_name.clone(),
                 base_url: params.base_url.clone(),
-                tests_mock_server_url: params.tests_mock_server_url.clone(),
             },
         })
         .await
@@ -166,7 +173,7 @@ pub async fn handle_try(params: &GenerateSdkParams) -> Result<()> {
 
 pub async fn handle_create(
     language: &GenerationLanguageEnum,
-    api_project_version_id: &str,
+    api_id: &str,
     repo_name: &str,
     semver: &str,
     destination: &PathBuf,
@@ -191,10 +198,10 @@ pub async fn handle_create(
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
     let gen_response = client
-        .create_sdk(sideko_request_types::CreateSdkRequest {
+        .create_sdk(CreateSdkRequest {
             data: sideko_schemas::SdkProject {
                 language: language.clone(),
-                api_project_version_id: api_project_version_id.into(),
+                api_id: api_id.to_string(),
                 name: repo_name.into(),
                 semver: semver.into(),
             },
@@ -232,7 +239,7 @@ pub async fn handle_list_sdks(name: &str) -> Result<()> {
 
     let sdks = client
         .list_sdks(ListSdksRequest {
-            api_id_or_name: name.to_string(),
+            api_id: name.to_string(),
         })
         .await
         .map_err(|e| {
@@ -255,12 +262,7 @@ pub async fn handle_list_sdks(name: &str) -> Result<()> {
     Ok(())
 }
 
-pub async fn handle_update(
-    repo_path: &Path,
-    name: &str,
-    semver: &str,
-    api_project_semver: Option<String>,
-) -> Result<()> {
+pub async fn handle_update(repo_path: &Path, name: &str, semver: &str) -> Result<()> {
     log::info!("Creating patch for the new version of {}", name);
 
     let api_key = config::get_api_key()?;
@@ -321,9 +323,9 @@ pub async fn handle_update(
         .update_sdk(UpdateSdkRequest {
             name: name.into(),
             semver: semver.into(),
-            api_version_id_or_semver: api_project_semver.clone(),
+            api_version: None,
             data: SidekoFile {
-                file: git_patch_tar_path,
+                file: UploadFile::from_path(&git_patch_tar_path).expect("not a git repository"),
             },
         })
         .await

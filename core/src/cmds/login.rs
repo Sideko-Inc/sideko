@@ -3,7 +3,7 @@ use rocket::{
     response::{content::RawHtml, Redirect},
     routes, uri, Shutdown,
 };
-use sideko_rest_api::{request_types as sideko_request_types, Client as SidekoClient};
+use sideko_rest_api::{Client as SidekoClient, ExchangeCodeForKeyRequest};
 use std::{fs, path::PathBuf, time::Duration};
 use tokio::time::sleep;
 
@@ -91,9 +91,7 @@ async fn login_callback(code: String, output: String) -> Redirect {
     // exchange code for api key
     let client = SidekoClient::default().with_base_url(&config::get_base_url());
     match client
-        .exchange_code_for_key(sideko_request_types::ExchangeCodeForKeyRequest {
-            code: code.clone(),
-        })
+        .exchange_code_for_key(ExchangeCodeForKeyRequest { code: code.clone() })
         .await
     {
         Ok(key_res) => {

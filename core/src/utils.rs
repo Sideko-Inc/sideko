@@ -1,9 +1,7 @@
 use std::path::PathBuf;
 
 use log::{debug, info, warn};
-use sideko_rest_api::{
-    request_types as sideko_request_types, schemas as sideko_schemas, Client as SidekoClient,
-};
+use sideko_rest_api::Client as SidekoClient;
 use url::Url;
 
 use crate::{
@@ -71,7 +69,7 @@ pub async fn check_for_updates() -> Result<()> {
     debug!("Checking for updates (CLI version: {cli_version})...");
 
     let client = SidekoClient::default().with_base_url(&config::get_base_url());
-    let request = sideko_request_types::CliCheckUpdatesRequest { cli_version };
+    let request = sideko_rest_api::CliCheckUpdatesRequest { cli_version };
     let updates = client
         .cli_check_updates(request)
         .await
@@ -81,13 +79,13 @@ pub async fn check_for_updates() -> Result<()> {
     if let Ok(updates) = updates {
         for update in updates {
             match update.severity {
-                sideko_schemas::CliUpdateSeverityEnum::Info => {
+                sideko_rest_api::models::CliUpdateSeverityEnum::Info => {
                     info!("Update info: {}", update.message);
                 }
-                sideko_schemas::CliUpdateSeverityEnum::Suggested => {
+                sideko_rest_api::models::CliUpdateSeverityEnum::Suggested => {
                     warn!("Update suggested: {}", update.message);
                 }
-                sideko_schemas::CliUpdateSeverityEnum::Required => {
+                sideko_rest_api::models::CliUpdateSeverityEnum::Required => {
                     warn!("Update required: {}", update.message);
                     can_continue = false;
                 }

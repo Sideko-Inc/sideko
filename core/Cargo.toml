@@ -1,6 +1,6 @@
 [package]
 name = "sideko"
-version = "0.8.0"
+version = "0.9.0"
 edition = "2021"
 authors = [
     "Elias Posen <elias@sideko.dev>",
@@ -40,7 +40,7 @@ uuid = "1.8.0"
 prettytable = "0.10.0"
 semver = "1.0.23"
 clap-markdown = "0.1.4"
-sideko_rest_api = "0.2.0-rc.4"
+sideko_rest_api = "0.2.0"
 spinners = "4.1.1"
 walkdir = "2.5.0"
 tempfile = "3.12.0"

@@ -2013,7 +2013,7 @@ dependencies = [
 
 [[package]]
 name = "sideko"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "anstyle",
  "bytes",
@@ -2046,7 +2046,7 @@ dependencies = [
 
 [[package]]
 name = "sideko-py"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "log",
  "pyo3",
@@ -2057,9 +2057,9 @@ dependencies = [
 
 [[package]]
 name = "sideko_rest_api"
-version = "0.2.0-rc.4"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52bfb4da3de77c4603359b29e300ca6b9c49d9177176c815c002231a425fdd2c"
+checksum = "efd5aeb79769aff9f38bd22cce22851918e3efc03c8b35a8d0d6f0e68eb6a122"
 dependencies = [
  "bytes",
  "http 1.1.0",

@@ -9,14 +9,8 @@ use log::{debug, info, warn};
 use prettytable::Table;
 use prettytable::{format, row};
 use sideko_rest_api::{
-    request_types::{
-        GetDeploymentRequest, GetDocProjectRequest, ListDocVersionsRequest,
-        TriggerDeploymentRequest,
-    },
-    schemas::{
-        Deployment, DeploymentStatusEnum, DeploymentTargetEnum, DocVersionStatusEnum, NewDeployment,
-    },
-    Client as SidekoClient,
+    models::{Deployment, DeploymentStatusEnum, DeploymentTargetEnum, NewDeployment},
+    Client as SidekoClient, GetDeploymentRequest, GetDocProjectRequest, TriggerDeploymentRequest,
 };
 use spinners::{Spinner, Spinners};
 
@@ -71,38 +65,21 @@ pub async fn handle_deploy_docs(name: &str, prod: bool, no_wait: bool) -> Result
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
 
-    // get the (one) draft version for the project
-    let doc_versions = client.list_doc_versions(ListDocVersionsRequest {
-        project_id_or_name: name.to_string()
-    }).await.map_err(|e| {
-        Error::api_with_debug(
-            "Could not find doc versions for the given project id. Re-run the command with -v to debug.",
-            &format!("{e}"),
-        )
-    })?;
-    let draft_version = doc_versions
-        .iter()
-        .find(|d| match d.status {
-            DocVersionStatusEnum::Draft => true,
-            DocVersionStatusEnum::Publishing => false,
-            DocVersionStatusEnum::Published => false,
-        })
-        .expect("A draft version always exists");
     let target = match prod {
         true => {
-            info!("Creating product deployment...");
-            sideko_rest_api::schemas::DeploymentTargetEnum::Production
+            info!("Creating production deployment...");
+            sideko_rest_api::models::DeploymentTargetEnum::Production
         }
         false => {
             info!("Creating preview deployment...");
-            sideko_rest_api::schemas::DeploymentTargetEnum::Preview
+            sideko_rest_api::models::DeploymentTargetEnum::Preview
         }
     };
     let deployment = client
         .trigger_deployment(TriggerDeploymentRequest {
-            project_id_or_name: draft_version.doc_project_id.clone(),
+            project_id_or_name: name.to_string(),
             data: NewDeployment {
-                doc_version_id: draft_version.id.clone(),
+                doc_version_id: None, // latest draft
                 target,
             },
         })

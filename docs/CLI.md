@@ -46,7 +46,7 @@ Generate and configure SDK clients
 * `try` — Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users
 * `create` — **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
 * `update` — **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
-* `list` — **Enterprise Only!** List all Sideko managed SDKs for an API Project
+* `list` — **Enterprise Only!** List all Sideko managed SDKs for an API Specification Collection
 
 
 
@@ -61,7 +61,7 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 * `<OPENAPI_SOURCE>` — Path or URL of OpenAPI spec
 * `<LANGUAGE>` — Programming language to generate
 
-  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`
+  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`, `java`
 
 
 ###### **Options:**
@@ -69,7 +69,6 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 * `-o`, `--output <OUTPUT>` — Output path of generated source files, default: ./
 * `-b`, `--base-url <BASE_URL>` — Base URL of API if not specified in OpenAPI spec
 * `-p`, `--package-name <PACKAGE_NAME>` — Name of SDK package to generate
-* `-t`, `--tests-mock-server-url <TESTS_MOCK_SERVER_URL>` — URL of Sideko Mock Server for generated testing suite
 
 
 
@@ -81,17 +80,16 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 ###### **Arguments:**
 
-* `<API>` — Name of the API Project
+* `<API>` — Name of the API Specification Collection
 * `<LANGUAGE>` — Programming language to generate an SDK for
 
-  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`
+  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`, `java`
 
 * `<REPO_NAME>` — The name of the repository
 * `<SEMVER>` — The semantic version to assign to the SDK
 
 ###### **Options:**
 
-* `-a`, `--api-semver <API_SEMVER>` — The semantic version of the API to generate from
 * `-o`, `--output <OUTPUT>` — Output path of generated source files, default: ./
 
 
@@ -100,7 +98,7 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
 
-**Usage:** `sideko sdk update [OPTIONS] <REPO_PATH> <SDK_NAME> <SEMVER>`
+**Usage:** `sideko sdk update <REPO_PATH> <SDK_NAME> <SEMVER>`
 
 ###### **Arguments:**
 
@@ -108,15 +106,11 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 * `<SDK_NAME>` — Name of the SDK. Use sdk list to see existing SDKs
 * `<SEMVER>` — The semantic version to assign to this updated SDK
 
-###### **Options:**
-
-* `-a`, `--api-project-semver <API_PROJECT_SEMVER>` — Optionally specify The API Project Semantic Version to generate from
-
 
 
 ## `sideko sdk list`
 
-**Enterprise Only!** List all Sideko managed SDKs for an API Project
+**Enterprise Only!** List all Sideko managed SDKs for an API Specification Collection
 
 **Usage:** `sideko sdk list <API_NAME>`
 
@@ -134,15 +128,15 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 ###### **Subcommands:**
 
-* `list` — List your API projects
-* `create` — Create a new API project
-* `update` — Upload a new version of a spec to your existing API project
+* `list` — List your API Specification Collections
+* `create` — Create a new API Specification Collection
+* `update` — Upload a new version of a spec to your existing API Specification Collection
 
 
 
 ## `sideko api list`
 
-List your API projects
+List your API Specification Collections
 
 **Usage:** `sideko api list [OPTIONS]`
 
@@ -154,25 +148,25 @@ List your API projects
 
 ## `sideko api create`
 
-Create a new API project
+Create a new API Specification Collection
 
-**Usage:** `sideko api create [OPTIONS] <OPENAPI_SOURCE> <SEMVER>`
+**Usage:** `sideko api create [OPTIONS] <OPENAPI_SOURCE> <SEMVER> <NAME>`
 
 ###### **Arguments:**
 
 * `<OPENAPI_SOURCE>` — Either a file path to an OpenAPI yml/json OR a public URL hosting the OpenAPI specification yml/json
 * `<SEMVER>` — The semantic version to assign to the API
+* `<NAME>` — The name of the API in Sideko. e.g. my-rest-api
 
 ###### **Options:**
 
-* `-n`, `--name <NAME>` — The name of the API in Sideko. e.g. my-rest-api
 * `--notes <NOTES>` — Plain text or HTML notes about the new API specification
 
 
 
 ## `sideko api update`
 
-Upload a new version of a spec to your existing API project
+Upload a new version of a spec to your existing API Specification Collection
 
 **Usage:** `sideko api update [OPTIONS] <NAME> <OPENAPI_SOURCE> <SEMVER>`
 

@@ -19,12 +19,16 @@ pub async fn data_get_api_project(id: String) -> Result<Api> {
     let client = SidekoClient::default()
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
-    client.api().get(GetRequest { id }).await.map_err(|e| {
-        Error::api_with_debug(
-            "Failed finding API with the given id. Re-run the command with -v to debug.",
-            &format!("{e}"),
-        )
-    })
+    client
+        .api()
+        .get(GetRequest { api_name: id })
+        .await
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed finding API with the given id. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })
 }
 
 pub async fn data_list_versions(name: String) -> Result<Vec<ApiSpec>> {
@@ -34,7 +38,7 @@ pub async fn data_list_versions(name: String) -> Result<Vec<ApiSpec>> {
         .with_api_key_auth(&api_key);
     client
         .api().spec().list(ListRequest {
-            id: name,
+            api_name: name,
         })
         .await
         .map_err(|e| {
@@ -70,7 +74,7 @@ pub async fn handle_list_apis(name: &Option<String>) -> Result<()> {
     };
 
     for api_project in api_projects.clone().into_iter() {
-        let name = api_project.id;
+        let name = api_project.name;
         let mut table = Table::new();
         table.set_format(*format::consts::FORMAT_BOX_CHARS);
         let versions = data_list_versions(name.clone()).await?;
@@ -100,7 +104,7 @@ pub async fn create_new_api_project(params: &NewApiSpec, title: String) -> Resul
     let api_project = client
         .api()
         .create(CreateRequest {
-            data: NewApi { id: title },
+            data: NewApi { name: title },
         })
         .await
         .map_err(|e| {
@@ -113,7 +117,7 @@ pub async fn create_new_api_project(params: &NewApiSpec, title: String) -> Resul
         .api()
         .spec()
         .create(SpecCreate {
-            id: api_project.id.clone(),
+            api_name: api_project.name.clone(),
             data: params.clone(),
         })
         .await
@@ -144,7 +148,7 @@ pub async fn create_new_api_project_version(name: String, params: &NewApiSpec) -
         .api()
         .spec()
         .create(SpecCreate {
-            id: name,
+            api_name: name,
             data: params.clone(),
         })
         .await

@@ -1,9 +1,11 @@
 use crate::{
+    cli::SemverOrIncrement,
     config,
     result::{Error, Result},
     utils::{self, check_for_updates},
 };
 use bytes::Bytes;
+use camino::Utf8PathBuf;
 use flate2::{write::GzEncoder, Compression};
 use tempfile::TempDir;
 
@@ -13,12 +15,15 @@ use log::debug;
 use prettytable::{format, row, Table};
 use serde::{Deserialize, Serialize};
 use sideko_rest_api::{
-    models::{self as sideko_schemas, File as SidekoFile, GenerationLanguageEnum},
-    Client as SidekoClient, CreateSdkRequest, ListSdksRequest, StatelessGenerateSdkRequest,
-    UpdateSdkRequest, UploadFile,
+    models::{self as sideko_schemas, ApiVersion, NewSdk, SdkLanguageEnum, UpdateSdk},
+    resources::{
+        sdk::{update::UpdateRequest, GenerateRequest, ListRequest},
+        stateless::generate_sdk::GenerateStatelessRequest,
+    },
+    Client as SidekoClient, UploadFile,
 };
 use std::{
-    fs::{self, File},
+    fs::{self, read_to_string, File},
     io::Cursor,
     path::{Path, PathBuf},
     process::Command,
@@ -50,7 +55,7 @@ impl From<&String> for OpenApiSource {
 pub struct GenerateSdkParams {
     pub source: OpenApiSource,
     pub destination: PathBuf,
-    pub language: GenerationLanguageEnum,
+    pub language: SdkLanguageEnum,
     // options
     pub base_url: Option<String>,
     pub package_name: Option<String>,
@@ -137,8 +142,10 @@ pub async fn handle_try(params: &GenerateSdkParams) -> Result<()> {
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
     let gen_response = client
-        .stateless_generate_sdk(StatelessGenerateSdkRequest {
-            data: sideko_schemas::StatelessGenerateSdk {
+        .stateless()
+        .generate_sdk()
+        .generate_stateless(GenerateStatelessRequest {
+            data: sideko_schemas::NewStatelessSdk {
                 openapi,
                 language: params.language.clone(),
                 package_name: params.package_name.clone(),
@@ -172,10 +179,10 @@ pub async fn handle_try(params: &GenerateSdkParams) -> Result<()> {
 }
 
 pub async fn handle_create(
-    language: &GenerationLanguageEnum,
-    api_id: &str,
-    repo_name: &str,
-    semver: &str,
+    config_path: &Utf8PathBuf,
+    language: &SdkLanguageEnum,
+    api_version: Option<sideko_rest_api::models::ApiVersion>,
+    sdk_version: Option<String>,
     destination: &PathBuf,
 ) -> Result<()> {
     check_for_updates().await?;
@@ -197,13 +204,15 @@ pub async fn handle_create(
     let client = SidekoClient::default()
         .with_base_url(&config::get_base_url())
         .with_api_key_auth(&api_key);
+
     let gen_response = client
-        .create_sdk(CreateSdkRequest {
-            data: sideko_schemas::SdkProject {
+        .sdk()
+        .generate(GenerateRequest {
+            data: NewSdk {
+                config: UploadFile::from_path(config_path.as_str()).unwrap(),
                 language: language.clone(),
-                api_id: api_id.to_string(),
-                name: repo_name.into(),
-                semver: semver.into(),
+                api_version,
+                sdk_version,
             },
         })
         .await
@@ -228,7 +237,7 @@ pub async fn handle_create(
     Ok(())
 }
 
-pub async fn handle_list_sdks(name: &str) -> Result<()> {
+pub async fn handle_list_sdks(api: Option<String>, successful: Option<bool>) -> Result<()> {
     let api_key = config::get_api_key()?;
     let client = SidekoClient::default()
         .with_base_url(&config::get_base_url())
@@ -238,9 +247,8 @@ pub async fn handle_list_sdks(name: &str) -> Result<()> {
     table.set_format(*format::consts::FORMAT_BOX_CHARS);
 
     let sdks = client
-        .list_sdks(ListSdksRequest {
-            api_id: name.to_string(),
-        })
+        .sdk()
+        .list(ListRequest { api, successful })
         .await
         .map_err(|e| {
             Error::api_with_debug(
@@ -248,23 +256,43 @@ pub async fn handle_list_sdks(name: &str) -> Result<()> {
                 &format!("{e}"),
             )
         })?;
-    log::info!("Listing SDKs for the {} API Project...", name);
 
     if sdks.is_empty() {
         table.add_row(row!["No sdks available"]);
     } else {
         table.add_row(row![b -> "Name" , b -> "Language", b -> "Semver"]);
         for sdk in sdks {
-            table.add_row(row![sdk.name, sdk.language, sdk.semver]);
+            table.add_row(row![sdk.name, sdk.language, sdk.version]);
         }
     }
     table.printstd();
     Ok(())
 }
 
-pub async fn handle_update(repo_path: &Path, name: &str, semver: &str) -> Result<()> {
-    log::info!("Creating patch for the new version of {}", name);
+#[derive(Deserialize, Serialize, Debug)]
+struct SdkJson {
+    id: String,
+}
 
+pub async fn handle_update(
+    repo_path: &Utf8PathBuf,
+    config_path: &Utf8PathBuf,
+    version_or_increment: SemverOrIncrement,
+    api_version: Option<ApiVersion>,
+) -> Result<()> {
+    let status = Command::new("git")
+        .current_dir(repo_path)
+        .args(["status", "--porcelain"])
+        .output()
+        .map_err(|e| Error::general_with_debug("Failed to check git status", &format!("{e}")))?;
+
+    if !status.stdout.is_empty() {
+        return Err(Error::general(
+            "Git working directory is not clean. Please commit or stash your changes before updating.",
+        ));
+    }
+
+    log::info!("Updating SDK at {}", repo_path.as_str());
     let api_key = config::get_api_key()?;
     let client = SidekoClient::default()
         .with_base_url(&config::get_base_url())
@@ -280,8 +308,8 @@ pub async fn handle_update(repo_path: &Path, name: &str, semver: &str) -> Result
     let git_path = repo_path.join(".git");
     if !git_path.exists() {
         return Err(Error::general(&format!(
-            "{} is not a git repository",
-            repo_path.to_string_lossy()
+            "{} is not a git repository. Git history is required to perform updates",
+            repo_path.as_str()
         )));
     }
     copy_dir_all(&git_path, temp_dir.path())?;
@@ -304,7 +332,6 @@ pub async fn handle_update(repo_path: &Path, name: &str, semver: &str) -> Result
         let entry = entry.unwrap();
         let path = entry.path();
         let name = path.strip_prefix(temp_dir.path()).unwrap();
-
         if path.is_file() {
             let mut file = File::open(path).unwrap();
             tar.append_file(name, &mut file).unwrap();
@@ -312,38 +339,62 @@ pub async fn handle_update(repo_path: &Path, name: &str, semver: &str) -> Result
             tar.append_dir(name, path).unwrap();
         }
     }
-
     tar.finish().unwrap();
     let enc = tar.into_inner().unwrap(); // Finalize the gzip stream
     enc.finish().unwrap();
+
     let git_patch_tar_path = tar_gz_path.to_string_lossy().into_owned();
 
+    // Read and parse the SDK JSON file
+    let sdk_json_content = read_to_string(repo_path.join(".sdk.json")).map_err(|_e| {
+        Error::general(
+            "Could not find .sdk.json file in repository path. Is this repo a Sideko SDK?",
+        )
+    })?;
+
+    let sdk_json: SdkJson = serde_json::from_str(&sdk_json_content).map_err(|e| {
+        Error::general_with_debug(
+            "Failed to parse .sdk.json file",
+            &format!("JSON parsing error: {}", e),
+        )
+    })?;
+
     // Send the request
-    let patch_response = client
-        .update_sdk(UpdateSdkRequest {
-            name: name.into(),
-            semver: semver.into(),
-            api_version: None,
-            data: SidekoFile {
-                file: UploadFile::from_path(&git_patch_tar_path).expect("not a git repository"),
+    let patch_content = client
+        .sdk()
+        .update()
+        .update(UpdateRequest {
+            data: UpdateSdk {
+                config: UploadFile::from_path(config_path.as_str()).unwrap(),
+                prev_sdk_git: UploadFile::from_path(&git_patch_tar_path).unwrap(),
+                prev_sdk_id: sdk_json.id,
+                sdk_version: version_or_increment.to_string(),
+                api_version,
             },
         })
         .await
-        .unwrap();
+        .map_err(|e| {
+            Error::api_with_debug(
+                "Failed to create update patch for the SDK. Re-run the command with -v to debug.",
+                &format!("{e}"),
+            )
+        })?;
 
-    let patch_content = patch_response.patch;
     if patch_content.is_empty() {
         log::warn!("No updates to apply");
         return Ok(());
     }
+
     let file_path = repo_path.join("update.patch");
     fs::write(&file_path, patch_content.as_bytes()).expect("could not write file");
+
     let output = Command::new("git")
         .current_dir(repo_path)
         .arg("apply")
         .arg("update.patch")
         .output()
         .expect("failed to execute process");
+
     if output.status.success() {
         log::info!("Patch applied successfully with git");
         fs::remove_file(&file_path).expect("failed to delete patch file");

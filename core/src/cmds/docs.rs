@@ -39,7 +39,7 @@ pub async fn handle_list_docs() -> Result<()> {
         table.add_row(row![b -> "Name", b -> "Preview URL", b -> "Production URL",]);
         for doc_project in &doc_projects {
             table.add_row(row![
-                doc_project.title,
+                doc_project.id,
                 doc_project.domains.preview.clone().unwrap_or_default(),
                 doc_project
                     .domains
@@ -77,7 +77,7 @@ pub async fn handle_deploy_docs(name: &str, prod: bool, no_wait: bool) -> Result
     };
     let deployment = client
         .trigger_deployment(TriggerDeploymentRequest {
-            project_id_or_name: name.to_string(),
+            doc_name: name.to_string(),
             data: NewDeployment {
                 doc_version_id: None, // latest draft
                 target,
@@ -129,7 +129,7 @@ pub async fn handle_deploy_docs(name: &str, prod: bool, no_wait: bool) -> Result
             {
                 if let Ok(doc_project) = client
                     .get_doc_project(GetDocProjectRequest {
-                        project_id_or_name: name.to_string(),
+                        doc_name: name.to_string(),
                     })
                     .await
                 {
@@ -170,7 +170,7 @@ async fn poll_deployment(deployment: &Deployment) -> Result<Deployment> {
 
         let d = client
             .get_deployment(GetDeploymentRequest {
-                project_id_or_name: deployment.doc_version.doc_project_id.clone(),
+                doc_name: deployment.doc_version.doc_project_id.clone(),
                 deployment_id: deployment.id.clone(),
             })
             .await

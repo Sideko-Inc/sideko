@@ -47,6 +47,7 @@ Generate and configure SDK clients
 * `create` — **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
 * `update` — **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
 * `list` — **Enterprise Only!** List all Sideko managed SDKs for an API Specification Collection
+* `config` — **Enterprise Only!** Manage SDK Configurations specifications
 
 
 
@@ -76,21 +77,21 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
 
-**Usage:** `sideko sdk create [OPTIONS] <API> <LANGUAGE> <REPO_NAME> <SEMVER>`
+**Usage:** `sideko sdk create [OPTIONS] <CONFIG_PATH> <LANGUAGE>`
 
 ###### **Arguments:**
 
-* `<API>` — Name of the API Specification Collection
+* `<CONFIG_PATH>` — Path to the Sideko SDK Configuration File
 * `<LANGUAGE>` — Programming language to generate an SDK for
 
   Possible values: `go`, `ruby`, `rust`, `typescript`, `python`, `java`
 
-* `<REPO_NAME>` — The name of the repository
-* `<SEMVER>` — The semantic version to assign to the SDK
 
 ###### **Options:**
 
-* `-o`, `--output <OUTPUT>` — Output path of generated source files, default: ./
+* `--api-version <API_VERSION>` — Optionally generate from a specific API version
+* `--sdk-version <SDK_VERSION>` — Optionally set an initial SDK semantic version
+* `--output <OUTPUT>` — Output path of generated source files, default: ./
 
 
 
@@ -98,13 +99,17 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
 
-**Usage:** `sideko sdk update <REPO_PATH> <SDK_NAME> <SEMVER>`
+**Usage:** `sideko sdk update [OPTIONS] <REPO_PATH> <CONFIG_PATH> <RELEASE_TYPE_OR_SEMVER>`
 
 ###### **Arguments:**
 
-* `<REPO_PATH>`
-* `<SDK_NAME>` — Name of the SDK. Use sdk list to see existing SDKs
-* `<SEMVER>` — The semantic version to assign to this updated SDK
+* `<REPO_PATH>` — Path to the existing SDK
+* `<CONFIG_PATH>` — Name of the API Specification Collection
+* `<RELEASE_TYPE_OR_SEMVER>` — The release type or semantic version to assign to the updated SDK
+
+###### **Options:**
+
+* `--api-version <API_VERSION>` — Optional specific API version to generate from (default is latest non-rc semantic version)
 
 
 
@@ -112,11 +117,57 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 **Enterprise Only!** List all Sideko managed SDKs for an API Specification Collection
 
-**Usage:** `sideko sdk list <API_NAME>`
+**Usage:** `sideko sdk list [OPTIONS]`
+
+###### **Options:**
+
+* `--api-name <API_NAME>` — The name of the API in Sideko. e.g. my-rest-api
+* `--successful-only <SUCCESSFUL_ONLY>` — Only show successful SDK generations
+
+  Possible values: `true`, `false`
+
+
+
+
+## `sideko sdk config`
+
+**Enterprise Only!** Manage SDK Configurations specifications
+
+**Usage:** `sideko sdk config <COMMAND>`
+
+###### **Subcommands:**
+
+* `init` — Initialize an SDK Configuration
+* `sync` — Sync an SDK Configuration file with the latest state of the API
+
+
+
+## `sideko sdk config init`
+
+Initialize an SDK Configuration
+
+**Usage:** `sideko sdk config init [OPTIONS] <API_NAME>`
 
 ###### **Arguments:**
 
-* `<API_NAME>` — The name of the API in Sideko. e.g. my-rest-api
+* `<API_NAME>` — Name of the API in Sideko. e.g. my-rest-api
+
+###### **Options:**
+
+* `--api-version <API_VERSION>` — Optionally specify a specific API version to intitialize the config with
+
+
+
+## `sideko sdk config sync`
+
+Sync an SDK Configuration file with the latest state of the API
+
+**Usage:** `sideko sdk config sync <CONFIG_PATH> [API_VERSION]`
+
+###### **Arguments:**
+
+* `<CONFIG_PATH>` — Path to the Sideko SDK Configuration File
+* `<API_VERSION>` — Optionally specify a specific API version to sync the config with
 
 
 

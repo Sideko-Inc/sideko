@@ -2,16 +2,18 @@ use crate::{
     cmds::{
         self,
         apis::data_list_versions,
+        config as SdkConfig,
         sdk::{load_openapi, OpenApiSource},
     },
     config,
     result::{self},
     styles, utils,
 };
+use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 use clap_markdown::MarkdownOptions;
 use semver::Version;
-use sideko_rest_api::models::{ApiSpec, NewApiSpec};
+use sideko_rest_api::models::{ApiSpec, ApiVersion, NewApiSpec, VersionTypeEnum};
 
 use std::{path::PathBuf, str::FromStr};
 
@@ -73,6 +75,16 @@ pub enum SemverIncrement {
     Patch,
 }
 
+impl std::fmt::Display for SemverIncrement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SemverIncrement::Major => write!(f, "major"),
+            SemverIncrement::Minor => write!(f, "minor"),
+            SemverIncrement::Patch => write!(f, "patch"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum SemverOrIncrement {
     Increment(SemverIncrement),
@@ -95,52 +107,61 @@ impl FromStr for SemverOrIncrement {
     }
 }
 
+impl std::fmt::Display for SemverOrIncrement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SemverOrIncrement::Increment(increment) => write!(f, "{}", increment),
+            SemverOrIncrement::Semver(version) => write!(f, "{}", version),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct GenerationLanguageClap {
-    inner: sideko_rest_api::models::GenerationLanguageEnum,
+    inner: sideko_rest_api::models::SdkLanguageEnum,
 }
 impl ValueEnum for GenerationLanguageClap {
     fn value_variants<'a>() -> &'a [Self] {
         &[
             GenerationLanguageClap {
-                inner: sideko_rest_api::models::GenerationLanguageEnum::Go,
+                inner: sideko_rest_api::models::SdkLanguageEnum::Go,
             },
             GenerationLanguageClap {
-                inner: sideko_rest_api::models::GenerationLanguageEnum::Ruby,
+                inner: sideko_rest_api::models::SdkLanguageEnum::Ruby,
             },
             GenerationLanguageClap {
-                inner: sideko_rest_api::models::GenerationLanguageEnum::Rust,
+                inner: sideko_rest_api::models::SdkLanguageEnum::Rust,
             },
             GenerationLanguageClap {
-                inner: sideko_rest_api::models::GenerationLanguageEnum::Typescript,
+                inner: sideko_rest_api::models::SdkLanguageEnum::Typescript,
             },
             GenerationLanguageClap {
-                inner: sideko_rest_api::models::GenerationLanguageEnum::Python,
+                inner: sideko_rest_api::models::SdkLanguageEnum::Python,
             },
             GenerationLanguageClap {
-                inner: sideko_rest_api::models::GenerationLanguageEnum::Java,
+                inner: sideko_rest_api::models::SdkLanguageEnum::Java,
             },
         ]
     }
 
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
         match &self.inner {
-            sideko_rest_api::models::GenerationLanguageEnum::Go => {
+            sideko_rest_api::models::SdkLanguageEnum::Go => {
                 Some(clap::builder::PossibleValue::new("go"))
             }
-            sideko_rest_api::models::GenerationLanguageEnum::Ruby => {
+            sideko_rest_api::models::SdkLanguageEnum::Ruby => {
                 Some(clap::builder::PossibleValue::new("ruby"))
             }
-            sideko_rest_api::models::GenerationLanguageEnum::Rust => {
+            sideko_rest_api::models::SdkLanguageEnum::Rust => {
                 Some(clap::builder::PossibleValue::new("rust"))
             }
-            sideko_rest_api::models::GenerationLanguageEnum::Typescript => {
+            sideko_rest_api::models::SdkLanguageEnum::Typescript => {
                 Some(clap::builder::PossibleValue::new("typescript"))
             }
-            sideko_rest_api::models::GenerationLanguageEnum::Python => {
+            sideko_rest_api::models::SdkLanguageEnum::Python => {
                 Some(clap::builder::PossibleValue::new("python"))
             }
-            sideko_rest_api::models::GenerationLanguageEnum::Java => {
+            sideko_rest_api::models::SdkLanguageEnum::Java => {
                 Some(clap::builder::PossibleValue::new("java"))
             }
         }
@@ -168,34 +189,47 @@ enum SdkCommands {
     /// **Enterprise Only!**
     /// Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
     Create {
-        /// Name of the API Specification Collection
-        api: String,
+        /// Path to the Sideko SDK Configuration File
+        config_path: Utf8PathBuf,
         /// Programming language to generate an SDK for
         language: GenerationLanguageClap,
-        /// The name of the repository
-        repo_name: String,
-        /// The semantic version to assign to the SDK
-        semver: String,
-        #[arg(long, short)]
+        #[arg(long)]
+        /// Optionally generate from a specific API version
+        api_version: Option<String>,
+        #[arg(long)]
+        /// Optionally set an initial SDK semantic version
+        sdk_version: Option<String>,
+        #[arg(long)]
         /// Output path of generated source files, default: ./
         output: Option<PathBuf>,
     },
     /// **Enterprise Only!**
     /// Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
     Update {
-        // Path to the existing SDK
-        repo_path: PathBuf,
-        /// Name of the SDK. Use sdk list to see existing SDKs
-        sdk_name: String,
-        /// The semantic version to assign to this updated SDK
-        semver: String,
+        /// Path to the existing SDK
+        repo_path: Utf8PathBuf,
+        /// Name of the API Specification Collection
+        config_path: Utf8PathBuf,
+        /// The release type or semantic version to assign to the updated SDK
+        release_type_or_semver: SemverOrIncrement,
+        #[arg(long)]
+        /// Optional specific API version to generate from (default is latest non-rc semantic version)
+        api_version: Option<String>,
     },
     /// **Enterprise Only!**
     /// List all Sideko managed SDKs for an API Specification Collection
     List {
+        #[arg(long)]
         /// The name of the API in Sideko. e.g. my-rest-api
-        api_name: String,
+        api_name: Option<String>,
+        #[arg(long)]
+        /// Only show successful SDK generations
+        successful_only: Option<bool>,
     },
+    /// **Enterprise Only!**
+    /// Manage SDK Configurations specifications
+    #[command(subcommand)]
+    Config(SdkConfigCommands),
 }
 
 #[derive(Debug, Subcommand)]
@@ -247,6 +281,25 @@ enum DocCommands {
         #[arg(long)]
         /// Flag to not poll until the deployment has completed
         no_wait: bool,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum SdkConfigCommands {
+    /// Initialize an SDK Configuration
+    Init {
+        /// Name of the API in Sideko. e.g. my-rest-api
+        api_name: String,
+        #[arg(long)]
+        /// Optionally specify a specific API version to intitialize the config with
+        api_version: Option<String>,
+    },
+    /// Sync an SDK Configuration file with the latest state of the API
+    Sync {
+        /// Path to the Sideko SDK Configuration File
+        config_path: Utf8PathBuf,
+        /// Optionally specify a specific API version to sync the config with
+        api_version: Option<String>,
     },
 }
 
@@ -322,10 +375,10 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                     cmds::sdk::handle_try(&params).await
                 }
                 SdkCommands::Create {
-                    api,
+                    config_path,
                     language,
-                    repo_name,
-                    semver,
+                    api_version,
+                    sdk_version,
                     output,
                 } => {
                     // Set defaults
@@ -337,15 +390,88 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                             result::Error::general("Failed determining cwd for --output default")
                         })?
                     };
-                    cmds::sdk::handle_create(&language.inner, api, repo_name, semver, &destination)
-                        .await
+
+                    let api_version = match api_version {
+                        Some(v) => {
+                            if v == "latest" {
+                                Some(ApiVersion::StrEnum(VersionTypeEnum::Latest))
+                            } else {
+                                Some(ApiVersion::Str(v.clone()))
+                            }
+                        }
+                        None => None,
+                    };
+                    cmds::sdk::handle_create(
+                        config_path,
+                        &language.inner,
+                        api_version.clone(),
+                        sdk_version.clone(),
+                        &destination,
+                    )
+                    .await
                 }
-                SdkCommands::List { api_name } => cmds::sdk::handle_list_sdks(api_name).await,
+                SdkCommands::List {
+                    api_name,
+                    successful_only,
+                } => cmds::sdk::handle_list_sdks(api_name.clone(), *successful_only).await,
                 SdkCommands::Update {
                     repo_path,
-                    sdk_name,
-                    semver,
-                } => cmds::sdk::handle_update(repo_path, sdk_name, semver).await,
+                    release_type_or_semver,
+                    api_version,
+                    config_path,
+                } => {
+                    let api_version = match api_version {
+                        Some(v) => {
+                            if v == "latest" {
+                                Some(ApiVersion::StrEnum(VersionTypeEnum::Latest))
+                            } else {
+                                Some(ApiVersion::Str(v.clone()))
+                            }
+                        }
+                        None => None,
+                    };
+                    cmds::sdk::handle_update(
+                        repo_path,
+                        config_path,
+                        release_type_or_semver.clone(),
+                        api_version.clone(),
+                    )
+                    .await
+                }
+                SdkCommands::Config(sdk_config_commands) => match sdk_config_commands {
+                    SdkConfigCommands::Init {
+                        api_name,
+                        api_version,
+                    } => {
+                        let api_version = match api_version {
+                            Some(v) => {
+                                if v == "latest" {
+                                    Some(ApiVersion::StrEnum(VersionTypeEnum::Latest))
+                                } else {
+                                    Some(ApiVersion::Str(v.clone()))
+                                }
+                            }
+                            None => None,
+                        };
+                        SdkConfig::init(api_name.clone(), api_version.clone()).await
+                    }
+                    SdkConfigCommands::Sync {
+                        config_path,
+                        api_version,
+                    } => {
+                        let api_version = match api_version {
+                            Some(v) => {
+                                if v == "latest" {
+                                    Some(ApiVersion::StrEnum(VersionTypeEnum::Latest))
+                                } else {
+                                    Some(ApiVersion::Str(v.clone()))
+                                }
+                            }
+                            None => None,
+                        };
+                        SdkConfig::sync(config_path, api_version.clone()).await
+                    }
+                },
             }
         }
         Commands::Login { output } => {

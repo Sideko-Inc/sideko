@@ -12,18 +12,11 @@ pub fn config_bufs(user_defined: Vec<Option<PathBuf>>) -> Vec<PathBuf> {
         }
     };
 
-    let home_config = {
-        if let Ok(home) = std::env::var("HOME") {
-            if let Ok(mut buf) = PathBuf::from_str(&home) {
-                buf.push(".sideko");
-                Some(buf)
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    };
+    let home_config = std::env::var("HOME").ok().map(|home| {
+        let mut buf = PathBuf::from_str(&home).unwrap();
+        buf.push(".sideko");
+        buf
+    });
 
     let mut bufs = user_defined.clone();
     bufs.extend([cwd_config, home_config]);

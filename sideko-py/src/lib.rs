@@ -5,7 +5,7 @@ use pyo3::{
     pyclass, wrap_pyfunction, PyResult,
 };
 use sideko::{cmds::sdk, config, utils};
-use sideko_rest_api::models::GenerationLanguageEnum;
+use sideko_rest_api::models::SdkLanguageEnum;
 use std::path::PathBuf;
 
 #[pyclass]
@@ -19,13 +19,13 @@ pub enum Language {
 }
 
 impl Language {
-    fn to_gen_lang(&self) -> GenerationLanguageEnum {
+    fn to_gen_lang(&self) -> SdkLanguageEnum {
         match self {
-            Language::Python => GenerationLanguageEnum::Python,
-            Language::Ruby => GenerationLanguageEnum::Ruby,
-            Language::Typescript => GenerationLanguageEnum::Typescript,
-            Language::Rust => GenerationLanguageEnum::Rust,
-            Language::Go => GenerationLanguageEnum::Go,
+            Language::Python => SdkLanguageEnum::Python,
+            Language::Ruby => SdkLanguageEnum::Ruby,
+            Language::Typescript => SdkLanguageEnum::Typescript,
+            Language::Rust => SdkLanguageEnum::Rust,
+            Language::Go => SdkLanguageEnum::Go,
         }
     }
 }

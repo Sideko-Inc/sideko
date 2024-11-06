@@ -162,11 +162,11 @@ Initialize an SDK Configuration
 
 Sync an SDK Configuration file with the latest state of the API
 
-**Usage:** `sideko sdk config sync <CONFIG> [API_VERSION]`
+**Usage:** `sideko sdk config sync <CONFIG_PATH> [API_VERSION]`
 
 ###### **Arguments:**
 
-* `<CONFIG>` — Path to the Sideko SDK Configuration File
+* `<CONFIG_PATH>` — Path to the Sideko SDK Configuration File
 * `<API_VERSION>` — Optionally specify a specific API version to sync the config with
 
 

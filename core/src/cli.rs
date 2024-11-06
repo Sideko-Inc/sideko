@@ -297,7 +297,7 @@ enum SdkConfigCommands {
     /// Sync an SDK Configuration file with the latest state of the API
     Sync {
         /// Path to the Sideko SDK Configuration File
-        config: Utf8PathBuf,
+        config_path: Utf8PathBuf,
         /// Optionally specify a specific API version to sync the config with
         api_version: Option<String>,
     },
@@ -456,7 +456,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                         SdkConfig::init(api_name.clone(), api_version.clone()).await
                     }
                     SdkConfigCommands::Sync {
-                        config,
+                        config_path,
                         api_version,
                     } => {
                         let api_version = match api_version {
@@ -469,7 +469,7 @@ pub async fn cli(args: Vec<String>) -> result::Result<()> {
                             }
                             None => None,
                         };
-                        SdkConfig::sync(config, api_version.clone()).await
+                        SdkConfig::sync(config_path, api_version.clone()).await
                     }
                 },
             }

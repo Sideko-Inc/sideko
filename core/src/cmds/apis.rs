@@ -159,7 +159,7 @@ pub async fn create_new_api_project_version(name: String, params: &NewApiSpec) -
             )
         })?;
     log::info!(
-        "Updated API Spec Collection with new spec: {} ",
+        "Updated API with new specification as version: {} ",
         new_version.version
     );
 

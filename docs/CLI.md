@@ -81,7 +81,7 @@ Generate a point-in-time SDK (unmanaged/stateless). This command is available to
 
 ###### **Arguments:**
 
-* `<CONFIG_PATH>` — Name of the API Specification Collection
+* `<CONFIG_PATH>` — Path to the Sideko SDK Configuration File
 * `<LANGUAGE>` — Programming language to generate an SDK for
 
   Possible values: `go`, `ruby`, `rust`, `typescript`, `python`, `java`

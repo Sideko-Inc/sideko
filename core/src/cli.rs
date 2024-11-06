@@ -189,7 +189,7 @@ enum SdkCommands {
     /// **Enterprise Only!**
     /// Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
     Create {
-        /// Name of the API Specification Collection
+        /// Path to the Sideko SDK Configuration File
         config_path: Utf8PathBuf,
         /// Programming language to generate an SDK for
         language: GenerationLanguageClap,

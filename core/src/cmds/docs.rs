@@ -39,7 +39,7 @@ pub async fn handle_list_docs() -> Result<()> {
         table.add_row(row![b -> "Name", b -> "Preview URL", b -> "Production URL",]);
         for doc_project in &doc_projects {
             table.add_row(row![
-                doc_project.id,
+                doc_project.name,
                 doc_project.domains.preview.clone().unwrap_or_default(),
                 doc_project
                     .domains

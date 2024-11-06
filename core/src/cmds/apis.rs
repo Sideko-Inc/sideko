@@ -128,8 +128,8 @@ pub async fn create_new_api_project(params: &NewApiSpec, title: String) -> Resul
             )
         })?;
     log::info!(
-        "Created API Project with id: {} with initial semantic version: {}",
-        api_project.id,
+        "Created API Project with name: {} and initial semantic version: {}",
+        api_project.name,
         first_version.version
     );
 

@@ -98,5 +98,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: "sideko-*"
-          body: |
-            # Sideko CLI Release
+          tag_name: ${{ github.ref_name }}
+          append_body: true

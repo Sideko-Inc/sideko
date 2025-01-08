@@ -1,6 +1,5 @@
 pub mod cli;
-pub mod cmds;
-pub mod config;
+mod cmds;
 pub mod result;
-pub mod styles;
-pub mod utils;
+mod styles;
+mod utils;

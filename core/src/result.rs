@@ -1,68 +1,115 @@
+use std::io;
+
+use log::{debug, error};
+
 #[derive(Debug)]
-pub enum Error {
-    General { msg: String, debug: Option<String> },
-    Argument { msg: String, debug: Option<String> },
-    Api { msg: String, debug: Option<String> },
-    Io { msg: String, err: std::io::Error },
+pub enum CliError {
+    General {
+        msg: String,
+        debug: Option<String>,
+    },
+    Io {
+        err: io::Error,
+        override_msg: Option<String>,
+    },
+    Api {
+        err: sideko_rest_api::Error,
+        override_msg: Option<String>,
+    },
 }
 
-impl Error {
-    pub fn general(msg: &str) -> Self {
-        Error::General {
-            msg: msg.into(),
+impl CliError {
+    pub fn general<S: ToString>(msg: S) -> Self {
+        CliError::General {
+            msg: msg.to_string(),
             debug: None,
         }
     }
-    pub fn general_with_debug(msg: &str, debug: &str) -> Self {
-        Error::General {
-            msg: msg.into(),
-            debug: Some(debug.into()),
+    pub fn general_debug<S: ToString, D: ToString>(msg: S, debug: D) -> Self {
+        CliError::General {
+            msg: msg.to_string(),
+            debug: Some(debug.to_string()),
         }
     }
 
-    pub fn arg(msg: &str) -> Self {
-        Error::Argument {
-            msg: msg.into(),
-            debug: None,
+    pub fn io_custom<S: ToString>(msg: S, err: io::Error) -> Self {
+        CliError::Io {
+            override_msg: Some(msg.to_string()),
+            err,
         }
     }
-    pub fn arg_with_debug(msg: &str, debug: &str) -> Self {
-        Error::Argument {
-            msg: msg.into(),
-            debug: Some(debug.into()),
-        }
-    }
-
-    pub fn api(msg: &str) -> Self {
-        Error::Api {
-            msg: msg.into(),
-            debug: None,
-        }
-    }
-    pub fn api_with_debug(msg: &str, debug: &str) -> Self {
-        Error::Api {
-            msg: msg.into(),
-            debug: Some(debug.into()),
+    pub fn api_custom<S: ToString>(msg: S, err: sideko_rest_api::Error) -> Self {
+        CliError::Api {
+            override_msg: Some(msg.to_string()),
+            err,
         }
     }
 
-    pub fn error_msg(&self) -> String {
-        match self {
-            Error::General { msg, .. } => msg.clone(),
-            Error::Argument { msg, .. } => format!("Argument Error: {msg}"),
-            Error::Api { msg, .. } => format!("API Error: {msg}"),
-            Error::Io { msg, .. } => format!("IO Error: {msg}"),
-        }
-    }
+    pub fn log(&self) {
+        let err_log = match self {
+            CliError::General { msg, debug } => {
+                if let Some(d) = debug {
+                    debug!("{d}")
+                }
+                msg.clone()
+            }
+            CliError::Io { override_msg, err } => {
+                debug!("{err:?}");
+                override_msg.clone().unwrap_or_else(|| err.to_string())
+            }
+            CliError::Api { override_msg, err } => {
+                match err {
+                    sideko_rest_api::Error::Io(e) => debug!("SDK IO Error: {e:?}"),
+                    sideko_rest_api::Error::Request(e) => debug!("SDK Request Error: {e:?}"),
+                    sideko_rest_api::Error::DeserializeJson(e, json_str) => {
+                        let res_json = serde_json::to_string_pretty(
+                            &serde_json::from_str::<serde_json::Value>(json_str)
+                                .unwrap_or_default(),
+                        )
+                        .unwrap_or_else(|_| json_str.to_string());
+                        debug!("Deserializer Error: {e:?}");
+                        debug!("Raw JSON: {res_json}");
+                    }
+                    sideko_rest_api::Error::Api(e) | sideko_rest_api::Error::ContentType(e) => {
+                        debug!("Response headers: {:?}", &e.headers);
+                        if let Ok(val) = e.json::<serde_json::Value>() {
+                            log::debug!(
+                                "Body: {}",
+                                serde_json::to_string_pretty(&val)
+                                    .unwrap_or_else(|_| val.to_string())
+                            );
+                        } else if let Ok(text) = std::str::from_utf8(&e.content) {
+                            log::debug!("Body: {text}",);
+                        } else {
+                            log::debug!("Unable to display body ({} bytes)", e.content.len())
+                        }
+                    }
+                }
 
-    pub fn debug_msg(&self) -> Option<String> {
-        match self {
-            Error::General { debug, .. }
-            | Error::Argument { debug, .. }
-            | Error::Api { debug, .. } => debug.clone(),
-            Error::Io { err, .. } => Some(format!("{err}")),
+                override_msg.clone().unwrap_or_else(|| err.to_string())
+            }
+        };
+
+        error!("{err_log}");
+    }
+}
+
+impl From<sideko_rest_api::Error> for CliError {
+    fn from(err: sideko_rest_api::Error) -> Self {
+        Self::Api {
+            err,
+            override_msg: None,
         }
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+impl From<io::Error> for CliError {
+    fn from(err: io::Error) -> Self {
+        Self::Io {
+            err,
+            override_msg: None,
+        }
+    }
+}
+
+pub type CliResult<T> = Result<T, CliError>;

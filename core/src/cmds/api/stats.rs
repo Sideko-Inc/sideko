@@ -12,9 +12,11 @@ pub struct ApiStatsCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
     name: String,
+
     /// API name or id e.g. my-api
     #[arg(long, default_value = "latest")]
     version: String,
+
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     display: DisplayOutput,

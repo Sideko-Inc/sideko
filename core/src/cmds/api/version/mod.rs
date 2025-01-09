@@ -2,7 +2,7 @@ use crate::result::CliResult;
 
 mod create;
 mod list;
-mod tabled;
+pub(crate) mod tabled;
 mod update;
 
 #[derive(clap::Subcommand)]

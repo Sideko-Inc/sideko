@@ -14,9 +14,11 @@ pub struct ApiVersionListCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
     name: String,
+
     /// Limit results to most recent N versions
     #[arg(long)]
     limit: Option<usize>,
+
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     display: DisplayOutput,

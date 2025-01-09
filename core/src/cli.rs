@@ -12,21 +12,40 @@ use clap::{Parser, Subcommand};
 struct SidekoCli {
     #[command(subcommand)]
     command: SidekoCommands,
-    #[arg(
-        long,
-        short = 'q',
-        global = true,
-        help = "No logging except for errors"
-    )]
+
+    /// No logging except for errors
+    #[arg(long, short = 'q', global = true)]
     quiet: bool,
-    #[arg(long, short = 'v', global = true, help = "Verbose logging")]
+
+    /// Verbose logging
+    #[arg(long, short = 'v', global = true)]
     verbose: bool,
+
+    /// Load config from custom path
     #[arg(
         long,
-        value_parser = crate::utils::validators::validate_file,
-        help = "Load config from custom path"
+        value_parser = crate::utils::validators::validate_file
     )]
     config: Option<Utf8PathBuf>,
+}
+impl SidekoCli {
+    async fn handle(&self) -> CliResult<()> {
+        // init logger and environment
+        utils::logging::init_logger(self.quiet, self.verbose);
+
+        if let Some(cfg_path) = &self.config {
+            env::set_var(utils::config::ConfigKey::ConfigPath.to_string(), cfg_path);
+        }
+        utils::config::load()?;
+
+        utils::check_for_updates().await?;
+
+        // Run command
+        match &self.command {
+            SidekoCommands::Login(cmd) => cmd.handle().await,
+            SidekoCommands::Api(cmd) => cmd.handle().await,
+        }
+    }
 }
 
 #[derive(Subcommand)]
@@ -42,25 +61,10 @@ enum SidekoCommands {
 pub async fn cli(args: Vec<String>) -> CliResult<()> {
     let cli = SidekoCli::parse_from(args);
 
-    // init logger and environment
-    utils::logging::init_logger(cli.quiet, cli.verbose);
-
-    if let Some(cfg_path) = &cli.config {
-        env::set_var(utils::config::ConfigKey::ConfigPath.to_string(), cfg_path);
-    }
-    utils::config::load()?;
-
-    utils::check_for_updates().await?;
-
-    // Run command
-    let cmd_res = match cli.command {
-        SidekoCommands::Login(cmd) => cmd.handle().await,
-        SidekoCommands::Api(cmd) => cmd.handle().await,
-    };
-
-    if let Err(e) = &cmd_res {
+    let handled = cli.handle().await;
+    if let Err(e) = &handled {
         e.log();
     }
 
-    cmd_res
+    handled
 }

@@ -1,11 +1,12 @@
-use sideko_rest_api::models::Api;
-use tabled::settings::{object::Rows, Color, Panel};
+use tabled::settings::{object::Rows, Color};
 
 use crate::{
     cmds::DisplayOutput,
     result::CliResult,
     utils::{self, get_sideko_client},
 };
+
+use super::tabled::TabledApi;
 
 #[derive(clap::Args)]
 pub struct ApiListCommand {
@@ -23,37 +24,11 @@ impl ApiListCommand {
             DisplayOutput::Pretty => {
                 let mut table = tabled::Table::new(apis.into_iter().map(TabledApi));
                 utils::tabled::header_panel(&mut table, "APIs");
-                table
-                    .with(Panel::header("APIs"))
-                    .modify(Rows::single(1), Color::BOLD);
-
+                table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(table);
             }
         }
 
         Ok(())
-    }
-}
-struct TabledApi(Api);
-impl tabled::Tabled for TabledApi {
-    const LENGTH: usize = 4;
-
-    fn fields(&self) -> Vec<std::borrow::Cow<'_, str>> {
-        let inner = &self.0;
-        vec![
-            inner.name.as_str().into(),
-            inner.version_count.to_string().into(),
-            inner.id.as_str().into(),
-            inner.created_at.as_str().into(),
-        ]
-    }
-
-    fn headers() -> Vec<std::borrow::Cow<'static, str>> {
-        vec![
-            "Name".into(),
-            "Versions".into(),
-            "ID".into(),
-            "Created At".into(),
-        ]
     }
 }

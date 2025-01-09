@@ -15,21 +15,26 @@ pub struct ApiVersionUpdateCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
     name: String,
+
     /// Version to update (e.g. `2.1.5` or `latest`)
     #[arg(long)]
     version: String,
+
     /// Version to update with (e.g. `2.1.5`)
     #[arg(long)]
     new_version: Option<String>,
+
     /// Path to OpenAPI spec (YAML or JSON format) to update with
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_json_yaml,
     )]
     spec: Option<Utf8PathBuf>,
+
     /// Enable or disable the mock server
     #[arg(long)]
     mock: Option<bool>,
+
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     display: DisplayOutput,

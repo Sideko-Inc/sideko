@@ -11,8 +11,8 @@ use crate::{
 
 #[derive(clap::Args)]
 pub(crate) struct LoginCommand {
-    #[arg(long, short)]
     /// Path to file to store API key, default: $HOME/.sideko
+    #[arg(long, short)]
     output: Option<Utf8PathBuf>,
 }
 

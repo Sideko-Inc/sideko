@@ -2,17 +2,21 @@ use log::info;
 use tabled::settings::{peaker::Priority, Width};
 use terminal_size::{terminal_size, Height as TerminalHeight, Width as TerminalWidth};
 
-pub fn init_logger(quiet: bool, verbose: bool) {
+pub fn init_logger(quiet: bool, verbose: u8) {
     let level = if quiet {
         log::Level::Error
-    } else if verbose {
+    } else if verbose == 0 {
+        log::Level::Info
+    } else if verbose == 1 {
         log::Level::Debug
     } else {
-        log::Level::Info
+        log::Level::Trace
     };
 
     let _ = if level == log::Level::Trace {
-        env_logger::Builder::new().try_init()
+        env_logger::Builder::new()
+            .filter_level(level.to_level_filter())
+            .try_init()
     } else if level > log::Level::Info {
         env_logger::Builder::new()
             .filter_module("sideko", level.to_level_filter())

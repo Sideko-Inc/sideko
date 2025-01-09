@@ -17,9 +17,9 @@ struct SidekoCli {
     #[arg(long, short = 'q', global = true)]
     quiet: bool,
 
-    /// Verbose logging
-    #[arg(long, short = 'v', global = true)]
-    verbose: bool,
+    /// Verbose logging (-v) or trace logging (-vv)
+    #[arg(long, short = 'v', action = clap::ArgAction::Count, global = true)]
+    verbose: u8,
 
     /// Load config from custom path
     #[arg(

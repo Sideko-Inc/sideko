@@ -1,0 +1,51 @@
+use sideko_rest_api::resources::api::spec::ListRequest;
+use tabled::settings::{object::Rows, themes::Colorization, Alignment, Color, Panel, Style};
+
+use crate::{
+    cmds::DisplayOutput,
+    result::CliResult,
+    utils::{self, get_sideko_client},
+};
+
+use super::tabled::TabledApiSpec;
+
+#[derive(clap::Args)]
+pub struct ApiVersionListCommand {
+    /// API name or id e.g. my-api
+    #[arg(long)]
+    name: String,
+    /// Limit results to most recent N versions
+    #[arg(long)]
+    limit: usize,
+    /// Display result as a raw json or prettified
+    #[arg(long, default_value = "pretty")]
+    display: DisplayOutput,
+}
+impl ApiVersionListCommand {
+    pub async fn handle(&self) -> CliResult<()> {
+        let mut client = get_sideko_client();
+        let mut versions = client
+            .api()
+            .spec()
+            .list(ListRequest {
+                api_name: self.name.clone(),
+            })
+            .await?;
+
+        versions = versions.iter().take(self.limit).cloned().collect();
+
+        match &self.display {
+            DisplayOutput::Raw => utils::logging::log_json_raw(&versions),
+            DisplayOutput::Pretty => {
+                let iter = versions.into_iter().map(TabledApiSpec);
+                let mut table = tabled::Table::new(iter);
+                utils::tabled::header_panel(&mut table, "API Versions");
+                table.modify(Rows::single(1), Color::BOLD);
+
+                utils::logging::log_table(table);
+            }
+        }
+
+        Ok(())
+    }
+}

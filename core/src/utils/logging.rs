@@ -1,3 +1,7 @@
+use log::info;
+use tabled::settings::{peaker::Priority, Width};
+use terminal_size::{terminal_size, Height as TerminalHeight, Width as TerminalWidth};
+
 pub fn init_logger(quiet: bool, verbose: bool) {
     let level = if quiet {
         log::Level::Error
@@ -20,4 +24,24 @@ pub fn init_logger(quiet: bool, verbose: bool) {
             .format_timestamp(None)
             .try_init()
     };
+}
+
+pub fn log_json_raw<T: ?Sized + serde::Serialize>(val: &T) {
+    info!(
+        "{}",
+        serde_json::to_string_pretty(val).unwrap_or_else(|_| serde_json::json!(val).to_string())
+    )
+}
+
+pub fn log_table(mut table: tabled::Table) {
+    // consistent table format that fits in existing terminal size
+    table.with(tabled::settings::Style::modern());
+
+    if let Some((TerminalWidth(width), TerminalHeight(_height))) = terminal_size() {
+        table.with(Width::wrap(width as usize).priority(Priority::max(true)));
+    }
+
+    // TODO: using `info!` here adds \n to any newlines meaning the terminal sizing is all off
+
+    println!("\n{table}\n");
 }

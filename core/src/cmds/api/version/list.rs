@@ -1,5 +1,5 @@
 use sideko_rest_api::resources::api::spec::ListRequest;
-use tabled::settings::{object::Rows, themes::Colorization, Alignment, Color, Panel, Style};
+use tabled::settings::{object::Rows, Color};
 
 use crate::{
     cmds::DisplayOutput,
@@ -16,7 +16,7 @@ pub struct ApiVersionListCommand {
     name: String,
     /// Limit results to most recent N versions
     #[arg(long)]
-    limit: usize,
+    limit: Option<usize>,
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     display: DisplayOutput,
@@ -32,7 +32,9 @@ impl ApiVersionListCommand {
             })
             .await?;
 
-        versions = versions.iter().take(self.limit).cloned().collect();
+        if let Some(limit) = self.limit {
+            versions = versions.iter().take(limit).cloned().collect()
+        }
 
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&versions),

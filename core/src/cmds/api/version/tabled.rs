@@ -15,6 +15,7 @@ impl tabled::Tabled for TabledApiSpec {
             inner.version.as_str().into(),
             format!("{mock_enabled} {url}", url = &inner.mock_server.url).into(),
             inner.id.as_str().into(),
+            inner.api.name.as_str().into(),
             inner.created_at.as_str().into(),
         ]
     }
@@ -24,6 +25,7 @@ impl tabled::Tabled for TabledApiSpec {
             "Version".into(),
             "Mock Server".into(),
             "ID".into(),
+            "API".into(),
             "Created At".into(),
         ]
     }

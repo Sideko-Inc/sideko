@@ -13,7 +13,9 @@ pub enum ApiSubcommand {
 
     // ------------ COMMANDS ------------
     // TODO: create
+    /// List all APIs available to your user in the organization
     List(list::ApiListCommand),
+    /// Display statistics about latest version of an API
     Stats(stats::ApiStatsCommand),
     // TODO: version updates etc?
 }

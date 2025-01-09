@@ -42,10 +42,30 @@ fn validate_path(
     }
 }
 
+fn validate_file_with_extension(
+    raw_path: &str,
+    extensions: &[&str],
+) -> Result<Utf8PathBuf, String> {
+    let path = validate_path(raw_path, PathKind::File, false)?;
+    let extension = format!(".{}", path.extension().unwrap_or_default());
+    if !extensions.contains(&extension.as_str()) {
+        Err(format!(
+            "Path has incorrect extension, only {extensions:?} are permitted"
+        ))
+    } else {
+        Ok(path)
+    }
+}
+
 /// Validates path exists and is a file
 pub(crate) fn validate_file(arg: &str) -> Result<Utf8PathBuf, String> {
     validate_path(arg, PathKind::File, false)
 }
+/// Validates file path exists and is either a json or yaml
+pub(crate) fn validate_file_json_yaml(arg: &str) -> Result<Utf8PathBuf, String> {
+    validate_file_with_extension(arg, &[".json", ".yml", ".yaml"])
+}
+
 /// Validates path is a file or does not exist
 pub(crate) fn validate_file_allow_dne(arg: &str) -> Result<Utf8PathBuf, String> {
     validate_path(arg, PathKind::File, true)

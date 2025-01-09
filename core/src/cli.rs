@@ -21,7 +21,11 @@ struct SidekoCli {
     quiet: bool,
     #[arg(long, short = 'v', global = true, help = "Verbose logging")]
     verbose: bool,
-    #[arg(long, value_parser = crate::utils::validators::validate_file, help = "Load config from custom path")]
+    #[arg(
+        long,
+        value_parser = crate::utils::validators::validate_file,
+        help = "Load config from custom path"
+    )]
     config: Option<Utf8PathBuf>,
 }
 

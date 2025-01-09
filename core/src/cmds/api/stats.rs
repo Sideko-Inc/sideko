@@ -1,5 +1,5 @@
 use sideko_rest_api::{models::ApiVersion, resources::api::spec::GetStatsRequest};
-use tabled::settings::{object::Rows, Alignment, Color, Panel, Remove};
+use tabled::settings::{object::Rows, Remove};
 
 use crate::{
     cmds::DisplayOutput,

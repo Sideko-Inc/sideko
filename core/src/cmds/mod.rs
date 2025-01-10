@@ -4,6 +4,9 @@ pub(crate) use login::LoginCommand;
 mod api;
 pub(crate) use api::ApiSubcommand;
 
+mod sdk;
+pub(crate) use sdk::SdkSubcommand;
+
 #[derive(clap::ValueEnum, serde::Serialize, Default, Debug, Clone)]
 enum DisplayOutput {
     #[default]

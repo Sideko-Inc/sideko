@@ -35,7 +35,7 @@ impl LoginCommand {
                 ("cli_port", port.to_string()),
             ],
         )
-        .map_err(|e| CliError::general_debug("Failed building login URL", e))?;
+        .map_err(|e| CliError::general_debug("Failed building login URL", format!("{e:?}")))?;
 
         info!("Continue by logging in via the browser popup...");
         if let Err(e) = open::that(login_url.as_str()) {

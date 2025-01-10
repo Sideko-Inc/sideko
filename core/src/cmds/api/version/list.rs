@@ -35,7 +35,7 @@ impl ApiVersionListCommand {
             .await?;
 
         if let Some(limit) = self.limit {
-            versions = versions.iter().take(limit).cloned().collect()
+            versions = versions[0..versions.len().min(limit)].to_vec();
         }
 
         match &self.display {

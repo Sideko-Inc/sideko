@@ -92,7 +92,7 @@ pub(crate) fn get_config_path() -> CliResult<Utf8PathBuf> {
                     "Unable to build default config path: ${} is set to an ill-formatted path: {p}",
                     ConfigKey::ConfigPath
                 ),
-                e.to_string(),
+                format!("{e:?}"),
             )
         })?;
         Ok(path)
@@ -110,7 +110,7 @@ pub(crate) fn get_default_config_path() -> CliResult<Utf8PathBuf> {
                 "Unable to build default config path: $HOME is set to an ill-formatted path: {home}"
     
             ),
-                e.to_string(),
+                format!("{e:?}"),
             )
         })?;
         default_path.push(".sideko");

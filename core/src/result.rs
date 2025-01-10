@@ -71,13 +71,18 @@ impl CliError {
                         debug!("Raw JSON: {res_json}");
                     }
                     sideko_rest_api::Error::Api(e) | sideko_rest_api::Error::ContentType(e) => {
-                        debug!("Response headers: {:?}", &e.headers);
+                        debug!("Response headers: {:#?}", &e.headers);
                         if let Ok(val) = e.json::<serde_json::Value>() {
                             log::debug!(
                                 "Body: {}",
                                 serde_json::to_string_pretty(&val)
                                     .unwrap_or_else(|_| val.to_string())
                             );
+                            if let Some(serde_json::Value::String(description)) =
+                                val.get("description")
+                            {
+                                error!("{description}");
+                            }
                         } else if let Ok(text) = std::str::from_utf8(&e.content) {
                             log::debug!("Body: {text}",);
                         } else {

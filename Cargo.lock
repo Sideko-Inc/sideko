@@ -1505,14 +1505,14 @@ dependencies = [
 
 [[package]]
 name = "regex"
-version = "1.10.6"
+version = "1.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4219d74c6b67a3654a9fbebc4b419e22126d13d2f3c4a07ee0cb61ff79a79619"
+checksum = "b544ef1b4eac5dc2db33ea63606ae9ffcfac26c1416a2806ae0bf5f56b201191"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-automata 0.4.7",
- "regex-syntax 0.8.4",
+ "regex-automata 0.4.9",
+ "regex-syntax 0.8.5",
 ]
 
 [[package]]
@@ -1526,13 +1526,13 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.7"
+version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38caf58cc5ef2fed281f89292ef23f6365465ed9a41b7a7754eb4e26496c92df"
+checksum = "809e8dc61f6de73b46c85f4c96486310fe304c434cfa43669d7b40f711150908"
 dependencies = [
  "aho-corasick",
  "memchr",
- "regex-syntax 0.8.4",
+ "regex-syntax 0.8.5",
 ]
 
 [[package]]
@@ -1543,9 +1543,9 @@ checksum = "f162c6dd7b008981e4d40210aca20b4bd0f9b60ca9271061b07f78537722f2e1"
 
 [[package]]
 name = "regex-syntax"
-version = "0.8.4"
+version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a66a03ae7c801facd77a29370b4faec201768915ac14a721ba36f20bc9c209b"
+checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
 
 [[package]]
 name = "reqwest"
@@ -1999,6 +1999,7 @@ dependencies = [
  "mime_guess",
  "open",
  "openssl",
+ "regex",
  "reqwest 0.11.27",
  "rocket",
  "semver",
@@ -2006,7 +2007,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "shlex",
- "sideko_rest_api 0.4.0-rc.3",
+ "sideko_rest_api 0.4.0-rc.4",
  "spinners",
  "tabled",
  "tar",
@@ -2047,9 +2048,9 @@ dependencies = [
 
 [[package]]
 name = "sideko_rest_api"
-version = "0.4.0-rc.3"
+version = "0.4.0-rc.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3ae3b45652ef97edf25161a67efb40be2cb0bc724abe4e92f2093a900c91808"
+checksum = "7541b1b1e10af9199b2e11f0e682fa6d94e50b7324a335c20306916c8a9b19f7"
 dependencies = [
  "bytes",
  "http 1.1.0",

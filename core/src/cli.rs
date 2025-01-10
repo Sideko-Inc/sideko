@@ -3,6 +3,7 @@ use std::env;
 use crate::{cmds, result::CliResult, styles, utils};
 use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
+use log::info;
 
 #[derive(Parser)]
 #[command(name = "sideko")]
@@ -64,6 +65,7 @@ pub async fn cli(args: Vec<String>) -> CliResult<()> {
     let handled = cli.handle().await;
     if let Err(e) = &handled {
         e.log();
+        info!("Re-run the command in verbose mode (-v/-vv) to for more information")
     }
 
     handled

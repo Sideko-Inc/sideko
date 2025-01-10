@@ -1,4 +1,5 @@
-use log::info;
+use log::{info, Level};
+use std::io::Write;
 use tabled::settings::{peaker::Priority, Width};
 use terminal_size::{terminal_size, Height as TerminalHeight, Width as TerminalWidth};
 
@@ -13,21 +14,32 @@ pub fn init_logger(quiet: bool, verbose: u8) {
         log::Level::Trace
     };
 
-    let _ = if level == log::Level::Trace {
-        env_logger::Builder::new()
-            .filter_level(level.to_level_filter())
-            .try_init()
-    } else if level > log::Level::Info {
-        env_logger::Builder::new()
-            .filter_module("sideko", level.to_level_filter())
-            .try_init()
+    let mut builder = env_logger::builder();
+
+    if level == log::Level::Trace {
+        builder.filter_level(level.to_level_filter());
+    } else if level == log::Level::Debug {
+        builder.filter_module("sideko", level.to_level_filter());
     } else {
-        env_logger::Builder::new()
+        // info, warn, error
+        builder
             .filter_module("sideko", level.to_level_filter())
-            .format_target(false)
-            .format_timestamp(None)
-            .try_init()
-    };
+            .format(|buf, record| {
+                if record.level() == Level::Info {
+                    writeln!(buf, "{}", record.args())
+                } else {
+                    let log_style = buf.default_level_style(record.level());
+                    writeln!(
+                        buf,
+                        "{log_style}[{}]{log_style:#} {}",
+                        record.level(),
+                        record.args()
+                    )
+                }
+            });
+    }
+
+    let _ = builder.try_init();
 }
 
 pub fn log_json_raw<T: ?Sized + serde::Serialize>(val: &T) {
@@ -44,8 +56,5 @@ pub fn log_table(mut table: tabled::Table) {
     if let Some((TerminalWidth(width), TerminalHeight(_height))) = terminal_size() {
         table.with(Width::wrap(width as usize).priority(Priority::max(true)));
     }
-
-    // TODO: using `info!` here adds \n to any newlines meaning the terminal sizing is all off
-
-    println!("\n{table}\n");
+    info!("\n{table}\n");
 }

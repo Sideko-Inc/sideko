@@ -39,7 +39,7 @@ impl ApiStatsCommand {
                 let auth_schemes = if stats.authentication_schemes.is_empty() {
                     "None".to_string()
                 } else {
-                    stats.authentication_schemes.join(";")
+                    stats.authentication_schemes.join("; ")
                 };
                 let summary_data = vec![
                     SummaryRow::new("Total Endpoints (paths)", stats.endpoints),

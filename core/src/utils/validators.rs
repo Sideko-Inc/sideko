@@ -66,8 +66,12 @@ pub(crate) fn validate_file(arg: &str) -> Result<Utf8PathBuf, String> {
 pub(crate) fn validate_file_json_yaml(arg: &str) -> Result<Utf8PathBuf, String> {
     validate_file_with_extension(arg, false, &[".json", ".yml", ".yaml"])
 }
-/// Validates file path does not yet exist and has yaml extension
-pub(crate) fn validate_file_yaml_dne(arg: &str) -> Result<Utf8PathBuf, String> {
+/// Validates file path has yaml extension
+pub(crate) fn validate_file_yaml(arg: &str) -> Result<Utf8PathBuf, String> {
+    validate_file_with_extension(arg, false, &[".yml", ".yaml"])
+}
+/// Validates yaml extension (does not exist is allowed)
+pub(crate) fn validate_file_yaml_allow_dne(arg: &str) -> Result<Utf8PathBuf, String> {
     validate_file_with_extension(arg, true, &[".yml", ".yaml"])
 }
 

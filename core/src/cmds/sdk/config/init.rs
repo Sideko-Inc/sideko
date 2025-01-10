@@ -6,10 +6,6 @@ use sideko_rest_api::{
     models::{ApiVersion, ConfigCustomizationsEnum},
     resources::sdk::config::InitRequest,
 };
-use tabled::{
-    settings::{object::Rows, Remove},
-    Table,
-};
 
 use crate::{
     result::{CliError, CliResult},
@@ -36,7 +32,7 @@ pub struct SdkConfigInitCommand {
     /// Custom output path of SDK config (must be .yaml or .yml)
     #[arg(
         long,
-        value_parser = crate::utils::validators::validate_file_yaml_dne,
+        value_parser = crate::utils::validators::validate_file_yaml_allow_dne,
         default_value = "./sdk-config.yaml",
     )]
     output: Utf8PathBuf,
@@ -74,16 +70,11 @@ impl SdkConfigInitCommand {
         })?;
 
         // preview the config
-        let cfg_split: Vec<String> = config.split("\n").map(String::from).collect();
-        let mut cfg_preview = cfg_split[0..cfg_split.len().min(25)].to_vec();
-        if cfg_preview.len() < cfg_split.len() {
-            cfg_preview.push("...".into())
-        }
-
-        let mut table = Table::new([cfg_preview.join("\n")]);
-        table.with(Remove::row(Rows::first()));
-        utils::tabled::header_panel(&mut table, "SDK Configuration Preview");
-        utils::logging::log_table(table);
+        utils::logging::log_table(utils::tabled::preview_table(
+            "SDK Configuration Preview",
+            &config,
+            25,
+        ));
 
         info!("Config written to {}", &self.output);
 

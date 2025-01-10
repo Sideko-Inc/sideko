@@ -16,11 +16,11 @@ use crate::{
 pub struct SdkConfigInitCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
-    name: String,
+    api_name: String,
 
     /// Generate config for specific version (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
-    version: String,
+    api_version: String,
 
     /// Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
     ///
@@ -52,8 +52,8 @@ impl SdkConfigInitCommand {
             .sdk()
             .config()
             .init(InitRequest {
-                api_name: self.name.clone(),
-                api_version: Some(ApiVersion::Str(self.version.clone())),
+                api_name: self.api_name.clone(),
+                api_version: Some(ApiVersion::Str(self.api_version.clone())),
                 customizations: Some(customizations),
             })
             .await?;

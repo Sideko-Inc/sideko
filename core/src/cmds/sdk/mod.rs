@@ -5,6 +5,7 @@ use crate::result::CliResult;
 
 mod config;
 mod create;
+mod update;
 
 #[derive(clap::Subcommand)]
 pub enum SdkSubcommand {
@@ -16,6 +17,9 @@ pub enum SdkSubcommand {
     // ------------ COMMANDS ------------
     /// Create a new SDK
     Create(create::SdkCreateCommand),
+
+    /// Update SDK
+    Update(update::SdkUpdateCommand),
 }
 
 impl SdkSubcommand {
@@ -23,6 +27,7 @@ impl SdkSubcommand {
         match self {
             SdkSubcommand::Config(cmd) => cmd.handle().await,
             SdkSubcommand::Create(cmd) => cmd.handle().await,
+            SdkSubcommand::Update(cmd) => cmd.handle().await,
         }
     }
 }

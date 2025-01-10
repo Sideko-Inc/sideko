@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use camino::Utf8PathBuf;
-use flate2::read::GzDecoder as ReadGzDecoder;
+use flate2::read::GzDecoder;
 
 use log::{debug, info};
 use sideko_rest_api::{models::ApiVersion, resources::sdk::GenerateRequest, UploadFile};
@@ -24,13 +24,13 @@ pub struct SdkCreateCommand {
     #[arg(long)]
     lang: SdkLang,
 
-    /// Generate SDK with for a specific version of the API listed in the config (e.g. `2.1.5`)
-    #[arg(long, default_value = "latest")]
-    version: String,
-
     /// Semantic version of generated SDK
     #[arg(long, default_value = "0.1.0")]
-    sdk_version: semver::Version,
+    version: semver::Version,
+
+    /// Generate SDK with for a specific version of the API listed in the config (e.g. `2.1.5`)
+    #[arg(long, default_value = "latest")]
+    api_version: String,
 
     /// Include Github actions for testing and publishing the SDK in the generation
     #[arg(long)]
@@ -49,11 +49,11 @@ impl SdkCreateCommand {
     pub async fn handle(&self) -> CliResult<()> {
         let mut client = get_sideko_client();
 
-        info!("🪄 Generating {} SDK...", self.lang.0.to_string());
+        info!("🪄  Generating {} SDK...", self.lang.0.to_string());
         let sdk_res = client
             .sdk()
             .generate(GenerateRequest {
-                api_version: Some(ApiVersion::Str(self.version.clone())),
+                api_version: Some(ApiVersion::Str(self.api_version.clone())),
                 config: UploadFile::from_path(self.config.as_str()).map_err(|e| {
                     CliError::io_custom(
                         format!("Failed reading config from path: {}", &self.config),
@@ -62,7 +62,7 @@ impl SdkCreateCommand {
                 })?,
                 github_actions: Some(self.gh_actions),
                 language: self.lang.0.clone(),
-                sdk_version: Some(self.sdk_version.to_string()),
+                sdk_version: Some(self.version.to_string()),
             })
             .await?;
 
@@ -72,7 +72,7 @@ impl SdkCreateCommand {
             dest = &self.output,
             size = sdk_res.content.len(),
         );
-        let decoder = ReadGzDecoder::new(Cursor::new(&sdk_res.content));
+        let decoder = GzDecoder::new(Cursor::new(&sdk_res.content));
         let mut archive = Archive::new(decoder);
         archive
             .unpack(&self.output)
@@ -88,7 +88,7 @@ impl SdkCreateCommand {
                     .unwrap_or(&archive_filename),
             )
         }
-        info!("🚀 SDK saved to {dest}");
+        info!("🚀 SDK generated! Saved to {dest}");
 
         Ok(())
     }

@@ -27,7 +27,7 @@ pub struct ApiVersionCreateCommand {
     )]
     spec: Utf8PathBuf,
 
-    /// Disable mock server for new version (default: enabled)
+    /// Disable mock server for new version [default: enabled]
     #[arg(long)]
     disable_mock: bool,
 

@@ -5,7 +5,7 @@ use flate2::read::GzDecoder;
 
 use log::{debug, info};
 use sideko_rest_api::{models::ApiVersion, resources::sdk::GenerateRequest, UploadFile};
-use spinners::{Spinner, Spinners};
+use spinoff::{spinners, Spinner};
 use tar::Archive;
 
 use crate::{
@@ -53,8 +53,9 @@ impl SdkCreateCommand {
 
         let start = chrono::Utc::now();
         let mut sp = Spinner::new(
-            Spinners::Circle,
+            spinners::Circle,
             format!("🪄  Generating {} SDK...", self.lang.0),
+            spinoff::Color::Magenta,
         );
         let sdk_res = client
             .sdk()
@@ -71,7 +72,7 @@ impl SdkCreateCommand {
                 sdk_version: Some(self.version.to_string()),
             })
             .await?;
-        sp.stop_and_persist(&fmt_green("✔"), "🚀 SDK generated!".into());
+        sp.stop_and_persist(&fmt_green("✔"), "🚀 SDK generated!");
         debug!(
             "Generation took {}s",
             (chrono::Utc::now() - start).num_seconds()

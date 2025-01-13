@@ -9,7 +9,7 @@ use sideko_rest_api::{
     resources::sdk::UpdateRequest,
     UploadFile,
 };
-use spinners::{Spinner, Spinners};
+use spinoff::{spinners, Spinner};
 use tempfile::TempDir;
 
 use crate::{
@@ -138,7 +138,11 @@ impl SdkUpdateCommand {
         let mut client = get_sideko_client();
 
         let start = chrono::Utc::now();
-        let mut sp = Spinner::new(Spinners::Circle, "🪄  Updating SDK...".into());
+        let mut sp = Spinner::new(
+            spinners::Circle,
+            "🪄  Updating SDK...",
+            spinoff::Color::Magenta,
+        );
         let patch_content = client
             .sdk()
             .update(UpdateRequest {
@@ -180,7 +184,7 @@ impl SdkUpdateCommand {
             })?;
 
         if patch_output.status.success() {
-            sp.stop_and_persist(&fmt_green("✔"), "🚀 Update applied!".into());
+            sp.stop_and_persist(&fmt_green("✔"), "🚀 Update applied!");
             fs::remove_file(&patch_path)?;
             Ok(())
         } else {

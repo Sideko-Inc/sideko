@@ -48,3 +48,13 @@ pub fn fmt_red(msg: &str) -> String {
     let red = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Red)));
     fmt_style(msg, &red)
 }
+
+pub fn fmt_yellow(msg: &str) -> String {
+    let yellow = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Yellow)));
+    fmt_style(msg, &yellow)
+}
+
+pub fn fmt_cyan(msg: &str) -> String {
+    let cyan = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Cyan)));
+    fmt_style(msg, &cyan)
+}

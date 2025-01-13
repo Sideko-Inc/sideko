@@ -1,9 +1,191 @@
-use crate::result::CliResult;
+use std::time::Duration;
+
+use log::{debug, info};
+use serde_json::json;
+use sideko_rest_api::{
+    models::{Deployment, DeploymentStatusEnum, DeploymentTargetEnum},
+    resources::doc::{
+        self,
+        deployment::{GetRequest, TriggerRequest},
+    },
+};
+use spinoff::{spinners, Spinner};
+
+use crate::{
+    result::{CliError, CliResult},
+    styles::{fmt_cyan, fmt_green, fmt_red, fmt_yellow},
+    utils::get_sideko_client,
+};
 
 #[derive(clap::Args)]
-pub struct DocDeployCommand {}
+pub struct DocDeployCommand {
+    /// Doc project name or id e.g. my-docs
+    #[arg(long)]
+    name: String,
+
+    /// Deploy to production [default: preview]
+    #[arg(long)]
+    prod: bool,
+
+    /// Exit command after successful trigger [default: waits until deployment completes]
+    #[arg(long)]
+    no_wait: bool,
+}
 impl DocDeployCommand {
+    fn is_terminal_status(&self, status: &DeploymentStatusEnum) -> bool {
+        match status {
+            DeploymentStatusEnum::Generated
+            | DeploymentStatusEnum::Created
+            | DeploymentStatusEnum::Building => false,
+            DeploymentStatusEnum::Cancelled
+            | DeploymentStatusEnum::Complete
+            | DeploymentStatusEnum::Error => true,
+        }
+    }
+
+    async fn poll_deployment(&self, mut deployment: Deployment) -> CliResult<Deployment> {
+        let mut client = get_sideko_client();
+        let mut status = deployment.status.clone();
+        let mut sp = Spinner::new(
+            spinners::BouncingBall,
+            format!("Deployment {}...", fmt_cyan(&status.to_string())),
+            spinoff::Color::Magenta,
+        );
+
+        while !self.is_terminal_status(&status) {
+            // poll for new status every 2 secs
+            tokio::time::sleep(Duration::from_secs(2)).await;
+
+            // check for update
+            deployment = client
+                .doc()
+                .deployment()
+                .get(GetRequest {
+                    deployment_id: deployment.id.clone(),
+                    doc_name: deployment.doc_version.doc_project_id.clone(),
+                })
+                .await?;
+
+            // update spinner on status change
+            if deployment.status.to_string() != status.to_string() {
+                status = deployment.status.clone();
+                sp.update_text(format!("Deployment {}...", fmt_cyan(&status.to_string())));
+            }
+        }
+
+        let deployment_details = serde_json::to_string_pretty(&deployment)
+            .unwrap_or_else(|_| json!(deployment).to_string());
+
+        match &deployment.status {
+            DeploymentStatusEnum::Complete => {
+                sp.stop_and_persist(&fmt_green("✔"), "Deployment complete");
+            }
+            DeploymentStatusEnum::Cancelled => {
+                sp.stop_and_persist(&fmt_yellow("ø"), "Deployment has been cancelled");
+                return Err(CliError::general_debug(
+                    format!(
+                        "Deployment polling terminated in `{}` status",
+                        deployment.status
+                    ),
+                    format!("Deployment: {deployment_details}"),
+                ));
+            }
+            DeploymentStatusEnum::Error => {
+                sp.stop_and_persist(&fmt_red("x"), "Deployment failed");
+                return Err(CliError::general_debug(
+                    format!(
+                        "Deployment polling terminated in `{}` status",
+                        deployment.status
+                    ),
+                    format!("Deployment: {deployment_details}"),
+                ));
+            }
+            DeploymentStatusEnum::Created
+            | DeploymentStatusEnum::Building
+            | DeploymentStatusEnum::Generated => {
+                sp.stop_and_persist(
+                    &fmt_yellow("?"),
+                    "Polling terminated in non-terminal status",
+                );
+                return Err(CliError::general_debug(
+                    format!("Deployment polling terminated in `{}` status. Polling should continue until terminal status", deployment.status),
+                    format!("Deployment: {deployment_details}"),
+                ));
+            }
+        }
+
+        Ok(deployment)
+    }
+
     pub async fn handle(&self) -> CliResult<()> {
-        todo!()
+        let mut client = get_sideko_client();
+
+        let target = if self.prod {
+            DeploymentTargetEnum::Production
+        } else {
+            DeploymentTargetEnum::Preview
+        };
+
+        let doc_project = client
+            .doc()
+            .get(doc::GetRequest {
+                doc_name: self.name.clone(),
+            })
+            .await?;
+        let deployment = client
+            .doc()
+            .deployment()
+            .trigger(TriggerRequest {
+                doc_name: self.name.clone(),
+                target: target.clone(),
+                doc_version_id: None,
+            })
+            .await?;
+
+        info!("{target} deployment triggered");
+        debug!(
+            "deployment (id={}) metadata: {}",
+            &deployment.id,
+            serde_json::to_string_pretty(&deployment.metadata)
+                .unwrap_or_else(|_| deployment.metadata.to_string())
+        );
+
+        if self.no_wait {
+            info!("--no-wait specified, not polling until completion");
+            return Ok(());
+        }
+
+        let start = chrono::Utc::now();
+        let poll_future = self.poll_deployment(deployment);
+        match tokio::time::timeout(Duration::from_secs(600), poll_future).await {
+            Ok(deployment_res) => {
+                debug!(
+                    "Deployment took {}s",
+                    (chrono::Utc::now() - start).num_seconds()
+                );
+
+                let deployment = deployment_res?;
+                let url = match &deployment.target {
+                    DeploymentTargetEnum::Preview => {
+                        format!(
+                            "https://{}",
+                            doc_project.domains.preview.unwrap_or_default()
+                        )
+                    }
+                    DeploymentTargetEnum::Production => {
+                        format!(
+                            "https://{}",
+                            doc_project.domains.production.unwrap_or_default()
+                        )
+                    }
+                };
+
+                info!("Site available at: {url}");
+                Ok(())
+            }
+            Err(_) => Err(CliError::general(
+                "Timeout: Deployment did not complete within 10min",
+            )),
+        }
     }
 }

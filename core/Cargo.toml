@@ -46,6 +46,7 @@ keyring = { version = "3.6.1", features = [
     "sync-secret-service",
 ] }
 core-foundation-sys = "0.8.7"
+chrono = "0.4.39"
 
 
 [dev-dependencies]

@@ -34,7 +34,7 @@ impl SdkInitCommand {
 
         let mut client = get_sideko_client();
         let new_api = client.api().create(api::CreateRequest { name }).await?;
-        info!("{} API created", fmt_green("✓"));
+        info!("{} API created", fmt_green("✔"));
         debug!("New API with id: {}", &new_api.id);
 
         Ok(new_api)
@@ -69,7 +69,7 @@ impl SdkInitCommand {
                 ..Default::default()
             })
             .await?;
-        info!("{} Version created", fmt_green("✓"));
+        info!("{} Version created", fmt_green("✔"));
         debug!(
             "New API version in `{}` with id: {}",
             &api.name, &new_version.id
@@ -164,7 +164,7 @@ impl SdkInitCommand {
             output: output.clone(),
         };
         init_cmd.handle().await?;
-        info!("{} Config generated", fmt_green("✓"));
+        info!("{} Config generated", fmt_green("✔"));
 
         Ok(output)
     }
@@ -239,7 +239,7 @@ impl SdkInitCommand {
             };
             create_sdk_cmd.handle().await?;
 
-            info!("{} Done.", fmt_green("✓"))
+            info!("{} Done.", fmt_green("✔"))
         } else {
             info!("Make any alterations to {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) then run `sideko sdk create` to generate your first SDK!")
         }

@@ -5,10 +5,12 @@ use flate2::read::GzDecoder;
 
 use log::{debug, info};
 use sideko_rest_api::{models::ApiVersion, resources::sdk::GenerateRequest, UploadFile};
+use spinners::{Spinner, Spinners};
 use tar::Archive;
 
 use crate::{
     result::{CliError, CliResult},
+    styles::fmt_green,
     utils::{self, get_sideko_client},
 };
 
@@ -49,7 +51,11 @@ impl SdkCreateCommand {
     pub async fn handle(&self) -> CliResult<()> {
         let mut client = get_sideko_client();
 
-        info!("🪄  Generating {} SDK...", self.lang.0.to_string());
+        let start = chrono::Utc::now();
+        let mut sp = Spinner::new(
+            Spinners::Circle,
+            format!("🪄  Generating {} SDK...", self.lang.0),
+        );
         let sdk_res = client
             .sdk()
             .generate(GenerateRequest {
@@ -65,10 +71,14 @@ impl SdkCreateCommand {
                 sdk_version: Some(self.version.to_string()),
             })
             .await?;
-
-        // unpack into destination
+        sp.stop_and_persist(&fmt_green("✔"), "🚀 SDK generated!".into());
         debug!(
-            "Generation complete, unpacking sdk to {dest}: {size} bytes",
+            "Generation took {}s",
+            (chrono::Utc::now() - start).num_seconds()
+        );
+
+        debug!(
+            "Unpacking sdk to {dest}: {size} bytes",
             dest = &self.output,
             size = sdk_res.content.len(),
         );
@@ -88,7 +98,8 @@ impl SdkCreateCommand {
                     .unwrap_or(&archive_filename),
             )
         }
-        info!("🚀 SDK generated! Saved to {dest}");
+
+        info!("💾 Saved to {dest}");
 
         Ok(())
     }

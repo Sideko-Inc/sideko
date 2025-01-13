@@ -3,16 +3,18 @@ use std::{fs, io::Write, process, str};
 use camino::Utf8PathBuf;
 use flate2::{write::GzEncoder, Compression};
 
-use log::{debug, info, warn};
+use log::{debug, warn};
 use sideko_rest_api::{
     models::{ApiVersion, VersionOrBump},
     resources::sdk::UpdateRequest,
     UploadFile,
 };
+use spinners::{Spinner, Spinners};
 use tempfile::TempDir;
 
 use crate::{
     result::{CliError, CliResult},
+    styles::fmt_green,
     utils::get_sideko_client,
 };
 
@@ -135,7 +137,8 @@ impl SdkUpdateCommand {
 
         let mut client = get_sideko_client();
 
-        info!("🪄  Updating SDK...");
+        let start = chrono::Utc::now();
+        let mut sp = Spinner::new(Spinners::Circle, "🪄  Updating SDK...".into());
         let patch_content = client
             .sdk()
             .update(UpdateRequest {
@@ -147,7 +150,13 @@ impl SdkUpdateCommand {
             })
             .await?;
 
+        debug!(
+            "Update generation took {}s",
+            (chrono::Utc::now() - start).num_seconds()
+        );
+
         if patch_content.is_empty() {
+            sp.stop();
             warn!("No updates to apply");
             return Ok(());
         }
@@ -171,10 +180,11 @@ impl SdkUpdateCommand {
             })?;
 
         if patch_output.status.success() {
-            info!("🚀 Update applied!");
+            sp.stop_and_persist(&fmt_green("✔"), "🚀 Update applied!".into());
             fs::remove_file(&patch_path)?;
             Ok(())
         } else {
+            sp.stop();
             Err(CliError::general_debug(
                 "Failed to apply update",
                 format!(

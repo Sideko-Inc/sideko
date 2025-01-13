@@ -84,7 +84,7 @@ static FAILURE_HTML: &str = include_str!("../html/failure.html");
 async fn login_success(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
-    info!("{} CLI authenticated!", fmt_green("✓"));
+    info!("{} CLI authenticated!", fmt_green("✔"));
     shutdown.notify();
     rocket::response::content::RawHtml(SUCCESS_HTML)
 }

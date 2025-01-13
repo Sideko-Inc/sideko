@@ -11,15 +11,15 @@ use crate::{
 pub struct ApiStatsCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
-    name: String,
+    pub name: String,
 
     /// API name or id e.g. my-api
     #[arg(long, default_value = "latest")]
-    version: String,
+    pub version: String,
 
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
-    display: DisplayOutput,
+    pub display: DisplayOutput,
 }
 impl ApiStatsCommand {
     pub async fn handle(&self) -> CliResult<()> {

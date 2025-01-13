@@ -22,19 +22,19 @@ use crate::{
 pub struct SdkUpdateCommand {
     /// Path to SDK config
     #[arg(long, value_parser = crate::utils::validators::validate_file_yaml)]
-    config: Utf8PathBuf,
+    pub config: Utf8PathBuf,
 
     /// Path to root of SDK repo
     #[arg(long, value_parser = crate::utils::validators::validate_dir)]
-    repo: Utf8PathBuf,
+    pub repo: Utf8PathBuf,
 
     /// Semantic version of generated SDK (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
     #[arg(long)]
-    version: String,
+    pub version: String,
 
     /// API version to update SDK with (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
-    api_version: String,
+    pub api_version: String,
 }
 
 impl SdkUpdateCommand {

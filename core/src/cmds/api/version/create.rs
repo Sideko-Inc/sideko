@@ -14,26 +14,26 @@ use super::tabled::TabledApiSpec;
 pub struct ApiVersionCreateCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
-    name: String,
+    pub name: String,
 
     /// Semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
     #[arg(long)]
-    version: String,
+    pub version: String,
 
     /// Path to OpenAPI spec (YAML or JSON format)
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_json_yaml,
     )]
-    spec: Utf8PathBuf,
+    pub spec: Utf8PathBuf,
 
     /// Disable mock server for new version [default: enabled]
     #[arg(long)]
-    disable_mock: bool,
+    pub disable_mock: bool,
 
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
-    display: DisplayOutput,
+    pub display: DisplayOutput,
 }
 impl ApiVersionCreateCommand {
     pub async fn handle(&self) -> CliResult<()> {

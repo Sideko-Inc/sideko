@@ -14,7 +14,7 @@ use crate::{
 pub(crate) struct LoginCommand {
     /// Path to file to store API key, default: $HOME/.sideko
     #[arg(long, short)]
-    output: Option<Utf8PathBuf>,
+    pub output: Option<Utf8PathBuf>,
 }
 
 impl LoginCommand {

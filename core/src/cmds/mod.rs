@@ -11,7 +11,7 @@ mod doc;
 pub(crate) use doc::DocSubcommand;
 
 #[derive(clap::ValueEnum, serde::Serialize, Default, Debug, Clone)]
-enum DisplayOutput {
+pub enum DisplayOutput {
     #[default]
     Raw,
     Pretty,

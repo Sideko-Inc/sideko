@@ -13,15 +13,15 @@ use super::tabled::TabledApiSpec;
 pub struct ApiVersionListCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
-    name: String,
+    pub name: String,
 
     /// Limit results to most recent N versions
     #[arg(long)]
-    limit: Option<usize>,
+    pub limit: Option<usize>,
 
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
-    display: DisplayOutput,
+    pub display: DisplayOutput,
 }
 impl ApiVersionListCommand {
     pub async fn handle(&self) -> CliResult<()> {

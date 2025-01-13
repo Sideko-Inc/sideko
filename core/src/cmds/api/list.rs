@@ -12,7 +12,7 @@ use super::tabled::TabledApi;
 pub struct ApiListCommand {
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
-    display: DisplayOutput,
+    pub display: DisplayOutput,
 }
 impl ApiListCommand {
     pub async fn handle(&self) -> CliResult<()> {

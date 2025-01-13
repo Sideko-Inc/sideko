@@ -17,33 +17,33 @@ use crate::{
 pub struct SdkConfigSyncCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
-    name: String,
+    pub name: String,
 
     /// Sync config with specific version (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
-    version: String,
+    pub version: String,
 
     /// Sync config with local OpenAPI specification
     #[arg(long, value_parser = crate::utils::validators::validate_file_json_yaml)]
-    spec: Option<Utf8PathBuf>,
+    pub spec: Option<Utf8PathBuf>,
 
     /// Config to sync
     #[arg(long, value_parser = crate::utils::validators::validate_file_yaml)]
-    config: Utf8PathBuf,
+    pub config: Utf8PathBuf,
 
     /// Custom output path of SDK config (must be .yaml or .yml) [defaults to same path as --config]
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_yaml_allow_dne,
     )]
-    output: Option<Utf8PathBuf>,
+    pub output: Option<Utf8PathBuf>,
 
     /// Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
     ///
     /// Including this flag will cause the module config to be omitted from the generated
     /// config file.
     #[arg(long)]
-    x_mods: bool,
+    pub x_mods: bool,
 }
 
 impl SdkConfigSyncCommand {

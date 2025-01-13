@@ -14,26 +14,26 @@ use super::{tabled::TabledApi, version::tabled::TabledApiSpec};
 pub struct ApiCreateCommand {
     /// Name of API (only alphanumeric characters and dashes, e.g. `my-api`)
     #[arg(long)]
-    name: String,
+    pub name: String,
 
     /// Semantic version of initial version (e.g. `2.1.5`)
     #[arg(long)]
-    version: String,
+    pub version: String,
 
     /// Path to OpenAPI spec of initial version (YAML or JSON format)
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_json_yaml,
     )]
-    spec: Utf8PathBuf,
+    pub spec: Utf8PathBuf,
 
     /// Disable mock server for initial version [default: enabled]
     #[arg(long)]
-    disable_mock: bool,
+    pub disable_mock: bool,
 
     /// Display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
-    display: DisplayOutput,
+    pub display: DisplayOutput,
 }
 impl ApiCreateCommand {
     pub async fn handle(&self) -> CliResult<()> {

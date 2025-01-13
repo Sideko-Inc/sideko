@@ -20,23 +20,23 @@ use super::SdkLang;
 pub struct SdkCreateCommand {
     /// Path to SDK config
     #[arg(long, value_parser = crate::utils::validators::validate_file_yaml)]
-    pub(crate) config: Utf8PathBuf,
+    pub config: Utf8PathBuf,
 
     /// Programming language to generate
     #[arg(long)]
-    pub(crate) lang: SdkLang,
+    pub lang: SdkLang,
 
     /// Semantic version of generated SDK
     #[arg(long, default_value = "0.1.0")]
-    pub(crate) version: semver::Version,
+    pub version: semver::Version,
 
     /// Generate SDK with for a specific version of the API listed in the config (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
-    pub(crate) api_version: String,
+    pub api_version: String,
 
     /// Include Github actions for testing and publishing the SDK in the generation
     #[arg(long)]
-    pub(crate) gh_actions: bool,
+    pub gh_actions: bool,
 
     /// Path to save SDK
     #[arg(
@@ -44,7 +44,7 @@ pub struct SdkCreateCommand {
         value_parser = crate::utils::validators::validate_dir_allow_dne,
         default_value = "./",
     )]
-    pub(crate) output: Utf8PathBuf,
+    pub output: Utf8PathBuf,
 }
 
 impl SdkCreateCommand {

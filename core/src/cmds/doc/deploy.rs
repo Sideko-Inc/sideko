@@ -21,15 +21,15 @@ use crate::{
 pub struct DocDeployCommand {
     /// Doc project name or id e.g. my-docs
     #[arg(long)]
-    name: String,
+    pub name: String,
 
     /// Deploy to production [default: preview]
     #[arg(long)]
-    prod: bool,
+    pub prod: bool,
 
     /// Exit command after successful trigger [default: waits until deployment completes]
     #[arg(long)]
-    no_wait: bool,
+    pub no_wait: bool,
 }
 impl DocDeployCommand {
     fn is_terminal_status(&self, status: &DeploymentStatusEnum) -> bool {

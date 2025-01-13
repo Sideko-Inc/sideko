@@ -16,18 +16,18 @@ use crate::{
 pub struct SdkConfigInitCommand {
     /// API name or id e.g. my-api
     #[arg(long)]
-    pub(crate) api_name: String,
+    pub api_name: String,
 
     /// Generate config for specific version (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
-    pub(crate) api_version: String,
+    pub api_version: String,
 
     /// Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
     ///
     /// Including this flag will cause the module config to be omitted from the generated
     /// config file.
     #[arg(long)]
-    pub(crate) x_mods: bool,
+    pub x_mods: bool,
 
     /// Custom output path of SDK config (must be .yaml or .yml)
     #[arg(
@@ -35,7 +35,7 @@ pub struct SdkConfigInitCommand {
         value_parser = crate::utils::validators::validate_file_yaml_allow_dne,
         default_value = "./sdk-config.yaml",
     )]
-    pub(crate) output: Utf8PathBuf,
+    pub output: Utf8PathBuf,
 }
 
 impl SdkConfigInitCommand {

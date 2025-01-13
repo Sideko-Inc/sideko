@@ -1,6 +1,9 @@
 mod login;
 pub(crate) use login::LoginCommand;
 
+mod logout;
+pub(crate) use logout::LogoutCommand;
+
 mod api;
 pub(crate) use api::ApiSubcommand;
 

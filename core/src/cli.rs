@@ -44,6 +44,7 @@ impl SidekoCli {
         // Run command
         match &self.command {
             SidekoCommands::Login(cmd) => cmd.handle().await,
+            SidekoCommands::Logout(cmd) => cmd.handle().await,
             SidekoCommands::Api(cmd) => cmd.handle().await,
             SidekoCommands::Sdk(cmd) => cmd.handle().await,
             SidekoCommands::Doc(cmd) => cmd.handle().await,
@@ -56,6 +57,12 @@ impl SidekoCli {
 enum SidekoCommands {
     /// Authenticate the CLI interactively via the browser
     Login(cmds::LoginCommand),
+
+    /// Un-authenticate the CLI
+    ///
+    /// Removes the Sideko API key from the dotenv file and the OS-native key service
+    /// (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
+    Logout(cmds::LogoutCommand),
 
     /// Subcommand to manage your APIs
     #[command(subcommand)]

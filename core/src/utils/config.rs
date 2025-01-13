@@ -11,6 +11,22 @@ pub enum ConfigKey {
     ApiBaseUrl,
 }
 impl ConfigKey {
+    /// Reads the content of the configured dotenv file
+    /// and returns it's lines
+    fn read_dotenv(&self) -> CliResult<Vec<String>> {
+        let cfg_path = get_config_path()?;
+        let lines= if cfg_path.exists() {
+            let dotenv_string = std::fs::read_to_string(cfg_path.clone()).map_err(|e| {
+                CliError::io_custom(format!("Failed loading sideko config file to update {self}: {cfg_path}"), e)
+            })?;
+            dotenv_string.split("\n").map(String::from).collect()
+        } else {
+            vec![]
+        };
+
+        Ok(lines)
+    }
+
     /// Retrieves config key value from environment variable
     pub fn get_env(&self) -> Option<String> {
         env::var(self.to_string()).ok()
@@ -48,16 +64,7 @@ impl ConfigKey {
             .unwrap_or_else(|_| val.to_string());
         let dotenv_entry = format!("{self}={sh_safe}");
 
-        let cfg_path = get_config_path()?;
-        let curr_dotenv= if cfg_path.exists() {
-            let dotenv_string = std::fs::read_to_string(cfg_path.clone()).map_err(|e| {
-                CliError::io_custom(format!("Failed loading sideko config file to update {self}: {cfg_path}"), e)
-            })?;
-            dotenv_string.split("\n").map(String::from).collect()
-        } else {
-            vec![]
-        };
-
+        let curr_dotenv = self.read_dotenv()?;
         // append or replace cfg var
         let mut replaced = false;
         let mut new_dotenv: Vec<String> = curr_dotenv.into_iter().map(|l| {
@@ -76,9 +83,10 @@ impl ConfigKey {
         }
 
 
-    std::fs::write(&cfg_path, new_dotenv.join("\n")).map_err(|e| {
-        CliError::io_custom(format!("Failed updating sideko config {self}: {cfg_path}"), e)
-    })?;
+        let cfg_path = get_config_path()?;
+        std::fs::write(&cfg_path, new_dotenv.join("\n")).map_err(|e| {
+            CliError::io_custom(format!("Failed updating sideko config {self}: {cfg_path}"), e)
+        })?;
 
         debug!("Set dotenv config {self}: {cfg_path}");
 
@@ -94,6 +102,40 @@ impl ConfigKey {
 
         Ok(()) 
     }
+
+    /// Removes key from dotenv
+    pub fn unset_env(&self) -> CliResult<()> {
+        let curr_dotenv = self.read_dotenv()?;
+        let new_dotenv: Vec<String> = curr_dotenv.clone().into_iter().filter(|l| !l.starts_with(&format!("{self}="))).collect();
+
+        if new_dotenv.len() < curr_dotenv.len() {
+            debug!("Removed dotenv config {self}")
+        }
+
+        let cfg_path = get_config_path()?;
+        std::fs::write(&cfg_path, new_dotenv.join("\n")).map_err(|e| {
+            CliError::io_custom(format!("Failed updating sideko config {self}: {cfg_path}"), e)
+        })?;
+
+        Ok(())
+    }
+
+    pub fn unset_keyring(&self) ->CliResult<()> {
+        let entry = keyring::Entry::new("sideko", &self.to_string())?;
+        match entry.delete_credential() {
+            Ok(_) => debug!("Removed keyring entry {self}"),
+            Err(e) => {
+                if !matches!(e, keyring::Error::NoEntry) {
+                    // genuine error has occurred
+                    return Err(e.into())
+                }
+            },
+        }
+
+        Ok(())
+    }
+
+
 }
 impl Display for ConfigKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

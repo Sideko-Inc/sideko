@@ -12,14 +12,23 @@ use crate::{
 
 #[derive(clap::Args)]
 pub(crate) struct LoginCommand {
+    /// Manually provide you Sideko API key to the CLI, this will take priority over browser login
+    #[arg(long)]
+    pub key: Option<String>,
+
     /// Path to file to store API key, default: $HOME/.sideko
-    #[arg(long, short)]
+    #[arg(long)]
     pub output: Option<Utf8PathBuf>,
 }
 
 impl LoginCommand {
     pub async fn handle(&self) -> CliResult<()> {
-        // validate
+        if let Some(key) = &self.key {
+            utils::config::ConfigKey::ApiKey.set_keyring(key)?;
+            info!("{} CLI authenticated!", fmt_green("✔"));
+            return Ok(());
+        }
+
         let port = 65530;
         let wait_secs = 5 * 60; // 5 min default
         let output = if let Some(o) = &self.output {

@@ -1,7 +1,7 @@
 use crate::result::CliResult;
 
-mod init;
-mod sync;
+pub(crate) mod init;
+pub(crate) mod sync;
 
 #[derive(clap::Subcommand)]
 pub enum SdkConfigSubcommand {

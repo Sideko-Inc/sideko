@@ -2,4 +2,4 @@
 .venv/
 target/
 .sideko
-.DS_STORE/
+.DS_Store

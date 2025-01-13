@@ -16,6 +16,10 @@ pub enum CliError {
         err: sideko_rest_api::Error,
         override_msg: Option<String>,
     },
+    Inquire {
+        err: inquire::InquireError,
+        override_msg: Option<String>,
+    },
 }
 
 impl CliError {
@@ -44,6 +48,12 @@ impl CliError {
             err,
         }
     }
+    pub fn inquire_custom<S: ToString>(msg: S, err: inquire::InquireError) -> Self {
+        CliError::Inquire {
+            err,
+            override_msg: Some(msg.to_string()),
+        }
+    }
 
     pub fn log(&self) {
         let err_log = match self {
@@ -54,6 +64,10 @@ impl CliError {
                 msg.clone()
             }
             CliError::Io { override_msg, err } => {
+                debug!("{err:?}");
+                override_msg.clone().unwrap_or_else(|| err.to_string())
+            }
+            CliError::Inquire { err, override_msg } => {
                 debug!("{err:?}");
                 override_msg.clone().unwrap_or_else(|| err.to_string())
             }
@@ -111,6 +125,15 @@ impl From<sideko_rest_api::Error> for CliError {
 impl From<io::Error> for CliError {
     fn from(err: io::Error) -> Self {
         Self::Io {
+            err,
+            override_msg: None,
+        }
+    }
+}
+
+impl From<inquire::InquireError> for CliError {
+    fn from(err: inquire::InquireError) -> Self {
+        Self::Inquire {
             err,
             override_msg: None,
         }

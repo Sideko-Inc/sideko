@@ -3,12 +3,13 @@ use std::str::FromStr;
 use camino::Utf8PathBuf;
 
 // ------------- PATH VALIDATORS -------------
+#[derive(Clone, Debug)]
 pub enum PathKind {
     File,
     Dir,
 }
 /// Validates path kind & if it exists (optionally)
-fn validate_path(
+pub fn validate_path(
     raw_path: &str,
     path_kind: PathKind,
     allow_dne: bool,
@@ -42,7 +43,7 @@ fn validate_path(
     }
 }
 
-fn validate_file_with_extension(
+pub fn validate_file_with_extension(
     raw_path: &str,
     allow_dne: bool,
     extensions: &[&str],
@@ -75,6 +76,7 @@ pub(crate) fn validate_file_yaml_allow_dne(arg: &str) -> Result<Utf8PathBuf, Str
     validate_file_with_extension(arg, true, &[".yml", ".yaml"])
 }
 
+#[allow(unused)]
 /// Validates path is a file or does not exist
 pub(crate) fn validate_file_allow_dne(arg: &str) -> Result<Utf8PathBuf, String> {
     validate_path(arg, PathKind::File, true)

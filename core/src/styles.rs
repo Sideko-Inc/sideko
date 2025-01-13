@@ -34,3 +34,8 @@ pub fn get_styles() -> Styles {
         )
         .placeholder(Style::new().fg_color(Some(Color::Ansi(AnsiColor::White))))
 }
+
+pub fn fmt_green(msg: &str) -> String {
+    let green = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Green)));
+    format!("{green}{msg}{green:#}")
+}

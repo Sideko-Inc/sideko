@@ -11,13 +11,38 @@ pub enum ConfigKey {
     ApiBaseUrl,
 }
 impl ConfigKey {
-    pub fn get(&self) -> Option<String> {
+    /// Retrieves config key value from environment variable
+    pub fn get_env(&self) -> Option<String> {
         env::var(self.to_string()).ok()
+    }
+
+    /// Retrieves config key value from native key storage using keyring
+    pub fn get_keyring(&self) -> Option<String> {
+        match  keyring::Entry::new("sideko", &self.to_string()) {
+            Ok(entry) => {
+                match entry.get_password() {
+                    Ok(v) => return Some(v),
+                    Err(e) => {
+                        if !matches!(e, keyring::Error::NoEntry) {
+                            // no entry is a valid error here, other errors are not expected and should be logged
+                            warn!("Failed retrieving keyring entry {self}");
+                            debug!("{e:?}");
+                        }
+                    }
+                }
+            }
+            Err(e) =>  {
+                warn!("Failed initializing keyring entry {self}");
+                debug!("{e:?}");
+            }
+        
+    }
+    None
     }
 
     /// Updates dotenv by replacing exiting config key entry
     /// or appending a new line
-    pub fn set<S: ToString>(&self, val: S) -> CliResult<()> {
+    pub fn set_env<S: ToString>(&self, val: S) -> CliResult<()> {
         let sh_safe = shlex::try_quote(&val.to_string())
             .map(String::from)
             .unwrap_or_else(|_| val.to_string());
@@ -55,9 +80,19 @@ impl ConfigKey {
         CliError::io_custom(format!("Failed updating sideko config {self}: {cfg_path}"), e)
     })?;
 
-        debug!("Set config {self}: {cfg_path}");
+        debug!("Set dotenv config {self}: {cfg_path}");
 
         Ok(())
+    }
+
+    /// Sets config key value in the native key storage using keyring
+    pub fn set_keyring<S: ToString>(&self, val: S) -> CliResult<()> {
+        let entry = keyring::Entry::new("sideko", &self.to_string())?;
+        entry.set_password(&val.to_string())?;
+
+        debug!("Set keyring entry {self}");
+
+        Ok(()) 
     }
 }
 impl Display for ConfigKey {
@@ -81,11 +116,26 @@ pub(crate) fn load() -> CliResult<()> {
     Ok(())
 }
 
+/// First tries retrieving the sideko API key from the ConfigKey::ApiKey env var,
+/// if that is not set then it will try to retrieve it from keyring
+pub(crate) fn get_api_key() -> Option<String> {
+    if let Some(env_key) = ConfigKey::ApiKey.get_env() {
+        debug!("Retrieved API key from env");
+        Some(env_key)
+    }
+    else if let Some(keyring_key) = ConfigKey::ApiKey.get_keyring() {
+        debug!("Retrieved API key from keyring");
+        Some(keyring_key)
+    } else {
+        None
+    }
+}
+
 
 /// Retrieves the config path from user-set ConfigKey::ConfigPath,
 /// defaulting to $HOME/.sideko if not set
 pub(crate) fn get_config_path() -> CliResult<Utf8PathBuf> {
-    if let Some(p) = ConfigKey::ConfigPath.get() {
+    if let Some(p) = ConfigKey::ConfigPath.get_env() {
         let path = Utf8PathBuf::from_str(&p).map_err(|e| {
             CliError::general_debug(
                 format!(
@@ -121,7 +171,7 @@ pub(crate) fn get_default_config_path() -> CliResult<Utf8PathBuf> {
 /// Retrieves Sideko API base url from user-set ConfigKey::ApiBaseUrl,
 /// defaulting to production environment if not set
 pub(crate) fn get_base_url() -> String {
-    let url = ConfigKey::ApiBaseUrl.get()
+    let url = ConfigKey::ApiBaseUrl.get_env()
         .unwrap_or(sideko_rest_api::environment::Environment::default().to_string());
 
     if !url.ends_with("/v1") {

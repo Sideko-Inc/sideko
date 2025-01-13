@@ -20,6 +20,10 @@ pub enum CliError {
         err: inquire::InquireError,
         override_msg: Option<String>,
     },
+    Keyring {
+        err: keyring::Error,
+        override_msg: Option<String>,
+    },
 }
 
 impl CliError {
@@ -54,6 +58,12 @@ impl CliError {
             override_msg: Some(msg.to_string()),
         }
     }
+    pub fn keyring_custom<S: ToString>(msg: S, err: keyring::Error) -> Self {
+        CliError::Keyring {
+            err,
+            override_msg: Some(msg.to_string()),
+        }
+    }
 
     pub fn log(&self) {
         let err_log = match self {
@@ -64,6 +74,10 @@ impl CliError {
                 msg.clone()
             }
             CliError::Io { override_msg, err } => {
+                debug!("{err:?}");
+                override_msg.clone().unwrap_or_else(|| err.to_string())
+            }
+            CliError::Keyring { override_msg, err } => {
                 debug!("{err:?}");
                 override_msg.clone().unwrap_or_else(|| err.to_string())
             }
@@ -134,6 +148,15 @@ impl From<io::Error> for CliError {
 impl From<inquire::InquireError> for CliError {
     fn from(err: inquire::InquireError) -> Self {
         Self::Inquire {
+            err,
+            override_msg: None,
+        }
+    }
+}
+
+impl From<keyring::Error> for CliError {
+    fn from(err: keyring::Error) -> Self {
+        Self::Keyring {
             err,
             override_msg: None,
         }

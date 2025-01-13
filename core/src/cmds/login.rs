@@ -6,6 +6,7 @@ use tokio::time;
 
 use crate::{
     result::{CliError, CliResult},
+    styles::{fmt_green, fmt_red},
     utils,
 };
 
@@ -83,7 +84,7 @@ static FAILURE_HTML: &str = include_str!("../html/failure.html");
 async fn login_success(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
-    info!("CLI authenticated!");
+    info!("{} CLI authenticated!", fmt_green("✓"));
     shutdown.notify();
     rocket::response::content::RawHtml(SUCCESS_HTML)
 }
@@ -93,7 +94,7 @@ async fn login_failure(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
     shutdown.notify();
-    error!("Authentication failed");
+    error!("{} Authentication failed", fmt_red("x"));
     rocket::response::content::RawHtml(FAILURE_HTML)
 }
 
@@ -108,7 +109,7 @@ async fn login_callback(code: String, output: String) -> rocket::response::Redir
     {
         Ok(exchanged) => {
             std::env::set_var(utils::config::ConfigKey::ConfigPath.to_string(), &output);
-            if let Err(e) = utils::config::ConfigKey::ApiKey.set(exchanged.api_key) {
+            if let Err(e) = utils::config::ConfigKey::ApiKey.set_keyring(exchanged.api_key) {
                 e.log();
                 return rocket::response::Redirect::to(rocket::uri!(login_failure));
             }

@@ -46,6 +46,7 @@ impl SidekoCli {
             SidekoCommands::Login(cmd) => cmd.handle().await,
             SidekoCommands::Api(cmd) => cmd.handle().await,
             SidekoCommands::Sdk(cmd) => cmd.handle().await,
+            SidekoCommands::Doc(cmd) => cmd.handle().await,
         }
     }
 }
@@ -56,13 +57,17 @@ enum SidekoCommands {
     /// Authenticate the CLI interactively via the browser
     Login(cmds::LoginCommand),
 
-    /// Command group to manage your APIs
+    /// Subcommand to manage your APIs
     #[command(subcommand)]
     Api(cmds::ApiSubcommand),
 
-    /// Command group to manage and generate you SDKs
+    /// Subcommand to manage and generate you SDKs
     #[command(subcommand)]
     Sdk(cmds::SdkSubcommand),
+
+    /// Subcommand to manage and deploy your documentation sites
+    #[command(subcommand)]
+    Doc(cmds::DocSubcommand),
 }
 
 pub async fn cli(args: Vec<String>) -> CliResult<()> {

@@ -141,7 +141,7 @@ impl SdkUpdateCommand {
         let mut sp = Spinner::new(
             spinners::Circle,
             "🪄  Updating SDK...",
-            spinoff::Color::Magenta,
+            spinoff::Color::Cyan,
         );
         let patch_content = client
             .sdk()

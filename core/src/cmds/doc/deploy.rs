@@ -13,7 +13,7 @@ use spinoff::{spinners, Spinner};
 
 use crate::{
     result::{CliError, CliResult},
-    styles::{fmt_cyan, fmt_green, fmt_red, fmt_yellow},
+    styles::{fmt_green, fmt_red, fmt_yellow},
     utils::get_sideko_client,
 };
 
@@ -48,8 +48,8 @@ impl DocDeployCommand {
         let mut status = deployment.status.clone();
         let mut sp = Spinner::new(
             spinners::BouncingBall,
-            format!("Deployment {}...", fmt_cyan(&status.to_string())),
-            spinoff::Color::Magenta,
+            format!("Deployment {}...", fmt_yellow(&status.to_string())),
+            spinoff::Color::Cyan,
         );
 
         while !self.is_terminal_status(&status) {
@@ -69,7 +69,7 @@ impl DocDeployCommand {
             // update spinner on status change
             if deployment.status.to_string() != status.to_string() {
                 status = deployment.status.clone();
-                sp.update_text(format!("Deployment {}...", fmt_cyan(&status.to_string())));
+                sp.update_text(format!("Deployment {}...", fmt_yellow(&status.to_string())));
             }
         }
 

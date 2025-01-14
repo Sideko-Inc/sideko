@@ -55,7 +55,7 @@ impl SdkCreateCommand {
         let mut sp = Spinner::new(
             spinners::Circle,
             format!("🪄  Generating {} SDK...", self.lang.0),
-            spinoff::Color::Magenta,
+            spinoff::Color::Cyan,
         );
         let sdk_res = client
             .sdk()
@@ -72,7 +72,14 @@ impl SdkCreateCommand {
                 sdk_version: Some(self.version.to_string()),
             })
             .await?;
-        sp.stop_and_persist(&fmt_green("✔"), "🚀 SDK generated!");
+        sp.stop_and_persist(
+            &fmt_green("✔"),
+            &format!(
+                "{} {} SDK generated!",
+                self.lang.emoji(),
+                utils::capitalize(&self.lang.0.to_string())
+            ),
+        );
         debug!(
             "Generation took {}s",
             (chrono::Utc::now() - start).num_seconds()

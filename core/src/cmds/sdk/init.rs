@@ -2,7 +2,6 @@ use std::io::ErrorKind;
 
 use camino::Utf8PathBuf;
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
-use inquire::validator::StringValidator;
 use log::{debug, info};
 use regex::Regex;
 use serde_json::json;
@@ -169,28 +168,31 @@ impl SdkInitCommand {
         Ok(output)
     }
 
-    async fn select_language(&self) -> CliResult<SdkLanguageEnum> {
+    async fn select_languages(&self) -> CliResult<Vec<SdkLanguageEnum>> {
         // confirm feature flags for language generation
         let mut client = get_sideko_client();
         let org = client.org().get().await?;
+
+        let mut langs = vec![];
         let validator = SdkLanguageValidator::new(&org.features);
-        let mut lang_input = None;
-        while lang_input.is_none() {
-            // inquire::Select API does not allow for disabled options, rolled our own simple one
-            // TODO: clear previous selection?
-            let lang_str = inquire::Select::new("Language:", validator.options())
-                .with_help_message("Select language to generate SDK")
+
+        while langs.is_empty() {
+            let input = inquire::MultiSelect::new("Select Languages:", validator.options())
+                .with_validator(validator.clone())
                 .prompt()?;
-            if let Ok(inquire::validator::Validation::Valid) = validator.validate(&lang_str) {
-                lang_input = Some(lang_str);
-            }
+
+            // the validator ensures the casting of options to SdkLanguageEnum passes so we can use .expect here
+            langs = input
+                .into_iter()
+                .map(|l| {
+                    validator
+                        .to_lang(&l)
+                        .expect("failed casting lang selection")
+                })
+                .collect()
         }
 
-        // the validator ensures the casting of options to SdkLanguageEnum passes so we can use .expect here
-        let lang = validator
-            .to_lang(&lang_input.unwrap_or_default())
-            .expect("Failed casting language selection");
-        Ok(lang)
+        Ok(langs)
     }
 
     pub async fn handle(&self) -> CliResult<()> {
@@ -220,24 +222,29 @@ impl SdkInitCommand {
             true
         };
         if generate_now {
-            let lang = self.select_language().await?;
+            let langs = self.select_languages().await?;
             let version = inquire::Text::new("SDK Version:")
                 .with_help_message(
-                    "Enter the version of this SDK following the semantic versioning format",
+                    "Enter the version for the generated SDK(s) following the semantic versioning format",
                 )
                 .with_default("0.1.0")
                 .with_validator(SemverValidator)
                 .prompt()?;
-            debug!("Running `sideko sdk create` with prompted input...");
-            let create_sdk_cmd = SdkCreateCommand {
-                config,
-                lang: SdkLang(lang),
-                version: version.parse().expect("failed parsing sdk semver"),
-                api_version: api_version.version,
-                gh_actions: true,
-                output: Utf8PathBuf::new().join("."),
-            };
-            create_sdk_cmd.handle().await?;
+            for lang in langs {
+                debug!(
+                    "Running `sideko sdk create --lang {} ...` with prompted input",
+                    json!(&lang)
+                );
+                let create_sdk_cmd = SdkCreateCommand {
+                    config: config.clone(),
+                    lang: SdkLang(lang),
+                    version: version.parse().expect("failed parsing sdk semver"),
+                    api_version: api_version.version.clone(),
+                    gh_actions: true,
+                    output: Utf8PathBuf::new().join("."),
+                };
+                create_sdk_cmd.handle().await?;
+            }
 
             info!("{} Done.", fmt_green("✔"))
         } else {
@@ -391,26 +398,36 @@ impl SdkLanguageValidator {
         serde_json::from_str(&lang_str)
     }
 }
-impl inquire::validator::StringValidator for SdkLanguageValidator {
+impl inquire::validator::MultiOptionValidator<String> for SdkLanguageValidator {
     fn validate(
         &self,
-        input: &str,
+        input: &[inquire::list_option::ListOption<&String>],
     ) -> Result<inquire::validator::Validation, inquire::CustomUserError> {
-        let lang = match self.to_lang(input) {
-            Ok(l) => l,
-            Err(_) => {
-                return Ok(inquire::validator::Validation::Invalid(
-                    "Invalid language selected".into(),
-                ))
-            }
-        };
+        let mut langs = vec![];
+        for l in input {
+            let lang = match self.to_lang(l.value) {
+                Ok(l) => l,
+                Err(_) => {
+                    return Ok(inquire::validator::Validation::Invalid(
+                        "Invalid language selected".into(),
+                    ))
+                }
+            };
+            langs.push(lang);
+        }
 
-        if self.allowed(&lang) {
-            Ok(inquire::validator::Validation::Valid)
-        } else {
+        let disallowed_langs: Vec<&SdkLanguageEnum> =
+            langs.iter().filter(|l| !self.allowed(l)).collect();
+        if !disallowed_langs.is_empty() {
             Ok(inquire::validator::Validation::Invalid(
-                "The selected language is not available in your plan".into(),
+                format!(
+                    "The selected language(s) is not available in your plan: {}",
+                    json!(disallowed_langs)
+                )
+                .into(),
             ))
+        } else {
+            Ok(inquire::validator::Validation::Valid)
         }
     }
 }

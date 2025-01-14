@@ -39,6 +39,17 @@ impl SdkSubcommand {
 
 #[derive(Debug, Clone)]
 pub struct SdkLang(SdkLanguageEnum);
+impl SdkLang {
+    pub fn emoji(&self) -> String {
+        match &self.0 {
+            SdkLanguageEnum::Go => "🐹".into(),
+            SdkLanguageEnum::Java => "☕️".into(),
+            SdkLanguageEnum::Python => "🐍".into(),
+            SdkLanguageEnum::Rust => "🦀".into(),
+            SdkLanguageEnum::Typescript => "🟦".into(),
+        }
+    }
+}
 
 impl ValueEnum for SdkLang {
     fn value_variants<'a>() -> &'a [Self] {

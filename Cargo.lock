@@ -2192,7 +2192,7 @@ dependencies = [
  "serde",
  "serde_json",
  "shlex",
- "sideko_rest_api 0.4.0-rc.5",
+ "sideko_rest_api 0.4.0-rc.6",
  "spinoff",
  "tabled",
  "tar",
@@ -2231,9 +2231,9 @@ dependencies = [
 
 [[package]]
 name = "sideko_rest_api"
-version = "0.4.0-rc.5"
+version = "0.4.0-rc.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8c97266c01a346b200005b275c667b2b6f92733768488c5781dae98464646af"
+checksum = "7e7bffdbc3185595bc5d939b2d7ea000cf11ae0911ad140a505a2dd71c3c31cf"
 dependencies = [
  "bytes",
  "http 1.1.0",

@@ -1,0 +1,9 @@
+[package]
+name = "docs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+sideko = { path = "../sideko" }
+clap-markdown = "0.1.4"

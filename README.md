@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  Put the spotlight on your API
+  Your API Ecosystem, On Autopilot
 </p>
 
 <p align="center">
@@ -15,87 +15,66 @@
 </p>
 <br/>
 
-## Welcome to Sideko, the platform for creating REST API tools and documentation.
+# The single platform to generate and maintain an ecosystem of tools for your APIs.
 
 Use _OpenAPI 3.x_ specifications to generate:
 - SDKs with types, tests, authentication, and code snippets
 - Mock servers that mimic the behavior of your API
-- Hosted API Documentation that stays up to date automatically
-- A command line interface for your API
+- API Documentation that stays up to date automatically
+- A command line interface for interacting with your API
 
 ## Installation
 
-_Install via pip_
+###  📦 Package Managers
 
 ```bash
-pip install sideko-py
+# Homebrew (macOS)
+brew install sideko
+
+# Choco (Windows)
+TODO
+
+# Apt (Debian/Ubuntu)
+TODO
 ```
 
-OR
-
-_Install via curl (macOS, Linux, Windows w/ WSL)_
+### 🛠️ Using Python or Node
 
 ```bash
+# python
+pip install sideko-py
+# node
+npm install -g sideko
+```
+
+<details>
+<summary>🔧 Manual Install</summary>
+
+```bash
+# Linux/macOS
 curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
 ```
+</details>
+
 
 ## Usage
 
-### Login
-
-You need a Sideko API Key to generate SDKs. Start generating **free** SDKs by either:
-
-1. Signing up / logging in via the CLI, or
-2. Signing up / logging in at [app.sideko.dev](http://app.sideko.dev) (`User Icon > API Keys`)
-
+### 
 ```bash
 sideko login
 # Complete login via browser pop-up
+sideko sdk init
+# Interactively construct SDKs
 ```
 
-_Run `sideko login --help` to list all options._
 
-The API key is read from (in order of priority):
+## All features
 
-- `$PWD/.sideko`
-- `$HOME/.sideko`
-- `SIDEKO_API_KEY` environment variable
+Head over to the complete [CLI Documentation Page](./docs/CLI.md) for detailed CLI Docs.
 
-## Free tier
-
-### Generate an unmanaged SDK with "sideko sdk try"
-
-| Language   | Supported |
-| ---------- | :-------: |
-| Python     |    ✅     |
-| Ruby       |    ✅     |
-| Go         |    ✅     |
-| Typescript |    ✅     |
-| Rust       |    ✅     |
-| C#         |    🚧     |
-| Java       |    ✅     |
-| CLI        |    ✅     |
-
-
-```bash
-sideko sdk try (your Swagger/OpenAPI spec) python
-```
-
-- The OpenAPI source can be a path to a local `.json` or `.yaml` file, a URL, or the raw spec as a string.
-- Language options: `python`, `typescript`, `ruby`, `rust`, or `go`
-
-_Run `sideko --help` to list all options._
-
-## Enterprise features
-
-Head over to the complete [CLI Documentation Page](./docs/CLI.md) for instructions on how to programmatically maintain your complete API toolset. 
-
-## Excited about Sideko?
-
-Reach us at `team@sideko.dev`
 
 ## Reference
 
-- [Complete CLI Documentation](./docs/CLI.md)
+- [Complete CLI Docs](./docs/CLI.md)
 - [License](./LICENSE)
 - [Issues](https://github.com/Sideko-Inc/sideko/issues/new)

@@ -1,0 +1,52 @@
+[package]
+name = "sideko"
+version = "1.0.0-rc.1"
+edition = "2021"
+authors = [
+    "Elias Posen <elias@sideko.dev>",
+    "Patrick Kelly <patrick@sideko.dev>",
+]
+description = "CLI for Sideko"
+repository = "https://github.com/Sideko-Inc/sideko"
+homepage = "https://sideko.dev"
+
+
+default-run = "sideko"
+
+[target.x86_64-unknown-linux-musl.dependencies]
+openssl = { version = "^0.10.68", features = ["vendored"] }
+
+[dependencies]
+anstyle = "1.0.3"
+camino = "1.1.6"
+clap = { version = "4.4.4", features = ["derive"] }
+env_logger = "0.11.1"
+flate2 = "1.0.27"
+log = "0.4.20"
+open = "5.0.1"
+rocket = "0.5.0"
+serde = "1.0.196"
+serde_json = "1.0.113"
+tar = "0.4.40"
+tokio = { version = "1.35.1", features = ["time"] }
+url = "2.4.1"
+semver = "1.0.23"
+sideko_rest_api = "0.4.0-rc.6"
+tempfile = "3.12.0"
+dotenvy = "0.15.7"
+tabled = "0.17.0"
+terminal_size = "0.4.1"
+regex = "1.11.1"
+inquire = "0.7.5"
+fuzzy-matcher = "0.3.7"
+keyring = { version = "3.6.1", features = [
+    "apple-native",
+    "windows-native",
+    "linux-native",
+] }
+chrono = "0.4.39"
+spinoff = "0.8.0"
+
+
+[dev-dependencies]
+clap-markdown = "0.1.4"

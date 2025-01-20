@@ -6,6 +6,10 @@ authors = [
     "Elias Posen <elias@sideko.dev>",
     "Patrick Kelly <patrick@sideko.dev>",
 ]
+description = "CLI for Sideko"
+repository = "https://github.com/Sideko-Inc/sideko"
+homepage = "https://sideko.dev"
+
 
 default-run = "sideko"
 

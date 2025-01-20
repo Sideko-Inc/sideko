@@ -2,9 +2,7 @@
 name = "docs"
 version = "0.1.0"
 edition = "2021"
-homepage.workspace = true
-repository.workspace = true
-authors.workspace = true
+publish = false
 
 [dependencies]
 sideko = { path = "../sideko" }

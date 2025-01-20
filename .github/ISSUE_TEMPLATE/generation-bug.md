@@ -9,7 +9,7 @@ assignees: ''
 
 # Issue: Generation Bug
 
-- [ ] OpenAPI spec is valid 3.x spec (confirm with [swagger editor](https://editor-next.swagger.io/)
+- [ ] OpenAPI spec is valid 3.x spec (confirm with [swagger editor](https://editor-next.swagger.io/))
 - [ ] Spec file causing issue included
 
 ## Describe the bug

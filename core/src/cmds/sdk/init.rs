@@ -15,7 +15,12 @@ use crate::{
     cmds::sdk::{config::init::SdkConfigInitCommand, create::SdkCreateCommand, SdkLang},
     result::{CliError, CliResult},
     styles::fmt_green,
-    utils::{self, get_sideko_client, validators::PathKind},
+    utils::{
+        self,
+        editor::{get_editor, open_config_in_editor},
+        get_sideko_client,
+        validators::PathKind,
+    },
 };
 
 #[derive(clap::Args)]
@@ -124,7 +129,7 @@ impl SdkInitCommand {
     }
 
     async fn select_config(&self, api: &Api, version: &ApiSpec) -> CliResult<(Utf8PathBuf, bool)> {
-        let generate_new = inquire::Confirm::new("Create new Sideko SDK config?")
+        let generate_new = inquire::Confirm::new("Create SDK config?")
             .with_default(true)
             .prompt()?;
         if generate_new {
@@ -163,7 +168,7 @@ impl SdkInitCommand {
             output: output.clone(),
         };
         init_cmd.handle().await?;
-        info!("{} Config generated", fmt_green("✔"));
+        info!("{} Default SDK config generated", fmt_green("✔"));
 
         Ok(output)
     }
@@ -214,10 +219,20 @@ impl SdkInitCommand {
 
         let (config, newly_generated) = self.select_config(&api, &api_version).await?;
         let generate_now = if newly_generated {
-            inquire::Confirm::new("Generate now?")
-                .with_default(true)
-                .with_help_message("Generate with the default configuration?")
-                .prompt()?
+            // First ask if they want to review the config
+            let editor = get_editor();
+            let review_config = inquire::Confirm::new(&format!(
+                "Review SDK config in {} before continuing? (recommended)",
+                editor
+            ))
+            .with_default(true)
+            .with_help_message("Opens config in default text editor")
+            .prompt()?;
+
+            if review_config {
+                open_config_in_editor(&config)?;
+            }
+            true
         } else {
             true
         };
@@ -248,7 +263,7 @@ impl SdkInitCommand {
 
             info!("{} Done.", fmt_green("✔"))
         } else {
-            info!("Make any alterations to {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) then run `sideko sdk create` to generate your first SDK!")
+            info!("Review {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) and run `sideko sdk create` to generate an SDK")
         }
 
         Ok(())
@@ -308,13 +323,6 @@ impl PathValidator {
     pub fn file() -> Self {
         Self {
             kind: PathKind::File,
-            allow_dne: false,
-            extensions: None,
-        }
-    }
-    pub fn dir() -> Self {
-        Self {
-            kind: PathKind::Dir,
             allow_dne: false,
             extensions: None,
         }

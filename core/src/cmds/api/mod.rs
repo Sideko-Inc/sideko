@@ -9,16 +9,16 @@ mod version;
 #[derive(clap::Subcommand)]
 pub enum ApiSubcommand {
     // ------------ SUB-COMMANDS ------------
-    /// Command group to manage your API versions
+    /// Manage API specification versions
     #[command(subcommand)]
     Version(version::ApiVersionSubcommand),
 
     // ------------ COMMANDS ------------
-    /// Create new API
+    /// Create a new API
     Create(create::ApiCreateCommand),
-    /// List all APIs available to your user in the organization
+    /// List all APIs
     List(list::ApiListCommand),
-    /// Display statistics about latest version of an API
+    /// Display stats gathered from the API specification
     Stats(stats::ApiStatsCommand),
 }
 

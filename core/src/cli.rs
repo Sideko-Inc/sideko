@@ -1,6 +1,11 @@
 use std::env;
 
-use crate::{cmds, result::CliResult, styles, utils};
+use crate::{
+    cmds,
+    result::CliResult,
+    styles::{self, fmt_cyan},
+    utils,
+};
 use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 use log::info;
@@ -8,7 +13,19 @@ use log::info;
 #[derive(Parser)]
 #[command(name = "sideko")]
 #[command(author = "Team Sideko <team@sideko.dev>")]
-#[command(about = "Start generating tools for your APIs wit Sideko!", long_about = None)]
+#[command(about = &fmt_cyan(r#"
+.*....*......*.....*......*....*........*....*.....
+
+..####...######..#####...######..##..##...####..
+.##........##....##..##..##......##.##...##..##.
+..####.....##....##..##..####....####....##..##.
+.....##....##....##..##..##......##.##...##..##.
+..####...######..#####...######..##..##...####..
+................................................
+
+- Your API Ecosystem, On Autopilot
+*....*......*.....*......*.....*......*.....*.....*                                                                                                                                                   
+"#), long_about = None)]
 #[command(version)]
 struct SidekoCli {
     #[command(subcommand)]
@@ -55,26 +72,26 @@ impl SidekoCli {
 #[derive(Subcommand)]
 #[command(styles=styles::get_styles())]
 enum SidekoCommands {
-    /// Authenticate the CLI interactively via the browser
+    /// Authenticate CLI interactively via browser
     Login(cmds::LoginCommand),
 
-    /// Un-authenticate the CLI
-    ///
-    /// Removes the Sideko API key from the dotenv file and the OS-native key service
-    /// (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
-    Logout(cmds::LogoutCommand),
-
-    /// Subcommand to manage your APIs
+    /// Manage API specifications
     #[command(subcommand)]
     Api(cmds::ApiSubcommand),
 
-    /// Subcommand to manage and generate you SDKs
+    /// Generate, customize, and sync SDKs
     #[command(subcommand)]
     Sdk(cmds::SdkSubcommand),
 
-    /// Subcommand to manage and deploy your documentation sites
+    /// Deploy documentation websites
     #[command(subcommand)]
     Doc(cmds::DocSubcommand),
+
+    /// Logout of Sideko
+    ///
+    /// Removes the Sideko API key from the the OS-native key service
+    /// (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
+    Logout(cmds::LogoutCommand),
 }
 
 pub async fn cli(args: Vec<String>) -> CliResult<()> {

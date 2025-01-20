@@ -56,43 +56,6 @@ impl ConfigKey {
     None
     }
 
-    /// Updates dotenv by replacing exiting config key entry
-    /// or appending a new line
-    pub fn set_env<S: ToString>(&self, val: S) -> CliResult<()> {
-        let sh_safe = shlex::try_quote(&val.to_string())
-            .map(String::from)
-            .unwrap_or_else(|_| val.to_string());
-        let dotenv_entry = format!("{self}={sh_safe}");
-
-        let curr_dotenv = self.read_dotenv()?;
-        // append or replace cfg var
-        let mut replaced = false;
-        let mut new_dotenv: Vec<String> = curr_dotenv.into_iter().map(|l| {
-            if l.starts_with(&format!("{self}=")) {
-                replaced = true;
-                dotenv_entry.clone()
-            } else {
-                l
-            }
-        }
-        ).collect();
-
-        if !replaced {
-            // append
-            new_dotenv.push(dotenv_entry);
-        }
-
-
-        let cfg_path = get_config_path()?;
-        std::fs::write(&cfg_path, new_dotenv.join("\n")).map_err(|e| {
-            CliError::io_custom(format!("Failed updating sideko config {self}: {cfg_path}"), e)
-        })?;
-
-        debug!("Set dotenv config {self}: {cfg_path}");
-
-        Ok(())
-    }
-
     /// Sets config key value in the native key storage using keyring
     pub fn set_keyring<S: ToString>(&self, val: S) -> CliResult<()> {
         let entry = keyring::Entry::new("sideko", &self.to_string())?;

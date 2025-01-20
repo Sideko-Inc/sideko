@@ -10,20 +10,21 @@ mod update;
 
 #[derive(clap::Subcommand)]
 pub enum SdkSubcommand {
+    // ------------ INTERACTIVE COMMANDS ------------
+    /// Interactively configure and create SDKs
+    Init(init::SdkInitCommand),
+
     // ------------ SUB-COMMANDS ------------
-    /// Command group for managing your SDK configs
+    /// Manage SDK configs
     #[command(subcommand)]
     Config(config::SdkConfigSubcommand),
 
     // ------------ COMMANDS ------------
-    /// Interactively configure and create a new SDK
-    Init(init::SdkInitCommand),
-
-    /// Create a new SDK
+    /// Create new SDK
     Create(create::SdkCreateCommand),
 
-    /// Update SDK
-    Update(update::SdkUpdateCommand),
+    /// Sync SDK with API specification
+    Sync(update::SdkSyncCommand),
 }
 
 impl SdkSubcommand {
@@ -32,7 +33,7 @@ impl SdkSubcommand {
             SdkSubcommand::Config(cmd) => cmd.handle().await,
             SdkSubcommand::Init(cmd) => cmd.handle().await,
             SdkSubcommand::Create(cmd) => cmd.handle().await,
-            SdkSubcommand::Update(cmd) => cmd.handle().await,
+            SdkSubcommand::Sync(cmd) => cmd.handle().await,
         }
     }
 }

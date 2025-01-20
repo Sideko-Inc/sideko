@@ -7,9 +7,9 @@ mod tabled;
 #[derive(clap::Subcommand)]
 pub enum DocSubcommand {
     // ------------ COMMANDS ------------
-    /// List all documentation projects available to your user in the organization
+    /// List all documentation websites
     List(list::DocListCommand),
-    /// Trigger documentation deployment to preview or production
+    /// Trigger documentation website deployment to preview or production
     Deploy(deploy::DocDeployCommand),
 }
 

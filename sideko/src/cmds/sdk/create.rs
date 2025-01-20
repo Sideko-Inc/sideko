@@ -107,7 +107,7 @@ impl SdkCreateCommand {
             )
         }
 
-        info!("💾 Saved to {dest}");
+        info!("Saved to {dest}");
 
         Ok(())
     }

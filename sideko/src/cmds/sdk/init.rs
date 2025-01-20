@@ -147,19 +147,13 @@ impl SdkInitCommand {
     }
 
     pub async fn create_config(&self, api: &Api, version: &ApiSpec) -> CliResult<Utf8PathBuf> {
-        let output_str = inquire::Text::new("Config Output Path:")
-            .with_help_message("Enter path to save Sideko SDK config")
-            .with_default("./sdk-config.yml")
-            .with_validator(
-                PathValidator::file()
-                    .with_extensions(&[".yaml", ".yml"])
-                    .with_allow_dne(),
-            )
-            .with_autocomplete(FilePathCompleter::default())
-            .prompt()?;
-        let output = Utf8PathBuf::new().join(&output_str);
-
-        // TODO: accept x_mods? is it too complex/too many steps?
+        let mut output = Utf8PathBuf::new().join("./sdk-config.yml");
+        let mut path_modifier = 1;
+        while output.exists() {
+            output = Utf8PathBuf::new().join(format!("./sdk-config-{path_modifier}.yml"));
+            debug!("default config output exists, trying {output}...");
+            path_modifier += 1;
+        }
         debug!("Running `sideko sdk config init` with prompted input...");
         let init_cmd = SdkConfigInitCommand {
             api_name: api.name.clone(),
@@ -331,6 +325,7 @@ impl PathValidator {
         self.extensions = Some(extensions.iter().map(|s| s.to_string()).collect());
         self
     }
+    #[allow(unused)]
     pub fn with_allow_dne(mut self) -> Self {
         self.allow_dne = true;
         self

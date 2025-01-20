@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "sideko-py"]
+members = ["sideko", "docs", "sideko-py"]
 resolver = "2"
 
 [workspace.package]

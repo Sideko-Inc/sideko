@@ -1,273 +1,404 @@
-# The Sideko Command Line Interface for programmatically generating API tools
+# The Sideko Command Line Interface for generating API Ecosystem tools
 
 This document contains the help content for the `sideko` command-line program.
 
+**Command Overview:**
+
+* [`sideko`↴](#sideko)
+* [`sideko login`↴](#sideko-login)
+* [`sideko api`↴](#sideko-api)
+* [`sideko api version`↴](#sideko-api-version)
+* [`sideko api version create`↴](#sideko-api-version-create)
+* [`sideko api version list`↴](#sideko-api-version-list)
+* [`sideko api version update`↴](#sideko-api-version-update)
+* [`sideko api create`↴](#sideko-api-create)
+* [`sideko api list`↴](#sideko-api-list)
+* [`sideko api stats`↴](#sideko-api-stats)
+* [`sideko sdk`↴](#sideko-sdk)
+* [`sideko sdk init`↴](#sideko-sdk-init)
+* [`sideko sdk config`↴](#sideko-sdk-config)
+* [`sideko sdk config init`↴](#sideko-sdk-config-init)
+* [`sideko sdk config sync`↴](#sideko-sdk-config-sync)
+* [`sideko sdk create`↴](#sideko-sdk-create)
+* [`sideko sdk sync`↴](#sideko-sdk-sync)
+* [`sideko doc`↴](#sideko-doc)
+* [`sideko doc list`↴](#sideko-doc-list)
+* [`sideko doc deploy`↴](#sideko-doc-deploy)
+* [`sideko logout`↴](#sideko-logout)
+
 ## `sideko`
 
-Login to start generating tools for your APIs
+```
+.*....*......*.....*......*....*........*....*.....
+
+..####...######..#####...######..##..##...####..
+.##........##....##..##..##......##.##...##..##.
+..####.....##....##..##..####....####....##..##.
+.....##....##....##..##..##......##.##...##..##.
+..####...######..#####...######..##..##...####..
+................................................
+
+- Your API Ecosystem, On Autopilot
+*....*......*.....*......*.....*......*.....*.....*
+```                                                                                                                                                
+
 
 **Usage:** `sideko [OPTIONS] <COMMAND>`
 
 ###### **Subcommands:**
 
-* `login` — Log into Sideko interactively to obtain API key for generations
-* `sdk` — Generate and configure SDK clients
-* `api` — **Enterprise Only!** Manage API specifications
-* `doc` — **Enterprise Only!** Manage documentation projects
+* `login` — Authenticate CLI interactively via browser
+* `api` — Manage API specifications
+* `sdk` — Generate, customize, and sync SDKs
+* `doc` — Deploy documentation websites
+* `logout` — Logout of Sideko
 
 ###### **Options:**
 
-* `-c`, `--config <CONFIG>` — Path to .sideko file containing api key, default locations: ./.sideko then $HOME/.sideko
 * `-q`, `--quiet` — No logging except for errors
-* `-v`, `--verbose` — Verbose logging
+* `-v`, `--verbose` — Verbose logging (-v) or trace logging (-vv)
+* `--config <CONFIG>` — Load config from custom path
 
 
 
 ## `sideko login`
 
-Log into Sideko interactively to obtain API key for generations
+Authenticate CLI interactively via browser
 
 **Usage:** `sideko login [OPTIONS]`
 
 ###### **Options:**
 
-* `-o`, `--output <OUTPUT>` — Path to file to store API key, default: $HOME/.sideko
-
-
-
-## `sideko sdk`
-
-Generate and configure SDK clients
-
-**Usage:** `sideko sdk <COMMAND>`
-
-###### **Subcommands:**
-
-* `try` — Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users
-* `create` — **Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
-* `update` — **Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
-* `list` — **Enterprise Only!** List all Sideko managed SDKs for an API Specification Collection
-* `config` — **Enterprise Only!** Manage SDK Configurations specifications
-
-
-
-## `sideko sdk try`
-
-Generate a point-in-time SDK (unmanaged/stateless). This command is available to free-tier users
-
-**Usage:** `sideko sdk try [OPTIONS] <OPENAPI_SOURCE> <LANGUAGE>`
-
-###### **Arguments:**
-
-* `<OPENAPI_SOURCE>` — Path or URL of OpenAPI spec
-* `<LANGUAGE>` — Programming language to generate
-
-  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`, `java`
-
-
-###### **Options:**
-
-* `-o`, `--output <OUTPUT>` — Output path of generated source files, default: ./
-* `-b`, `--base-url <BASE_URL>` — Base URL of API if not specified in OpenAPI spec
-* `-p`, `--package-name <PACKAGE_NAME>` — Name of SDK package to generate
-
-
-
-## `sideko sdk create`
-
-**Enterprise Only!** Create a managed SDK that Sideko can track and maintain maintain. This command returns an SDK repo with git tracking
-
-**Usage:** `sideko sdk create [OPTIONS] <CONFIG_PATH> <LANGUAGE>`
-
-###### **Arguments:**
-
-* `<CONFIG_PATH>` — Path to the Sideko SDK Configuration File
-* `<LANGUAGE>` — Programming language to generate an SDK for
-
-  Possible values: `go`, `ruby`, `rust`, `typescript`, `python`, `java`
-
-
-###### **Options:**
-
-* `--api-version <API_VERSION>` — Optionally generate from a specific API version
-* `--sdk-version <SDK_VERSION>` — Optionally set an initial SDK semantic version
-* `--output <OUTPUT>` — Output path of generated source files, default: ./
-
-
-
-## `sideko sdk update`
-
-**Enterprise Only!** Update a Sideko managed SDK. This command returns the git patch file to update your SDK to match an updated API
-
-**Usage:** `sideko sdk update [OPTIONS] <REPO_PATH> <CONFIG_PATH> <RELEASE_TYPE_OR_SEMVER>`
-
-###### **Arguments:**
-
-* `<REPO_PATH>` — Path to the existing SDK
-* `<CONFIG_PATH>` — Name of the API Specification Collection
-* `<RELEASE_TYPE_OR_SEMVER>` — The release type or semantic version to assign to the updated SDK
-
-###### **Options:**
-
-* `--api-version <API_VERSION>` — Optional specific API version to generate from (default is latest non-rc semantic version)
-
-
-
-## `sideko sdk list`
-
-**Enterprise Only!** List all Sideko managed SDKs for an API Specification Collection
-
-**Usage:** `sideko sdk list [OPTIONS]`
-
-###### **Options:**
-
-* `--api-name <API_NAME>` — The name of the API in Sideko. e.g. my-rest-api
-* `--successful-only <SUCCESSFUL_ONLY>` — Only show successful SDK generations
-
-  Possible values: `true`, `false`
-
-
-
-
-## `sideko sdk config`
-
-**Enterprise Only!** Manage SDK Configurations specifications
-
-**Usage:** `sideko sdk config <COMMAND>`
-
-###### **Subcommands:**
-
-* `init` — Initialize an SDK Configuration
-* `sync` — Sync an SDK Configuration file with the latest state of the API
-
-
-
-## `sideko sdk config init`
-
-Initialize an SDK Configuration
-
-**Usage:** `sideko sdk config init [OPTIONS] <API_NAME>`
-
-###### **Arguments:**
-
-* `<API_NAME>` — Name of the API in Sideko. e.g. my-rest-api
-
-###### **Options:**
-
-* `--api-version <API_VERSION>` — Optionally specify a specific API version to intitialize the config with
-
-
-
-## `sideko sdk config sync`
-
-Sync an SDK Configuration file with the latest state of the API
-
-**Usage:** `sideko sdk config sync <CONFIG_PATH> [API_VERSION]`
-
-###### **Arguments:**
-
-* `<CONFIG_PATH>` — Path to the Sideko SDK Configuration File
-* `<API_VERSION>` — Optionally specify a specific API version to sync the config with
+* `--key <KEY>` — Manually provide you Sideko API key to the CLI, this will take priority over browser login
+* `--output <OUTPUT>` — Path to file to store API key, default: $HOME/.sideko
 
 
 
 ## `sideko api`
 
-**Enterprise Only!** Manage API specifications
+Manage API specifications
 
 **Usage:** `sideko api <COMMAND>`
 
 ###### **Subcommands:**
 
-* `list` — List your API Specification Collections
-* `create` — Create a new API Specification Collection
-* `update` — Upload a new version of a spec to your existing API Specification Collection
+* `version` — Manage API specification versions
+* `create` — Create a new API
+* `list` — List all APIs
+* `stats` — Display stats gathered from the API specification
 
 
 
-## `sideko api list`
+## `sideko api version`
 
-List your API Specification Collections
+Manage API specification versions
 
-**Usage:** `sideko api list [OPTIONS]`
+**Usage:** `sideko api version <COMMAND>`
+
+###### **Subcommands:**
+
+* `create` — Create a new version of an API with an OpenAPI spec
+* `list` — List an APIs versions
+* `update` — Updates an existing API version,
+
+
+
+## `sideko api version create`
+
+Create a new version of an API with an OpenAPI spec
+
+**Usage:** `sideko api version create [OPTIONS] --name <NAME> --version <VERSION> --spec <SPEC>`
 
 ###### **Options:**
 
-* `-n`, `--name <NAME>` — Pass name to filter by api name to see the versions of a single API e.g. my-rest-api
+* `--name <NAME>` — API name or id e.g. my-api
+* `--version <VERSION>` — Semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
+* `--spec <SPEC>` — Path to OpenAPI spec (YAML or JSON format)
+* `--disable-mock` — Disable mock server for new version [default: enabled]
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
+
+
+
+## `sideko api version list`
+
+List an APIs versions
+
+**Usage:** `sideko api version list [OPTIONS] --name <NAME>`
+
+###### **Options:**
+
+* `--name <NAME>` — API name or id e.g. my-api
+* `--limit <LIMIT>` — Limit results to most recent N versions
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
+
+
+
+## `sideko api version update`
+
+Updates an existing API version,
+
+**Usage:** `sideko api version update [OPTIONS] --name <NAME> --version <VERSION>`
+
+###### **Options:**
+
+* `--name <NAME>` — API name or id e.g. my-api
+* `--version <VERSION>` — Version to update (e.g. `2.1.5` or `latest`)
+* `--new-version <NEW_VERSION>` — Version to update with (e.g. `2.1.5`)
+* `--spec <SPEC>` — Path to OpenAPI spec (YAML or JSON format) to update with
+* `--mock <MOCK>` — Enable or disable the mock server
+
+  Possible values: `true`, `false`
+
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
 
 
 
 ## `sideko api create`
 
-Create a new API Specification Collection
+Create a new API
 
-**Usage:** `sideko api create [OPTIONS] <OPENAPI_SOURCE> <SEMVER> <NAME>`
-
-###### **Arguments:**
-
-* `<OPENAPI_SOURCE>` — Either a file path to an OpenAPI yml/json OR a public URL hosting the OpenAPI specification yml/json
-* `<SEMVER>` — The semantic version to assign to the API
-* `<NAME>` — The name of the API in Sideko. e.g. my-rest-api
+**Usage:** `sideko api create [OPTIONS] --name <NAME> --version <VERSION> --spec <SPEC>`
 
 ###### **Options:**
 
-* `--notes <NOTES>` — Plain text or HTML notes about the new API specification
+* `--name <NAME>` — Name of API (only alphanumeric characters and dashes, e.g. `my-api`)
+* `--version <VERSION>` — Semantic version of initial version (e.g. `2.1.5`)
+* `--spec <SPEC>` — Path to OpenAPI spec of initial version (YAML or JSON format)
+* `--disable-mock` — Disable mock server for initial version [default: enabled]
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
 
 
 
-## `sideko api update`
 
-Upload a new version of a spec to your existing API Specification Collection
+## `sideko api list`
 
-**Usage:** `sideko api update [OPTIONS] <NAME> <OPENAPI_SOURCE> <SEMVER>`
+List all APIs
 
-###### **Arguments:**
-
-* `<NAME>` — The name of your API in Sideko. e.g. my-rest-api
-* `<OPENAPI_SOURCE>` — Either a file path to an OpenAPI yml/json OR a public URL hosting the OpenAPI specification yml/json
-* `<SEMVER>` — Either the semantic version OR one of "major" "minor" or "patch" to automatically increment the version from the latest existing version
+**Usage:** `sideko api list [OPTIONS]`
 
 ###### **Options:**
 
-* `-n`, `--notes <NOTES>` — Plain text or HTML notes about the new API specification
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
+
+
+
+## `sideko api stats`
+
+Display stats gathered from the API specification
+
+**Usage:** `sideko api stats [OPTIONS] --name <NAME>`
+
+###### **Options:**
+
+* `--name <NAME>` — API name or id e.g. my-api
+* `--version <VERSION>` — API name or id e.g. my-api
+
+  Default value: `latest`
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
+
+
+
+## `sideko sdk`
+
+Generate, customize, and sync SDKs
+
+**Usage:** `sideko sdk <COMMAND>`
+
+###### **Subcommands:**
+
+* `init` — Interactively configure and create SDKs
+* `config` — Manage SDK configs
+* `create` — Create new SDK
+* `sync` — Sync SDK with API specification
+
+
+
+## `sideko sdk init`
+
+Interactively configure and create SDKs
+
+**Usage:** `sideko sdk init`
+
+
+
+## `sideko sdk config`
+
+Manage SDK configs
+
+**Usage:** `sideko sdk config <COMMAND>`
+
+###### **Subcommands:**
+
+* `init` — Generate the default SDK configuration for an API
+* `sync` — Sync SDK configuration file with an API version
+
+
+
+## `sideko sdk config init`
+
+Generate the default SDK configuration for an API
+
+**Usage:** `sideko sdk config init [OPTIONS] --api-name <API_NAME>`
+
+###### **Options:**
+
+* `--api-name <API_NAME>` — API name or id e.g. my-api
+* `--api-version <API_VERSION>` — Generate config for specific version (e.g. `2.1.5`)
+
+  Default value: `latest`
+* `--x-mods` — Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+
+   Including this flag will cause the module config to be omitted from the generated config file.
+* `--output <OUTPUT>` — Custom output path of SDK config (must be .yaml or .yml)
+
+  Default value: `./sdk-config.yaml`
+
+
+
+## `sideko sdk config sync`
+
+Sync SDK configuration file with an API version
+
+**Usage:** `sideko sdk config sync [OPTIONS] --name <NAME> --config <CONFIG>`
+
+###### **Options:**
+
+* `--name <NAME>` — API name or id e.g. my-api
+* `--version <VERSION>` — Sync config with specific version (e.g. `2.1.5`)
+
+  Default value: `latest`
+* `--spec <SPEC>` — Sync config with local OpenAPI specification
+* `--config <CONFIG>` — Config to sync
+* `--output <OUTPUT>` — Custom output path of SDK config (must be .yaml or .yml) [defaults to same path as --config]
+* `--x-mods` — Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+
+   Including this flag will cause the module config to be omitted from the generated config file.
+
+
+
+## `sideko sdk create`
+
+Create new SDK
+
+**Usage:** `sideko sdk create [OPTIONS] --config <CONFIG> --lang <LANG>`
+
+###### **Options:**
+
+* `--config <CONFIG>` — Path to SDK config
+* `--lang <LANG>` — Programming language to generate
+
+  Possible values: `python`, `typescript`, `rust`, `go`, `java`
+
+* `--version <VERSION>` — Semantic version of generated SDK
+
+  Default value: `0.1.0`
+* `--api-version <API_VERSION>` — Generate SDK with for a specific version of the API listed in the config (e.g. `2.1.5`)
+
+  Default value: `latest`
+* `--gh-actions` — Include Github actions for testing and publishing the SDK in the generation
+* `--output <OUTPUT>` — Path to save SDK
+
+  Default value: `./`
+
+
+
+## `sideko sdk sync`
+
+Sync SDK with API specification
+
+**Usage:** `sideko sdk sync [OPTIONS] --config <CONFIG> --repo <REPO> --version <VERSION>`
+
+###### **Options:**
+
+* `--config <CONFIG>` — Path to SDK config
+* `--repo <REPO>` — Path to root of SDK repo
+* `--version <VERSION>` — Semantic version of generated SDK (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
+* `--api-version <API_VERSION>` — API version to update SDK with (e.g. `2.1.5`)
+
+  Default value: `latest`
 
 
 
 ## `sideko doc`
 
-**Enterprise Only!** Manage documentation projects
+Deploy documentation websites
 
 **Usage:** `sideko doc <COMMAND>`
 
 ###### **Subcommands:**
 
-* `list` — List your documentation projects
-* `deploy` — Trigger a documentation deployment to preview or production
+* `list` — List all documentation websites
+* `deploy` — Trigger documentation website deployment to preview or production
 
 
 
 ## `sideko doc list`
 
-List your documentation projects
+List all documentation websites
 
-**Usage:** `sideko doc list`
+**Usage:** `sideko doc list [OPTIONS]`
+
+###### **Options:**
+
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
 
 
 
 ## `sideko doc deploy`
 
-Trigger a documentation deployment to preview or production
+Trigger documentation website deployment to preview or production
 
-**Usage:** `sideko doc deploy [OPTIONS] <NAME>`
-
-###### **Arguments:**
-
-* `<NAME>` — The name of the Doc Project in Sideko. e.g. my-rest-api-docs
+**Usage:** `sideko doc deploy [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
-* `--prod` — Flag to deploy to production environment. If not set, it will deploy to preview
-* `--no-wait` — Flag to not poll until the deployment has completed
+* `--name <NAME>` — Doc project name or id e.g. my-docs
+* `--prod` — Deploy to production [default: preview]
+* `--no-wait` — Exit command after successful trigger [default: waits until deployment completes]
+
+
+
+## `sideko logout`
+
+Logout of Sideko
+
+Removes the Sideko API key from the the OS-native key service (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
+
+**Usage:** `sideko logout`
 
 
 

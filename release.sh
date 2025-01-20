@@ -11,7 +11,7 @@ die () {
 }
 
 prefix=""
-crate="core"
+crate="sideko"
 
 if [[ "$1" == "py" ]]; then
     prefix="py-"

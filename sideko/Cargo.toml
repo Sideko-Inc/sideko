@@ -7,6 +7,8 @@ authors = [
     "Patrick Kelly <patrick@sideko.dev>",
 ]
 
+default-run = "sideko"
+
 [target.x86_64-unknown-linux-musl.dependencies]
 openssl = { version = "^0.10.68", features = ["vendored"] }
 
@@ -18,11 +20,6 @@ env_logger = "0.11.1"
 flate2 = "1.0.27"
 log = "0.4.20"
 open = "5.0.1"
-reqwest = { version = "0.11.20", features = [
-    "multipart",
-    "rustls-tls",
-    "stream",
-], default-features = false }
 rocket = "0.5.0"
 serde = "1.0.196"
 serde_json = "1.0.113"
@@ -33,7 +30,6 @@ semver = "1.0.23"
 sideko_rest_api = "0.4.0-rc.6"
 tempfile = "3.12.0"
 dotenvy = "0.15.7"
-shlex = "1.3.0"
 tabled = "0.17.0"
 terminal_size = "0.4.1"
 regex = "1.11.1"
@@ -44,7 +40,6 @@ keyring = { version = "3.6.1", features = [
     "windows-native",
     "linux-native",
 ] }
-core-foundation-sys = "0.8.7"
 chrono = "0.4.39"
 spinoff = "0.8.0"
 

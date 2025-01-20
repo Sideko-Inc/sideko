@@ -6,6 +6,7 @@ authors = [
     "Elias Posen <elias@sideko.dev>",
     "Patrick Kelly <patrick@sideko.dev>",
 ]
+publish = false
 
 [lib]
 name = "sideko_py"

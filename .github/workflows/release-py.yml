@@ -2,9 +2,6 @@ name: Release Python
 
 on:
   workflow_dispatch: {}
-#   push:
-#     tags:
-#       - "py-v*.*.*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

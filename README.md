@@ -35,7 +35,7 @@ brew install sideko-inc/tap/sideko
 ### Install via shell script (linux/macOS)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/v0.10.2/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
 ```
 
 ### Install via npm

@@ -12,38 +12,6 @@ This package will also install the `sideko` CLI, find the CLI's documentation on
 pip install sideko-py
 ```
 
-## Usage
-
-### Configure API key
-
-You need a Sideko API Key to generate SDKs. Create one for **free** by either:
-
-1. Signing up / logging in via the CLI, or
-2. Signing up / logging in at [app.sideko.dev](http://app.sideko.dev) (`User Icon > API Keys`)
-
-```bash
-sideko login
-# Complete login via browser pop-up
-```
-
-_Run `sideko login --help` to list all options._
-
-The API key is read from (in order of priority):
-
-- `$PWD/.sideko`
-- `$HOME/.sideko`
-- `SIDEKO_API_KEY` environment variable
-
-### Generate
-
-```python
-import sideko_py
-
-# The openAPI source can be a URL, Path, or json/yml raw spec (as a string)
-openapi_src = "https://your-spec.yml"
-sideko_py.generate_sdk(sideko_py.Language.Python, openapi_src, "./sdk-out")
-```
-
 ## Local development
 
 This rust crate uses [PyO3](https://pyo3.rs/) & [Maturin](https://www.maturin.rs/) to create and distribute python bindings to generate SDKs with Sideko.

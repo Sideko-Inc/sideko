@@ -25,6 +25,8 @@ This document contains the help content for the `sideko` command-line program.
 * [`sideko doc list`↴](#sideko-doc-list)
 * [`sideko doc deploy`↴](#sideko-doc-deploy)
 * [`sideko logout`↴](#sideko-logout)
+* [`sideko config`↴](#sideko-config)
+* [`sideko config autocomplete`↴](#sideko-config-autocomplete)
 
 ## `sideko`
 
@@ -53,6 +55,7 @@ This document contains the help content for the `sideko` command-line program.
 * `sdk` — Generate, customize, and sync SDKs
 * `doc` — Manage API documentation websites
 * `logout` — Logout of Sideko
+* `config` — Configure the CLI
 
 ###### **Options:**
 
@@ -400,6 +403,37 @@ Logout of Sideko
 Removes the Sideko API key from the OS-native key service (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
 
 **Usage:** `sideko logout`
+
+
+
+## `sideko config`
+
+Configure the CLI
+
+**Usage:** `sideko config <COMMAND>`
+
+###### **Subcommands:**
+
+* `autocomplete` — Writes shell completion for the CLI to stdout
+
+
+
+## `sideko config autocomplete`
+
+Writes shell completion for the CLI to stdout
+
+Example (`zsh`): `sideko config autocomplete --shell zsh > ~/sideko-complete.sh`
+
+Then add `source ~/sideko-complete.sh` to `~/.zshrc`
+
+**Usage:** `sideko config autocomplete --shell <SHELL>`
+
+###### **Options:**
+
+* `--shell <SHELL>`
+
+  Possible values: `bash`, `elvish`, `fish`, `powershell`, `zsh`
+
 
 
 

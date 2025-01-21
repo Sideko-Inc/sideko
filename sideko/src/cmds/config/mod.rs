@@ -7,7 +7,7 @@ pub enum ConfigSubcommand {
     // ------------ COMMANDS ------------
     /// Writes shell completion for the CLI to stdout
     ///
-    /// Example (zsh): sideko config autocomplete --shell zsh > ~/sideko-complete.sh
+    /// Example (`zsh`): `sideko config autocomplete --shell zsh > ~/sideko-complete.sh`
     ///
     /// Then add `source ~/sideko-complete.sh` to `~/.zshrc`
     Autocomplete(autocomplete::AutocompleteCommand),

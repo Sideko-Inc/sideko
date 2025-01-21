@@ -8,24 +8,18 @@ REPO_NAME="sideko-inc/sideko"
 ISSUE_URL="https://github.com/Sideko-Inc/sideko/issues/new"
 
 get_latest_release() {
-  curl --retry 5 --silent "https://api.github.com/repos/$1/releases/latest" |
+  local repo_name=$1
+  local url="https://api.github.com/repos/$repo_name/releases/latest"
+  local res
+  res=$(curl --retry 5 --silent --fail "$url" ) || {
+    return 1
+  }
+
+  echo "$res" |
     grep '"tag_name":' |
     sed -E 's/.*"([^"]+)".*/\1/'
 }
 
-get_asset_name() {
-  os=$(get_os)
-  if [[ "$os" == "windows" ]]; then
-    echo "sideko-$1-$2.zip"
-  else
-    echo "sideko-$1-$2.tar.gz"
-  fi
-}
-
-get_download_url() {
-  local asset_name=$(get_asset_name $2 $3)
-  echo "https://github.com/Sideko-Inc/sideko/releases/download/v$1/${asset_name}"
-}
 
 command_exists() {
   command -v "$@" >/dev/null 2>&1
@@ -44,7 +38,7 @@ fmt_underline() {
 }
 
 fmt_code() {
-  echo "\`$(printf '\033[38;5;247m')$@${RESET}\`"
+  echo "$(printf '\033[38;5;247m')$@${RESET}"
 }
 
 setup_color() {
@@ -68,113 +62,48 @@ setup_color() {
   fi
 }
 
-get_os() {
-  case "$(uname -s)" in
-    *linux* | *Linux* ) 
-      echo "linux" 
-      ;;
-    *darwin* | *Darwin* ) 
-      echo "darwin" 
-      ;;
-    CYGWIN* | MINGW* | MSYS* ) 
-      echo "windows" 
-      ;;
-    *)
-      echo "unknown"
-      ;;
-  esac
-}
-get_machine() {
-  case "$(uname -m)" in
-    "x86_64"|"amd64"|"x64")
-      echo "x86_64" ;;
-    "i386"|"i86pc"|"x86"|"i686")
-      echo "386" ;;
-    "arm64"|"armv6l"|"aarch64")
-      echo "aarch64"
-  esac
-}
 
-get_tmp_dir() {
-  echo $(mktemp -d)
-}
-
-
-do_install_binary() {
-  asset_name=$(get_asset_name $os $machine)
-  download_url=$(get_download_url $version $os $machine)
+main() {
+  setup_color
 
   command_exists curl || {
     fmt_error "curl is not installed"
     exit 1
   }
 
-  local tmp_dir=$(get_tmp_dir)
-
-  # Download tar.gz to tmp directory
-  echo "Downloading $download_url"
-  (cd $tmp_dir && curl -sL -O "$download_url")
-
-  cd $tmp_dir
-
-  # Extract download
-  if [[ "$asset_name" == *.tar.gz ]]; then
-    tar -xvf "$asset_name"
-  elif [[ "$asset_name" == *.zip ]]; then
-    command_exists unzip || {
-        fmt_error "unzip is not installed"
-        exit 1
-    }
-    unzip "$asset_name"
-  else
-    fmt_error "Unknown file format: $asset_name"
+  latest_tag=$(get_latest_release $REPO_NAME) || {
+    fmt_error "unable to determine latest release to install"
     exit 1
-  fi
+  }
+  installer_url="https://github.com/Sideko-Inc/sideko/releases/download/$latest_tag/sideko-installer.sh"
 
-  # Install binary
-  sudo_cmd='mv '"$tmp_dir/$BINARY_NAME"' '"$INSTALL_DIR"' && chmod a+x '"$INSTALL_DIR/$BINARY_NAME"
-  sudo -p "sudo password required for installing to $INSTALL_DIR: " -- sh -c "$sudo_cmd"
-  echo "Installed sideko to $INSTALL_DIR"
-
-  # Cleanup
-  rm -rf $tmp_dir
-}
-
-main() {
-  setup_color
-
-  latest_tag=$(get_latest_release $REPO_NAME)
-  latest_version=$(echo $latest_tag | sed 's/v//')
-  version=${VERSION:-$latest_version}
-
-  os=$(get_os)
-  if test -z "$os"; then
-    fmt_error "$(uname -s) os type is not supported"
-    echo "Please create an issue so we can add support. $ISSUE_URL"
+  installer=$(curl --proto '=https' --tlsv1.2 -LsSf $installer_url) || {
+    fmt_error "failed retrieving installer for release $latest_tag"
     exit 1
-  fi
+  }
+  installer_out=$(echo "$installer" | sh) || {
+    fmt_error "failed running installer for release $latest_tag"
+  }
+  
+  echo "$installer_out"
 
-  machine=$(get_machine)
-  if test -z "$machine"; then
-    fmt_error "$(uname -m) machine type is not supported"
-    echo "Please create an issue so we can add support. $ISSUE_URL"
-    exit 1
-  fi
-  do_install_binary
+  check="${GREEN}✔$@${RESET}"
+  help_cmd=$(fmt_code "sideko --help")
+  cat <<EOF
 
-  printf "$YELLOW"
-  cat <<'EOF'
+.*....*......*.....*......*....*........*....*.....
 
-   _____ _     _      _             _____ _      _____  
-  / ____(_)   | |    | |           / ____| |    |_   _| 
- | (___  _  __| | ___| | _____    | |    | |      | |   
-  \___ \| |/ _` |/ _ \ |/ / _ \   | |    | |      | |   
-  ____) | | (_| |  __/   < (_) |  | |____| |____ _| |_  
- |_____/|_|\__,_|\___|_|\_\___/    \_____|______|_____|
+..####...######..#####...######..##..##...####..
+.##........##....##..##..##......##.##...##..##.
+..####.....##....##..##..####....####....##..##.
+.....##....##....##..##..##......##.##...##..##.
+..####...######..#####...######..##..##...####..
+................................................
 
- The Sideko CLI is now Installed!
- Run `sideko --help` for help
+$check The Sideko CLI is now installed!
+ Run $help_cmd for help
 
+*....*......*.....*......*.....*......*.....*.....*
 
 EOF
   printf "$RESET"

@@ -18,6 +18,7 @@
 # The single platform to generate and maintain an ecosystem of tools for your APIs.
 
 Use _OpenAPI 3.x_ specifications to generate:
+
 - SDKs with types, tests, authentication, and code snippets
 - Mock servers that mimic the behavior of your API
 - API Documentation that stays up to date automatically
@@ -25,41 +26,38 @@ Use _OpenAPI 3.x_ specifications to generate:
 
 ## Installation
 
-###  📦 Package Managers
+### Install via Homebrew (macOS)
 
 ```bash
-# Homebrew (macOS)
-brew install sideko
-
-# Choco (Windows)
-TODO
-
-# Apt (Debian/Ubuntu)
-TODO
+brew install sideko-inc/tap/sideko
 ```
 
-### 🛠️ Using Python or Node
+### Install via shell script (linux/macOS)
 
 ```bash
-# python
+curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/v0.10.2/install.sh | sh
+```
+
+### Install via npm
+
+```bash
+npm install -g @sideko/cli
+```
+
+### Install via pip
+
+```bash
 pip install sideko-py
-# node
-npm install -g sideko
 ```
 
-<details>
-<summary>🔧 Manual Install</summary>
+### 📜 Legacy installation (v0.10.2)
 
 ```bash
-# Linux/macOS
-curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/v0.10.2/install.sh | sh
 ```
-</details>
 
+## Quick Start
 
-## Usage
-
-### 
 ```bash
 sideko login
 # Complete login via browser pop-up
@@ -67,14 +65,12 @@ sideko sdk init
 # Interactively construct SDKs
 ```
 
-
 ## All features
 
 Head over to the complete [CLI Documentation Page](./docs/CLI.md) for detailed CLI Docs.
-
 
 ## Reference
 
 - [Complete CLI Docs](./docs/CLI.md)
 - [License](./LICENSE)
-- [Issues](https://github.com/Sideko-Inc/sideko/issues/new)
+- [Open SDK Generation Issue](https://github.com/Sideko-Inc/sideko/issues/new?template=generation-bug.md)

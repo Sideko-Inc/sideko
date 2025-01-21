@@ -1,6 +1,6 @@
 [package]
 name = "sideko"
-version = "1.0.0-rc.4"
+version = "1.0.0"
 edition = "2021"
 authors = [
     "Elias Posen <elias@sideko.dev>",

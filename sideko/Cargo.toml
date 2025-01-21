@@ -14,6 +14,8 @@ default-run = "sideko"
 
 [target.x86_64-unknown-linux-musl.dependencies]
 openssl = { version = "^0.10.68", features = ["vendored"] }
+[target.x86_64-unknown-linux-gnu.dependencies]
+openssl = { version = "^0.10.68", features = ["vendored"] }
 
 [dependencies]
 anstyle = "1.0.3"

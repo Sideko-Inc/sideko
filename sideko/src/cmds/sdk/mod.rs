@@ -23,8 +23,8 @@ pub enum SdkSubcommand {
     /// Create new SDK
     Create(create::SdkCreateCommand),
 
-    /// Sync SDK with API specification
-    Sync(update::SdkSyncCommand),
+    /// Update SDK to implement changes to APIs
+    Update(update::SdkUpdateCommand),
 }
 
 impl SdkSubcommand {
@@ -33,7 +33,7 @@ impl SdkSubcommand {
             SdkSubcommand::Config(cmd) => cmd.handle().await,
             SdkSubcommand::Init(cmd) => cmd.handle().await,
             SdkSubcommand::Create(cmd) => cmd.handle().await,
-            SdkSubcommand::Sync(cmd) => cmd.handle().await,
+            SdkSubcommand::Update(cmd) => cmd.handle().await,
         }
     }
 }

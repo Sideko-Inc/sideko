@@ -20,13 +20,14 @@ This document contains the help content for the `sideko` command-line program.
 * [`sideko sdk config init`↴](#sideko-sdk-config-init)
 * [`sideko sdk config sync`↴](#sideko-sdk-config-sync)
 * [`sideko sdk create`↴](#sideko-sdk-create)
-* [`sideko sdk sync`↴](#sideko-sdk-sync)
+* [`sideko sdk update`↴](#sideko-sdk-update)
 * [`sideko doc`↴](#sideko-doc)
 * [`sideko doc list`↴](#sideko-doc-list)
 * [`sideko doc deploy`↴](#sideko-doc-deploy)
 * [`sideko logout`↴](#sideko-logout)
 
 ## `sideko`
+
 
 ```
 .*....*......*.....*......*....*........*....*.....
@@ -39,8 +40,8 @@ This document contains the help content for the `sideko` command-line program.
 ................................................
 
 - Your API Ecosystem, On Autopilot
-*....*......*.....*......*.....*......*.....*.....*
-```                                                                                                                                                
+*....*......*.....*......*.....*......*.....*.....*            
+```                                                                                                                             
 
 
 **Usage:** `sideko [OPTIONS] <COMMAND>`
@@ -238,7 +239,7 @@ Generate, customize, and sync SDKs
 * `init` — Interactively configure and create SDKs
 * `config` — Manage SDK configs
 * `create` — Create new SDK
-* `sync` — Sync SDK with API specification
+* `update` — Update SDK to implement changes to APIs
 
 
 
@@ -331,11 +332,11 @@ Create new SDK
 
 
 
-## `sideko sdk sync`
+## `sideko sdk update`
 
-Sync SDK with API specification
+Update SDK to implement changes to APIs
 
-**Usage:** `sideko sdk sync [OPTIONS] --config <CONFIG> --repo <REPO> --version <VERSION>`
+**Usage:** `sideko sdk update [OPTIONS] --config <CONFIG> --repo <REPO> --version <VERSION>`
 
 ###### **Options:**
 

@@ -1,6 +1,6 @@
 [package]
 name = "sideko"
-version = "1.0.0-rc.2"
+version = "1.0.0-rc.3"
 edition = "2021"
 authors = [
     "Elias Posen <elias@sideko.dev>",
@@ -9,7 +9,6 @@ authors = [
 description = "CLI for Sideko"
 repository = "https://github.com/Sideko-Inc/sideko"
 homepage = "https://sideko.dev"
-
 
 default-run = "sideko"
 
@@ -47,6 +46,6 @@ keyring = { version = "3.6.1", features = [
 chrono = "0.4.39"
 spinoff = "0.8.0"
 
-
-[dev-dependencies]
-clap-markdown = "0.1.4"
+[package.metadata.dist]
+npm-scope = "@sideko"
+npm-package = "cli"

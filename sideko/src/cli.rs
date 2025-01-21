@@ -86,13 +86,13 @@ enum SidekoCommands {
     #[command(subcommand)]
     Sdk(cmds::SdkSubcommand),
 
-    /// Deploy documentation websites
+    /// Manage API documentation websites
     #[command(subcommand)]
     Doc(cmds::DocSubcommand),
 
     /// Logout of Sideko
     ///
-    /// Removes the Sideko API key from the the OS-native key service
+    /// Removes the Sideko API key from the OS-native key service
     /// (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
     Logout(cmds::LogoutCommand),
 

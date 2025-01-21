@@ -19,7 +19,7 @@ use crate::{
 };
 
 #[derive(clap::Args)]
-pub struct SdkSyncCommand {
+pub struct SdkUpdateCommand {
     /// Path to SDK config
     #[arg(long, value_parser = crate::utils::validators::validate_file_yaml)]
     pub config: Utf8PathBuf,
@@ -37,7 +37,7 @@ pub struct SdkSyncCommand {
     pub api_version: String,
 }
 
-impl SdkSyncCommand {
+impl SdkUpdateCommand {
     /// Validates:
     ///     - the path is an existing directory
     ///     - the path is a valid git repo root

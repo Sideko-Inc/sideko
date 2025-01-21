@@ -14,6 +14,7 @@ use log::info;
 #[command(name = "sideko")]
 #[command(author = "Team Sideko <team@sideko.dev>")]
 #[command(about = &fmt_cyan(r#"
+```
 .*....*......*.....*......*....*........*....*.....
 
 ..####...######..#####...######..##..##...####..
@@ -24,7 +25,8 @@ use log::info;
 ................................................
 
 - Your API Ecosystem, On Autopilot
-*....*......*.....*......*.....*......*.....*.....*                                                                                                                                         
+*....*......*.....*......*.....*......*.....*.....*            
+```                                                                                                                             
 "#), long_about = None)]
 #[command(version)]
 pub struct SidekoCli {

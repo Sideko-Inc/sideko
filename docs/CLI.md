@@ -51,7 +51,7 @@ This document contains the help content for the `sideko` command-line program.
 * `login` — Authenticate CLI interactively via browser
 * `api` — Manage API specifications
 * `sdk` — Generate, customize, and sync SDKs
-* `doc` — Deploy documentation websites
+* `doc` — Manage API documentation websites
 * `logout` — Logout of Sideko
 
 ###### **Options:**
@@ -236,16 +236,16 @@ Generate, customize, and sync SDKs
 
 ###### **Subcommands:**
 
-* `init` — Interactively configure and create SDKs
+* `init` — Interactively configure and create suite of SDKs (recommended command for getting started)
 * `config` — Manage SDK configs
-* `create` — Create new SDK
+* `create` — Create an SDK using an SDK Config
 * `update` — Update SDK to implement changes to APIs
 
 
 
 ## `sideko sdk init`
 
-Interactively configure and create SDKs
+Interactively configure and create suite of SDKs (recommended command for getting started)
 
 **Usage:** `sideko sdk init`
 
@@ -308,7 +308,7 @@ Sync SDK configuration file with an API version
 
 ## `sideko sdk create`
 
-Create new SDK
+Create an SDK using an SDK Config
 
 **Usage:** `sideko sdk create [OPTIONS] --config <CONFIG> --lang <LANG>`
 
@@ -322,7 +322,7 @@ Create new SDK
 * `--version <VERSION>` — Semantic version of generated SDK
 
   Default value: `0.1.0`
-* `--api-version <API_VERSION>` — Generate SDK with for a specific version of the API listed in the config (e.g. `2.1.5`)
+* `--api-version <API_VERSION>` — Generate SDK for a specific version of the API (e.g. `2.1.5`)
 
   Default value: `latest`
 * `--gh-actions` — Include Github actions for testing and publishing the SDK in the generation
@@ -351,7 +351,7 @@ Update SDK to implement changes to APIs
 
 ## `sideko doc`
 
-Deploy documentation websites
+Manage API documentation websites
 
 **Usage:** `sideko doc <COMMAND>`
 
@@ -397,7 +397,7 @@ Trigger documentation website deployment to preview or production
 
 Logout of Sideko
 
-Removes the Sideko API key from the the OS-native key service (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
+Removes the Sideko API key from the OS-native key service (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
 
 **Usage:** `sideko logout`
 

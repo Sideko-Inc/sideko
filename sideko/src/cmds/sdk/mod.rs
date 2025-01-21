@@ -11,7 +11,7 @@ mod update;
 #[derive(clap::Subcommand)]
 pub enum SdkSubcommand {
     // ------------ INTERACTIVE COMMANDS ------------
-    /// Interactively configure and create SDKs
+    /// Interactively configure and create suite of SDKs (recommended command for getting started)
     Init(init::SdkInitCommand),
 
     // ------------ SUB-COMMANDS ------------
@@ -20,7 +20,7 @@ pub enum SdkSubcommand {
     Config(config::SdkConfigSubcommand),
 
     // ------------ COMMANDS ------------
-    /// Create new SDK
+    /// Create an SDK using an SDK Config
     Create(create::SdkCreateCommand),
 
     /// Update SDK to implement changes to APIs

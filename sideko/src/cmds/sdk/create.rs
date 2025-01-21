@@ -30,7 +30,7 @@ pub struct SdkCreateCommand {
     #[arg(long, default_value = "0.1.0")]
     pub version: semver::Version,
 
-    /// Generate SDK with for a specific version of the API listed in the config (e.g. `2.1.5`)
+    /// Generate SDK for a specific version of the API (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
     pub api_version: String,
 

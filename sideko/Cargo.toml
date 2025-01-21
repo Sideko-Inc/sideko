@@ -45,6 +45,7 @@ keyring = { version = "3.6.1", features = [
 ] }
 chrono = "0.4.39"
 spinoff = "0.8.0"
+clap_complete = "4.5.42"
 
 [package.metadata.dist]
 npm-scope = "@sideko"

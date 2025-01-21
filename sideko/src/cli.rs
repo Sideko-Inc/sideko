@@ -67,6 +67,7 @@ impl SidekoCli {
             SidekoCommands::Api(cmd) => cmd.handle().await,
             SidekoCommands::Sdk(cmd) => cmd.handle().await,
             SidekoCommands::Doc(cmd) => cmd.handle().await,
+            SidekoCommands::Config(cmd) => cmd.handle().await,
         }
     }
 }
@@ -94,6 +95,10 @@ enum SidekoCommands {
     /// Removes the Sideko API key from the the OS-native key service
     /// (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
     Logout(cmds::LogoutCommand),
+
+    /// Configure the CLI
+    #[command(subcommand)]
+    Config(cmds::ConfigSubcommand),
 }
 
 pub async fn cli(args: Vec<String>) -> CliResult<()> {

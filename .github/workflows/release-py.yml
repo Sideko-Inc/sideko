@@ -81,7 +81,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           before-script-linux: |
-            yum install -y openssl-devel
+            yum install -y openssl openssl-devel perl-IPC-Cmd
           target: ${{ matrix.target }}
           manylinux: auto
           args: --release --out dist -m sideko-py/Cargo.toml

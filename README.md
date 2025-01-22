@@ -53,17 +53,30 @@ pip install sideko-py
 ### 📜 Legacy installation (v0.10.2)
 
 ```bash
+# via curl
 curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/v0.10.2/install.sh | sh
+
+# via pip
+pip install sideko-py==0.10.2
 ```
 
 ## Quick Start
 
 ```bash
-sideko login
 # Complete login via browser pop-up
-sideko sdk init
+sideko login
+
 # Interactively construct SDKs
+sideko sdk init
 ```
+
+## Authentication
+
+Sideko uses the native secure store of the operating system to store your token (keychain on macOS, keyutils on linux, etc.).
+
+Use `sideko login` authenticate the CLI interactively via a browser pop-up, this will authenticate the CLI with your User API Key.
+
+For CI environments, set the environment variable `SIDEKO_API_KEY` with either you User API Key or that of a [Service Account](https://docs.sideko.dev/organizations/service-accounts)
 
 ## All features
 

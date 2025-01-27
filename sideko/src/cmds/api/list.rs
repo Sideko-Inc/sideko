@@ -22,7 +22,12 @@ impl ApiListCommand {
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&apis),
             DisplayOutput::Pretty => {
-                let mut table = tabled::Table::new(apis.into_iter().map(TabledApi));
+                let org = client.org().get().await?;
+
+                let mut table = tabled::Table::new(apis.into_iter().map(|api| TabledApi {
+                    api,
+                    subdomain: org.subdomain.clone(),
+                }));
                 utils::tabled::header_panel(&mut table, "APIs");
                 table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(table);

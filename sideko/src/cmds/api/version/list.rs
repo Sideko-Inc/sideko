@@ -41,7 +41,11 @@ impl ApiVersionListCommand {
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&versions),
             DisplayOutput::Pretty => {
-                let iter = versions.into_iter().map(TabledApiSpec);
+                let org = client.org().get().await?;
+                let iter = versions.into_iter().map(|version| TabledApiSpec {
+                    version,
+                    subdomain: org.subdomain.clone(),
+                });
                 let mut table = tabled::Table::new(iter);
                 utils::tabled::header_panel(&mut table, "API Versions");
                 table.modify(Rows::single(1), Color::BOLD);

@@ -10,6 +10,7 @@ pub(crate) mod editor;
 pub(crate) mod logging;
 pub(crate) mod response;
 pub(crate) mod tabled;
+pub(crate) mod url_builder;
 pub(crate) mod validators;
 
 /// Initializes SidekoClient using base url & api key from config environment

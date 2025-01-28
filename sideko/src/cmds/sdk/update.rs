@@ -3,19 +3,18 @@ use std::{fs, io::Write, process, str};
 use camino::Utf8PathBuf;
 use flate2::{write::GzEncoder, Compression};
 
-use log::{debug, warn};
+use log::debug;
 use sideko_rest_api::{
     models::{ApiVersion, VersionOrBump},
     resources::sdk::UpdateRequest,
     UploadFile,
 };
-use spinoff::{spinners, Spinner};
+use spinoff::spinners;
 use tempfile::TempDir;
 
 use crate::{
     result::{CliError, CliResult},
-    styles::fmt_green,
-    utils::get_sideko_client,
+    utils::{get_sideko_client, spinner::Spinner},
 };
 
 #[derive(clap::Args)]
@@ -138,12 +137,8 @@ impl SdkUpdateCommand {
         let mut client = get_sideko_client();
 
         let start = chrono::Utc::now();
-        let mut sp = Spinner::new(
-            spinners::Circle,
-            "🪄  Updating SDK...",
-            spinoff::Color::Cyan,
-        );
-        let patch_content = client
+        let mut sp = Spinner::new(spinners::Circle, "🪄  Updating SDK");
+        let patch_content = match client
             .sdk()
             .update(UpdateRequest {
                 api_version: Some(ApiVersion::Str(self.api_version.clone())),
@@ -152,7 +147,14 @@ impl SdkUpdateCommand {
                 prev_sdk_id,
                 sdk_version: VersionOrBump::Str(self.version.clone()),
             })
-            .await?;
+            .await
+        {
+            Ok(p) => p,
+            Err(e) => {
+                sp.stop_error("Failed updating SDK");
+                return Err(e.into());
+            }
+        };
 
         debug!(
             "Update generation took {}s",
@@ -160,8 +162,7 @@ impl SdkUpdateCommand {
         );
 
         if patch_content.is_empty() {
-            sp.stop();
-            warn!("No updates to apply");
+            sp.stop_warn("No updates to apply");
             return Ok(());
         }
 
@@ -184,11 +185,11 @@ impl SdkUpdateCommand {
             })?;
 
         if patch_output.status.success() {
-            sp.stop_and_persist(&fmt_green("✔"), "🚀 Update applied!");
+            sp.stop_success("🚀 Update applied!");
             fs::remove_file(&patch_path)?;
             Ok(())
         } else {
-            sp.stop();
+            sp.stop_error("Failed to apply update");
             Err(CliError::general_debug(
                 "Failed to apply update",
                 format!(

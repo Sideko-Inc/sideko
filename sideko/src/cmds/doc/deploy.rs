@@ -9,12 +9,12 @@ use sideko_rest_api::{
         deployment::{GetRequest, TriggerRequest},
     },
 };
-use spinoff::{spinners, Spinner};
+use spinoff::spinners;
 
 use crate::{
     result::{CliError, CliResult},
-    styles::{fmt_green, fmt_red, fmt_yellow},
-    utils::get_sideko_client,
+    styles::fmt_yellow,
+    utils::{get_sideko_client, spinner::Spinner},
 };
 
 #[derive(clap::Args)]
@@ -48,8 +48,7 @@ impl DocDeployCommand {
         let mut status = deployment.status.clone();
         let mut sp = Spinner::new(
             spinners::BouncingBall,
-            format!("Deployment {}...", fmt_yellow(&status.to_string())),
-            spinoff::Color::Cyan,
+            format!("📖 Deployment {}", fmt_yellow(&status.to_string())),
         );
 
         while !self.is_terminal_status(&status) {
@@ -69,7 +68,7 @@ impl DocDeployCommand {
             // update spinner on status change
             if deployment.status.to_string() != status.to_string() {
                 status = deployment.status.clone();
-                sp.update_text(format!("Deployment {}...", fmt_yellow(&status.to_string())));
+                sp.update_text(format!("Deployment {}", fmt_yellow(&status.to_string())));
             }
         }
 
@@ -78,10 +77,10 @@ impl DocDeployCommand {
 
         match &deployment.status {
             DeploymentStatusEnum::Complete => {
-                sp.stop_and_persist(&fmt_green("✔"), "Deployment complete");
+                sp.stop_success("📖 Deployment complete!");
             }
             DeploymentStatusEnum::Cancelled => {
-                sp.stop_and_persist(&fmt_yellow("ø"), "Deployment has been cancelled");
+                sp.stop_warn("Deployment has been cancelled");
                 return Err(CliError::general_debug(
                     format!(
                         "Deployment polling terminated in `{}` status",
@@ -91,7 +90,7 @@ impl DocDeployCommand {
                 ));
             }
             DeploymentStatusEnum::Error => {
-                sp.stop_and_persist(&fmt_red("x"), "Deployment failed");
+                sp.stop_error("Deployment failed");
                 return Err(CliError::general_debug(
                     format!(
                         "Deployment polling terminated in `{}` status",
@@ -103,10 +102,7 @@ impl DocDeployCommand {
             DeploymentStatusEnum::Created
             | DeploymentStatusEnum::Building
             | DeploymentStatusEnum::Generated => {
-                sp.stop_and_persist(
-                    &fmt_yellow("?"),
-                    "Polling terminated in non-terminal status",
-                );
+                sp.stop_warn("Polling terminated in non-terminal status");
                 return Err(CliError::general_debug(
                     format!("Deployment polling terminated in `{}` status. Polling should continue until terminal status", deployment.status),
                     format!("Deployment: {deployment_details}"),

@@ -66,7 +66,11 @@ impl ApiVersionUpdateCommand {
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&updated_version),
             DisplayOutput::Pretty => {
-                let mut table = tabled::Table::new([TabledApiSpec(updated_version)]);
+                let org = client.org().get().await?;
+                let mut table = tabled::Table::new([TabledApiSpec {
+                    version: updated_version,
+                    org_subdomain: org.subdomain.clone(),
+                }]);
                 utils::tabled::header_panel(&mut table, "Updated API Version");
                 table.modify(Rows::single(1), Color::BOLD);
 

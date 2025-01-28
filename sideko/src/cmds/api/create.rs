@@ -57,12 +57,19 @@ impl ApiCreateCommand {
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&version),
             DisplayOutput::Pretty => {
-                let mut api_table = tabled::Table::new([TabledApi(version.api.clone())]);
+                let org = client.org().get().await?;
+                let mut api_table = tabled::Table::new([TabledApi {
+                    api: version.api.clone(),
+                    subdomain: org.subdomain.clone(),
+                }]);
                 utils::tabled::header_panel(&mut api_table, "API");
                 api_table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(api_table);
 
-                let mut version_table = tabled::Table::new([TabledApiSpec(version)]);
+                let mut version_table = tabled::Table::new([TabledApiSpec {
+                    version,
+                    org_subdomain: org.subdomain.clone(),
+                }]);
                 utils::tabled::header_panel(&mut version_table, "Initial Version");
                 version_table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(version_table);

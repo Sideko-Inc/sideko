@@ -1,32 +1,37 @@
 use sideko_rest_api::models::ApiSpec;
 
-pub struct TabledApiSpec(pub ApiSpec);
+use crate::utils::url_builder::ApiUrl;
+
+pub struct TabledApiSpec {
+    pub version: ApiSpec,
+    pub org_subdomain: String,
+}
 impl tabled::Tabled for TabledApiSpec {
     const LENGTH: usize = 4;
 
     fn fields(&self) -> Vec<std::borrow::Cow<'_, str>> {
-        let inner = &self.0;
-        let mock_enabled = if inner.mock_server.enabled {
+        let mock_enabled = if self.version.mock_server.enabled {
             "🟢"
         } else {
             "🔴"
         };
         vec![
-            inner.version.as_str().into(),
-            format!("{mock_enabled} {url}", url = &inner.mock_server.url).into(),
-            inner.id.as_str().into(),
-            inner.api.name.as_str().into(),
-            inner.created_at.as_str().into(),
+            self.version.version.as_str().into(),
+            self.version.api.name.as_str().into(),
+            format!("{mock_enabled} {url}", url = &self.version.mock_server.url).into(),
+            ApiUrl::new(&self.version.api.name)
+                .with_version(&self.version.version)
+                .build(&self.org_subdomain)
+                .into(),
         ]
     }
 
     fn headers() -> Vec<std::borrow::Cow<'static, str>> {
         vec![
             "Version".into(),
-            "Mock Server".into(),
-            "ID".into(),
             "API".into(),
-            "Created At".into(),
+            "Mock Server".into(),
+            "🔗 Link".into(),
         ]
     }
 }

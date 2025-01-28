@@ -3,7 +3,7 @@ members = [
     "sideko",
     "docs",
     # keep commented out for dist release (cdylib causes dist error)
-    "sideko-py",
+    # "sideko-py",
 ]
 resolver = "2"
 

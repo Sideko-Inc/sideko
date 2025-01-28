@@ -22,7 +22,12 @@ impl DocListCommand {
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&doc_projects),
             DisplayOutput::Pretty => {
-                let mut table = tabled::Table::new(doc_projects.into_iter().map(TabledDocProject));
+                let org = client.org().get().await?;
+                let mut table =
+                    tabled::Table::new(doc_projects.into_iter().map(|doc| TabledDocProject {
+                        doc,
+                        org_subdomain: org.subdomain.clone(),
+                    }));
                 utils::tabled::header_panel(&mut table, "Documentation Projects");
                 table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(table);

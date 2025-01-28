@@ -68,7 +68,7 @@ impl ApiCreateCommand {
 
                 let mut version_table = tabled::Table::new([TabledApiSpec {
                     version,
-                    subdomain: org.subdomain.clone(),
+                    org_subdomain: org.subdomain.clone(),
                 }]);
                 utils::tabled::header_panel(&mut version_table, "Initial Version");
                 version_table.modify(Rows::single(1), Color::BOLD);

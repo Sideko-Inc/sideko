@@ -44,7 +44,7 @@ impl ApiVersionListCommand {
                 let org = client.org().get().await?;
                 let iter = versions.into_iter().map(|version| TabledApiSpec {
                     version,
-                    subdomain: org.subdomain.clone(),
+                    org_subdomain: org.subdomain.clone(),
                 });
                 let mut table = tabled::Table::new(iter);
                 utils::tabled::header_panel(&mut table, "API Versions");

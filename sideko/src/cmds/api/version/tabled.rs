@@ -4,7 +4,7 @@ use crate::utils::url_builder::ApiUrl;
 
 pub struct TabledApiSpec {
     pub version: ApiSpec,
-    pub subdomain: String,
+    pub org_subdomain: String,
 }
 impl tabled::Tabled for TabledApiSpec {
     const LENGTH: usize = 4;
@@ -17,25 +17,21 @@ impl tabled::Tabled for TabledApiSpec {
         };
         vec![
             self.version.version.as_str().into(),
+            self.version.api.name.as_str().into(),
             format!("{mock_enabled} {url}", url = &self.version.mock_server.url).into(),
             ApiUrl::new(&self.version.api.name)
                 .with_version(&self.version.version)
-                .build(&self.subdomain)
+                .build(&self.org_subdomain)
                 .into(),
-            self.version.api.name.as_str().into(),
-            self.version.id.as_str().into(),
-            self.version.created_at.as_str().into(),
         ]
     }
 
     fn headers() -> Vec<std::borrow::Cow<'static, str>> {
         vec![
             "Version".into(),
-            "Mock Server".into(),
-            "URL".into(),
             "API".into(),
-            "ID".into(),
-            "Created At".into(),
+            "Mock Server".into(),
+            "🔗 Link".into(),
         ]
     }
 }

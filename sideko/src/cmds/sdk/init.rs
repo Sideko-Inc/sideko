@@ -6,7 +6,7 @@ use log::{debug, info};
 use regex::Regex;
 use serde_json::json;
 use sideko_rest_api::{
-    models::{Api, ApiSpec, OrganizationFeatures, SdkLanguageEnum, VersionOrBump},
+    models::{Api, ApiSpec, ApiVersion, OrganizationFeatures, SdkLanguageEnum, VersionOrBump},
     resources::api::{self, spec},
     UploadFile,
 };
@@ -133,7 +133,19 @@ impl SdkInitCommand {
             .with_default(true)
             .prompt()?;
         if generate_new {
-            Ok((self.create_config(api, version).await?, true))
+            let config_option = "SDK config customizations";
+            let use_x_fields_option = "OpenAPI x-field extensions";
+            let customization_options = vec![config_option, use_x_fields_option];
+
+            let res = inquire::Select::new(
+                "Select SDK customization method:",
+                customization_options,
+            )
+            .with_help_message("Choose how to customize the SDK module structure. Learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
+            .prompt()?;
+
+            let is_sdk_config = res == config_option;
+            Ok((self.create_config(api, version, is_sdk_config).await?, true))
         } else {
             let config_path = inquire::Text::new("Config:")
                 .with_help_message("Enter path Sideko SDK config")
@@ -146,7 +158,12 @@ impl SdkInitCommand {
         }
     }
 
-    pub async fn create_config(&self, api: &Api, version: &ApiSpec) -> CliResult<Utf8PathBuf> {
+    pub async fn create_config(
+        &self,
+        api: &Api,
+        version: &ApiSpec,
+        is_sdk_config: bool,
+    ) -> CliResult<Utf8PathBuf> {
         let mut output = Utf8PathBuf::new().join("./sdk-config.yml");
         let mut path_modifier = 1;
         while output.exists() {
@@ -158,7 +175,7 @@ impl SdkInitCommand {
         let init_cmd = SdkConfigInitCommand {
             api_name: api.name.clone(),
             api_version: version.version.clone(),
-            x_mods: false,
+            x_mods: !is_sdk_config,
             output: output.clone(),
         };
         init_cmd.handle().await?;
@@ -210,6 +227,25 @@ impl SdkInitCommand {
             .await?;
         debug!("Found {} versions to choose from", &version_options.len());
         let api_version = self.select_version(&api, &version_options).await?;
+        let max_sdk_methods = client.org().get().await?.features.max_sdk_api_methods;
+
+        // Check API stats for operation count
+        let stats = client
+            .api()
+            .spec()
+            .get_stats(spec::GetStatsRequest {
+                api_name: api.name.clone(),
+                api_version: ApiVersion::Str(api_version.version.clone()),
+            })
+            .await?;
+
+        if stats.methods > max_sdk_methods {
+            info!(
+                "⚠️ ⚠️ ⚠️ Your API has {} operations, which exceeds your limit of {}.",
+                stats.methods, max_sdk_methods
+            );
+            info!("⚠️ ⚠️ ⚠️ Consider using the SDK config to hide operations: https://docs.sideko.dev/sdk-generation/customizing-sdks");
+        }
 
         let (config, newly_generated) = self.select_config(&api, &api_version).await?;
         let generate_now = if newly_generated {

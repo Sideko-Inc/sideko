@@ -9,6 +9,7 @@ pub(crate) mod config;
 pub(crate) mod editor;
 pub(crate) mod logging;
 pub(crate) mod response;
+pub(crate) mod spinner;
 pub(crate) mod tabled;
 pub(crate) mod url_builder;
 pub(crate) mod validators;

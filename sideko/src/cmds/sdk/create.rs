@@ -5,13 +5,15 @@ use flate2::read::GzDecoder;
 
 use log::{debug, info};
 use sideko_rest_api::{models::ApiVersion, resources::sdk::GenerateRequest, UploadFile};
-use spinoff::{spinners, Spinner};
+use spinoff::spinners;
 use tar::Archive;
 
 use crate::{
     result::{CliError, CliResult},
-    styles::fmt_green,
-    utils::{self, get_sideko_client},
+    utils::{
+        self,
+        {get_sideko_client, spinner::Spinner},
+    },
 };
 
 use super::SdkLang;
@@ -52,12 +54,12 @@ impl SdkCreateCommand {
         let mut client = get_sideko_client();
 
         let start = chrono::Utc::now();
+
         let mut sp = Spinner::new(
             spinners::Circle,
-            format!("🪄  Generating {} SDK...", self.lang.0),
-            spinoff::Color::Cyan,
+            format!("🪄  Generating {} SDK", self.lang.0),
         );
-        let sdk_res = client
+        let sdk_res = match client
             .sdk()
             .generate(GenerateRequest {
                 api_version: Some(ApiVersion::Str(self.api_version.clone())),
@@ -71,15 +73,22 @@ impl SdkCreateCommand {
                 language: self.lang.0.clone(),
                 sdk_version: Some(self.version.to_string()),
             })
-            .await?;
-        sp.stop_and_persist(
-            &fmt_green("✔"),
-            &format!(
-                "{} {} SDK generated!",
-                self.lang.emoji(),
-                utils::capitalize(&self.lang.0.to_string())
-            ),
-        );
+            .await
+        {
+            Ok(r) => {
+                sp.stop_success(format!(
+                    "{} {} SDK generated!",
+                    self.lang.emoji(),
+                    utils::capitalize(&self.lang.0.to_string())
+                ));
+                r
+            }
+            Err(e) => {
+                sp.stop_error("Failed generating SDK");
+                return Err(e.into());
+            }
+        };
+
         debug!(
             "Generation took {}s",
             (chrono::Utc::now() - start).num_seconds()

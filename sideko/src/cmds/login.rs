@@ -19,6 +19,10 @@ pub(crate) struct LoginCommand {
     /// Path to file to store API key, default: $HOME/.sideko
     #[arg(long)]
     pub output: Option<Utf8PathBuf>,
+
+    /// Path to file to store API key, default: $HOME/.sideko
+    #[arg(long)]
+    pub mommy: Option<Utf8PathBuf>,
 }
 
 impl LoginCommand {

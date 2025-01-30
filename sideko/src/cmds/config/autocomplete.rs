@@ -1,10 +1,12 @@
 use crate::{
     cli::SidekoCli,
     result::{CliError, CliResult},
+    styles::fmt_green,
 };
 use clap::{Args, CommandFactory};
 use clap_complete::{generate, Shell};
 use dirs::home_dir;
+use inquire::Confirm;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -14,10 +16,6 @@ pub(crate) struct AutocompleteCommand {
     /// Generate completions for the specified shell
     #[arg(long)]
     shell: Shell,
-
-    /// Optional output path for the completion script
-    #[arg(long, value_hint = clap::ValueHint::FilePath)]
-    out_file: Option<PathBuf>,
 }
 
 impl AutocompleteCommand {
@@ -25,43 +23,65 @@ impl AutocompleteCommand {
         let mut cmd = SidekoCli::command();
         let name = cmd.get_name().to_string();
 
-        match &self.out_file {
-            Some(path) => {
-                // Write to specified file
-                let mut file = File::create(path).map_err(|err| CliError::Io {
-                    err,
-                    override_msg: Some("Failed to create output file".to_string()),
-                })?;
-                generate(self.shell, &mut cmd, &name, &mut file);
-                println!("✓ Generated completion script at: {}", path.display());
-            }
-            None => {
-                // Auto-install to appropriate location
-                let (completion_path, rc_path) = self.get_shell_paths()?;
+        // Auto-install to appropriate location
+        let (completion_path, rc_path) = self.get_shell_paths()?;
 
-                // Create completion directory if needed
-                if let Some(parent) = completion_path.parent() {
-                    fs::create_dir_all(parent).map_err(|err| CliError::Io {
-                        err,
-                        override_msg: Some("Failed to create completion directory".to_string()),
-                    })?;
-                }
+        // Ask for permission to modify files
+        let message = format!(
+            "This will:\n\
+                     1. Create completion script at: {}\n\
+                     2. Update shell configuration at: {}\n\n\
+                     Continue?",
+            completion_path.display(),
+            rc_path.display()
+        );
 
-                // Generate completion script
-                let mut file = File::create(&completion_path).map_err(|err| CliError::Io {
-                    err,
-                    override_msg: Some("Failed to create completion file".to_string()),
-                })?;
-                generate(self.shell, &mut cmd, &name, &mut file);
+        let confirm = Confirm::new(&message)
+            .with_default(true)
+            .prompt()
+            .map_err(|err| CliError::Inquire {
+                err,
+                override_msg: None,
+            })?;
 
-                // Update shell RC file
-                self.update_rc_file(&rc_path, &completion_path)?;
-
-                println!("✓ Installed {} completions for {}", self.shell, name);
-                println!("  Completion script: {}", completion_path.display());
-                println!("  Updated RC file: {}", rc_path.display());
-            }
+        if !confirm {
+            return Ok(());
         }
+
+        // Create completion directory if needed
+        if let Some(parent) = completion_path.parent() {
+            fs::create_dir_all(parent).map_err(|err| CliError::Io {
+                err,
+                override_msg: Some("Failed to create completion directory".to_string()),
+            })?;
+        }
+
+        // Generate completion script
+        let mut file = File::create(&completion_path).map_err(|err| CliError::Io {
+            err,
+            override_msg: Some("Failed to create completion file".to_string()),
+        })?;
+        generate(self.shell, &mut cmd, &name, &mut file);
+
+        // Update shell RC file
+        self.update_rc_file(&rc_path, &completion_path)?;
+
+        println!(
+            "{} Installed {} completions for {}",
+            fmt_green("✓"),
+            self.shell,
+            name
+        );
+        println!(
+            "{} Saved completion script: {}",
+            fmt_green("✓"),
+            completion_path.display()
+        );
+        println!(
+            "{} Saved updated RC file: {}",
+            fmt_green("✓"),
+            rc_path.display()
+        );
 
         Ok(())
     }
@@ -104,6 +124,21 @@ impl AutocompleteCommand {
     fn update_rc_file(&self, rc_path: &PathBuf, completion_path: &Path) -> CliResult<()> {
         // Create RC file if it doesn't exist
         if !rc_path.exists() {
+            let confirm = Confirm::new(&format!(
+                "RC file {} does not exist. Create it?",
+                rc_path.display()
+            ))
+            .with_default(true)
+            .prompt()
+            .map_err(|err| CliError::Inquire {
+                err,
+                override_msg: None,
+            })?;
+
+            if !confirm {
+                return Ok(());
+            }
+
             File::create(rc_path).map_err(|err| CliError::Io {
                 err,
                 override_msg: Some("Failed to create RC file".to_string()),

@@ -41,8 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh |
 ```bash
 # Authenticate with Sideko
 sideko login
-# (Optional) Shell Autocomplete
-sideko config autocomplete --shell [bash, elvish, fish, powershell, zsh]
+
 # Interactively Create SDKs
 sideko sdk init
 ```
@@ -61,8 +60,11 @@ To authenticate:
 - [📘 Complete CLI Documentation](./docs/CLI.md)
 - [📝 Report SDK Generation Issue](https://github.com/Sideko-Inc/sideko/issues/new?template=generation-bug.md)
 - [⚖️ License](./LICENSE)
+- Shell autocomplete: `sideko config autocomplete --shell (your shell)` (must run this command with each Sideko CLI update)
 
-----
+---
+
+</details>
 
 <details>
 <summary>Legacy Installations</summary>

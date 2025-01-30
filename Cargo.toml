@@ -1,10 +1,5 @@
 [workspace]
-members = [
-    "sideko",
-    "docs",
-    # keep commented out for dist release (cdylib causes dist error)
-    # "sideko-py",
-]
+members = ["sideko", "docs"]
 resolver = "2"
 
 # The profile that 'dist' will build with

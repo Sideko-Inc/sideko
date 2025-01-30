@@ -32,16 +32,16 @@ pip install sideko-py
 # 📦 js - npm
 npm install -g @sideko/cli
 
-# ⚡ curl (no windows support)
+# ⚡ curl
 curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
 ```
 
 
 ## Quickstart - Premium SDKs in less than 5 minutes
 ```bash
-# Authenticate via browser pop-up
+# Authenticate with Sideko
 sideko login
-# (optional) shell autocomplete
+# (Optional) Shell Autocomplete
 sideko config autocomplete --shell [bash, elvish, fish, powershell, zsh]
 # Interactively Create SDKs
 sideko sdk init

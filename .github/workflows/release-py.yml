@@ -36,7 +36,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-mac-latest
           path: dist
 
   windows:
@@ -63,7 +63,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-windows-latest
           path: dist
 
   linux:
@@ -93,7 +93,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-linux-latest
           path: dist
 
   # linux-cross:
@@ -213,13 +213,10 @@ jobs:
       - macos
       - windows
       - linux
-      # - linux-cross
-      # - musllinux
-      # - musllinux-cross
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: wheels
+          pattern: wheels-*
       - uses: actions/setup-python@v5
         with:
           python-version: 3.8

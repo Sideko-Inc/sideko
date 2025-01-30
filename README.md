@@ -21,44 +21,29 @@ Using OpenAPI 3.x specifications you can create:
 
 ## Installation
 
-### macOS
+
 ```bash
+# 🍏 macOS
 brew install sideko-inc/tap/sideko
-```
 
-### Linux & Windows
-```bash
+# 🐍 python - pypi
 pip install sideko-py
-```
 
-<details>
-<summary>Various Alternative Installation Methods</summary>
+# 📦 js - npm
+npm install -g @sideko/cli
 
-macOS Alternative
-```bash
+# ⚡ curl (no windows support)
 curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh | sh
 ```
 
-npm
-```bash
-npm install -g @sideko/cli
-```
 
-**Legacy Versions**
-```bash
-# via curl
-curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/v0.10.2/install.sh | sh
-
-# via pip
-pip install sideko-py==0.10.2
-```
-</details>
-
-## Quick Start
+## Quickstart - Premium SDKs in less than 5 minutes
 ```bash
 # Authenticate via browser pop-up
 sideko login
-# Create your SDK
+# (optional) shell autocomplete
+sideko config autocomplete --shell [bash, elvish, fish, powershell, zsh]
+# Interactively Create SDKs
 sideko sdk init
 ```
 
@@ -76,3 +61,17 @@ To authenticate:
 - [📘 Complete CLI Documentation](./docs/CLI.md)
 - [📝 Report SDK Generation Issue](https://github.com/Sideko-Inc/sideko/issues/new?template=generation-bug.md)
 - [⚖️ License](./LICENSE)
+
+----
+
+<details>
+<summary>Legacy Installations</summary>
+
+```bash
+# via curl
+curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/v0.10.2/install.sh | sh
+
+# via pip
+pip install sideko-py==0.10.2
+```
+</details>

@@ -430,7 +430,7 @@ Then add `source ~/sideko-complete.sh` to `~/.zshrc`
 
 ###### **Options:**
 
-* `--shell <SHELL>`
+* `--shell <SHELL>` — Generate completions for the specified shell
 
   Possible values: `bash`, `elvish`, `fish`, `powershell`, `zsh`
 

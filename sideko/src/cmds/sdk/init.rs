@@ -239,7 +239,7 @@ impl SdkInitCommand {
             })
             .await?;
 
-        if stats.methods > max_sdk_methods {
+        if stats.methods > max_sdk_methods || stats.methods < 0 {
             info!(
                 "⚠️ ⚠️ ⚠️ Your API has {} operations, which exceeds your limit of {}.",
                 stats.methods, max_sdk_methods

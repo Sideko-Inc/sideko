@@ -1,5 +1,6 @@
 [package]
 name = "sideko-py"
+description = "Generate & manage SDKs with the Sideko CLI"
 version = "1.0.3"
 edition = "2021"
 authors = [

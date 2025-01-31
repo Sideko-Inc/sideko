@@ -291,7 +291,8 @@ impl SdkInitCommand {
                 create_sdk_cmd.handle().await?;
             }
 
-            info!("{} Done.", fmt_green("✔"))
+            info!("\n{} SDKs generated successfully.", fmt_green("✔"));
+            info!("\nLearn about automatic SDK updates: https://docs.sideko.dev/sdk-generation/managed-sdks\n");
         } else {
             info!("Review {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) and run `sideko sdk create` to generate an SDK")
         }

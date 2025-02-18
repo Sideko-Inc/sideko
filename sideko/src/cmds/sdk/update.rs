@@ -9,7 +9,6 @@ use sideko_rest_api::{
     resources::sdk::UpdateRequest,
     UploadFile,
 };
-use spinoff::spinners;
 use tempfile::TempDir;
 
 use crate::{
@@ -137,7 +136,7 @@ impl SdkUpdateCommand {
         let mut client = get_sideko_client();
 
         let start = chrono::Utc::now();
-        let mut sp = Spinner::new(spinners::Circle, "🪄  Updating SDK");
+        let mut sp = Spinner::new("🪄  Updating SDK");
         let patch_content = match client
             .sdk()
             .update(UpdateRequest {

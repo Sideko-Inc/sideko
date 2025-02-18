@@ -9,7 +9,6 @@ use sideko_rest_api::{
         deployment::{GetRequest, TriggerRequest},
     },
 };
-use spinoff::spinners;
 
 use crate::{
     result::{CliError, CliResult},
@@ -46,10 +45,7 @@ impl DocDeployCommand {
     async fn poll_deployment(&self, mut deployment: Deployment) -> CliResult<Deployment> {
         let mut client = get_sideko_client();
         let mut status = deployment.status.clone();
-        let mut sp = Spinner::new(
-            spinners::BouncingBall,
-            format!("📖 Deployment {}", fmt_yellow(&status.to_string())),
-        );
+        let mut sp = Spinner::new(format!("📖 Deployment {}", fmt_yellow(&status.to_string())));
 
         while !self.is_terminal_status(&status) {
             // poll for new status every 2 secs

@@ -1,8 +1,24 @@
+use crate::styles::{fmt_green, fmt_red, fmt_yellow};
+use log::{error, info, log_enabled, warn};
+use spinoff::*;
 use std::borrow::Cow;
 
-use log::{error, info, log_enabled, warn};
+/// Custom Sideko frames for the spinner
+pub struct SidekoSpinner;
 
-use crate::styles::{fmt_green, fmt_red, fmt_yellow};
+impl SidekoSpinner {
+    pub fn frames() -> spinners::SpinnerFrames {
+        spinner!(
+            [
+                "⬡⟡⬢", // Gradient progression
+                "⟡⬢⟡", // Shifting right
+                "⬢⟡⬡", // Continuing shift
+                "⟡⬡⟡"  // Reset
+            ],
+            150
+        )
+    }
+}
 
 /// Wrapper around spinoff::Spinner to handle only
 /// showing if log level is INFO
@@ -11,18 +27,18 @@ pub struct Spinner {
 }
 
 impl Spinner {
-    pub fn new<S: Into<spinoff::spinners::SpinnerFrames>, M: Into<Cow<'static, str>>>(
-        spin_type: S,
-        msg: M,
-    ) -> Self {
+    pub fn new<M: Into<Cow<'static, str>>>(msg: M) -> Self {
         let sp = if log_enabled!(log::Level::Debug) || !log_enabled!(log::Level::Info) {
             // level debug or quiet mode
             info!("{}...", msg.into());
             None
         } else {
-            Some(spinoff::Spinner::new(spin_type, msg, spinoff::Color::Cyan))
+            Some(spinoff::Spinner::new(
+                SidekoSpinner::frames(),
+                msg,
+                Color::Green,
+            ))
         };
-
         Self { sp }
     }
 

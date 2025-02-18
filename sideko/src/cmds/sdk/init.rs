@@ -133,22 +133,22 @@ impl SdkInitCommand {
             .with_default(true)
             .prompt()?;
         if generate_new {
-            let config_option = "SDK config customizations";
-            let use_x_fields_option = "OpenAPI x-field extensions";
+            let config_option = "Config file";
+            let use_x_fields_option = "OpenAPI x-fields";
             let customization_options = vec![config_option, use_x_fields_option];
 
             let res = inquire::Select::new(
-                "Select SDK customization method:",
+                "SDK modules and functions:",
                 customization_options,
             )
-            .with_help_message("Choose how to customize the SDK module structure. Learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
+            .with_help_message("Select a customization method. Learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
             .prompt()?;
 
             let is_sdk_config = res == config_option;
             Ok((self.create_config(api, version, is_sdk_config).await?, true))
         } else {
             let config_path = inquire::Text::new("Config:")
-                .with_help_message("Enter path Sideko SDK config")
+                .with_help_message("Enter path to SDK config")
                 .with_placeholder("./sdk-config.yml")
                 .with_validator(PathValidator::file().with_extensions(&[".yaml", ".yml"]))
                 .with_autocomplete(FilePathCompleter::default())

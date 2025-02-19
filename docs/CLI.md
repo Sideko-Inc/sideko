@@ -14,6 +14,9 @@ This document contains the help content for the `sideko` command-line program.
 * [`sideko api create`↴](#sideko-api-create)
 * [`sideko api list`↴](#sideko-api-list)
 * [`sideko api stats`↴](#sideko-api-stats)
+* [`sideko api lint`↴](#sideko-api-lint)
+* [`sideko account`↴](#sideko-account)
+* [`sideko account get-my-api-key`↴](#sideko-account-get-my-api-key)
 * [`sideko sdk`↴](#sideko-sdk)
 * [`sideko sdk init`↴](#sideko-sdk-init)
 * [`sideko sdk config`↴](#sideko-sdk-config)
@@ -52,6 +55,7 @@ This document contains the help content for the `sideko` command-line program.
 
 * `login` — Authenticate CLI interactively via browser
 * `api` — Manage API specifications
+* `account` — Manage your Sideko account
 * `sdk` — Generate, customize, and sync SDKs
 * `doc` — Manage API documentation websites
 * `logout` — Logout of Sideko
@@ -90,6 +94,7 @@ Manage API specifications
 * `create` — Create a new API
 * `list` — List all APIs
 * `stats` — Display stats gathered from the API specification
+* `lint` — Linting errors gathered from the API specification
 
 
 
@@ -103,7 +108,7 @@ Manage API specification versions
 
 * `create` — Create a new version of an API with an OpenAPI spec
 * `list` — List an APIs versions
-* `update` — Updates an existing API version,
+* `update` — Updates an existing API version
 
 
 
@@ -149,7 +154,7 @@ List an APIs versions
 
 ## `sideko api version update`
 
-Updates an existing API version,
+Updates an existing API version
 
 **Usage:** `sideko api version update [OPTIONS] --name <NAME> --version <VERSION>`
 
@@ -228,6 +233,47 @@ Display stats gathered from the API specification
 
   Possible values: `raw`, `pretty`
 
+
+
+
+## `sideko api lint`
+
+Linting errors gathered from the API specification
+
+**Usage:** `sideko api lint [OPTIONS] --name <NAME>`
+
+###### **Options:**
+
+* `--name <NAME>` — API name or id e.g. my-api
+* `--version <VERSION>` — API version e.g. v1, latest
+
+  Default value: `latest`
+* `--display <DISPLAY>` — Display result as a raw json or prettified
+
+  Default value: `pretty`
+
+  Possible values: `raw`, `pretty`
+
+
+
+
+## `sideko account`
+
+Manage your Sideko account
+
+**Usage:** `sideko account <COMMAND>`
+
+###### **Subcommands:**
+
+* `get-my-api-key` — Gets the value of your personal Sideko API key and pastes it to your clipboard
+
+
+
+## `sideko account get-my-api-key`
+
+Gets the value of your personal Sideko API key and pastes it to your clipboard
+
+**Usage:** `sideko account get-my-api-key`
 
 
 

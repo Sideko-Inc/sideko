@@ -24,6 +24,10 @@ pub enum CliError {
         err: keyring::Error,
         override_msg: Option<String>,
     },
+    Arboard {
+        err: arboard::Error,
+        override_msg: Option<String>,
+    },
 }
 
 impl CliError {
@@ -64,6 +68,12 @@ impl CliError {
             override_msg: Some(msg.to_string()),
         }
     }
+    pub fn arboard_custom<S: ToString>(msg: S, err: arboard::Error) -> Self {
+        CliError::Arboard {
+            err,
+            override_msg: Some(msg.to_string()),
+        }
+    }
 
     pub fn log(&self) {
         let err_log = match self {
@@ -78,6 +88,10 @@ impl CliError {
                 override_msg.clone().unwrap_or_else(|| err.to_string())
             }
             CliError::Keyring { override_msg, err } => {
+                debug!("{err:?}");
+                override_msg.clone().unwrap_or_else(|| err.to_string())
+            }
+            CliError::Arboard { override_msg, err } => {
                 debug!("{err:?}");
                 override_msg.clone().unwrap_or_else(|| err.to_string())
             }

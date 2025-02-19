@@ -1,6 +1,7 @@
 use crate::result::CliResult;
 
 mod create;
+mod lint;
 mod list;
 mod stats;
 mod tabled;
@@ -20,6 +21,8 @@ pub enum ApiSubcommand {
     List(list::ApiListCommand),
     /// Display stats gathered from the API specification
     Stats(stats::ApiStatsCommand),
+    /// Linting errors gathered from the API specification
+    Lint(lint::LintCommand),
 }
 
 impl ApiSubcommand {
@@ -29,6 +32,7 @@ impl ApiSubcommand {
             ApiSubcommand::Create(cmd) => cmd.handle().await,
             ApiSubcommand::List(cmd) => cmd.handle().await,
             ApiSubcommand::Stats(cmd) => cmd.handle().await,
+            ApiSubcommand::Lint(cmd) => cmd.handle().await,
         }
     }
 }

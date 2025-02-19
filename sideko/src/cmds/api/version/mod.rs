@@ -11,7 +11,7 @@ pub enum ApiVersionSubcommand {
     Create(create::ApiVersionCreateCommand),
     /// List an APIs versions
     List(list::ApiVersionListCommand),
-    /// Updates an existing API version,
+    /// Updates an existing API version
     Update(update::ApiVersionUpdateCommand),
 }
 impl ApiVersionSubcommand {

@@ -213,6 +213,10 @@ def main():
     # Delete sideko-py from workspace
     modified_files.append(update_workspace_toml(delete=True))
 
+    # Update the generated CLI docs
+    run_command("cd docs && cargo run && cd ..")
+    modified_files.append(Path("docs/CLI.md"))
+
     # Show all changes
     show_git_diff(modified_files)
 

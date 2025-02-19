@@ -65,6 +65,7 @@ impl SidekoCli {
             SidekoCommands::Login(cmd) => cmd.handle().await,
             SidekoCommands::Logout(cmd) => cmd.handle().await,
             SidekoCommands::Api(cmd) => cmd.handle().await,
+            SidekoCommands::Account(cmd) => cmd.handle().await,
             SidekoCommands::Sdk(cmd) => cmd.handle().await,
             SidekoCommands::Doc(cmd) => cmd.handle().await,
             SidekoCommands::Config(cmd) => cmd.handle().await,
@@ -81,6 +82,10 @@ enum SidekoCommands {
     /// Manage API specifications
     #[command(subcommand)]
     Api(cmds::ApiSubcommand),
+
+    /// Manage your Sideko account
+    #[command(subcommand)]
+    Account(cmds::AccountSubcommand),
 
     /// Generate, customize, and sync SDKs
     #[command(subcommand)]

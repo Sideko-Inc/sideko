@@ -49,6 +49,7 @@ chrono = "0.4.39"
 spinoff = "0.8.0"
 clap_complete = "4.5.42"
 dirs = "6.0.0"
+arboard = "3.4.1"
 
 [package.metadata.dist]
 npm-scope = "@sideko"

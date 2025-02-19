@@ -7,6 +7,9 @@ pub(crate) use logout::LogoutCommand;
 mod api;
 pub(crate) use api::ApiSubcommand;
 
+mod account;
+pub(crate) use account::AccountSubcommand;
+
 mod sdk;
 pub(crate) use sdk::SdkSubcommand;
 

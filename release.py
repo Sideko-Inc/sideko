@@ -232,7 +232,7 @@ def main():
     # 1. Initial commit and push changes
     print("\nStep 1: Committing and pushing changes...")
     run_command("git add " + " ".join(str(f) for f in modified_files))
-    run_command(f'git commit -m "chore: prepare release {version}"')
+    run_command(f'git commit -m "(ci) prepare release {version}"')
     run_command("git push")
 
     # 2. Create and push tag
@@ -254,7 +254,7 @@ def main():
     # 4. Push changes
     print("\nStep 4: Pushing updated Cargo.toml...")
     run_command("git add Cargo.toml Cargo.lock")
-    run_command('git commit -m "chore: restore sideko-py for pip release"')
+    run_command('git commit -m "(ci) restore sideko-py for pip release"')
     run_command("git push")
 
     # 5. Trigger GitHub workflow
@@ -274,9 +274,7 @@ def main():
     # 7. Final push
     print("\nStep 7: Pushing final changes...")
     run_command("git add Cargo.toml Cargo.lock")
-    run_command(
-        'git commit -m "chore: remove sideko-py from workspace for dist release"'
-    )
+    run_command('git commit -m "(ci) remove sideko-py from workspace for dist release"')
     run_command("git push")
 
     print("\nRelease process completed.")

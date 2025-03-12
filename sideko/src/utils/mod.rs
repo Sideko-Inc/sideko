@@ -61,13 +61,3 @@ pub async fn check_for_updates() -> CliResult<()> {
 
     Ok(())
 }
-
-/// Capitalizes first char in provided string
-pub fn capitalize(val: &str) -> String {
-    let mut chars = val.chars();
-    if let Some(first) = chars.next() {
-        first.to_uppercase().to_string() + chars.as_str()
-    } else {
-        String::new()
-    }
-}

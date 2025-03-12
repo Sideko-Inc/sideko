@@ -47,17 +47,22 @@ sideko sdk init
 ```
 
 ## Local Authentication
-Sideko stores your authentication token on your computer's native secure store:
+This CLI utilizes your computer's native secure store:
 - macOS: Keychain
 - Linux: keyutils
 - Windows: Credential Manager
 
+To authenticate locally run: ```sideko login```
+
+
 ## Authenticating in CI/CD
-Set `SIDEKO_API_KEY` environment variable with your [User API Key or Service Account](https://docs.sideko.dev/organizations/service-accounts)
+Set `SIDEKO_API_KEY` environment variable in CI/CD.
+1. With your own API key run: `sideko account get-my-api-key`
+2. With a service account [see documentation](https://docs.sideko.dev/organizations/service-accounts)
 
 # Resources
-- [📘 Complete CLI Documentation](./docs/CLI.md)
-- [📝 Report SDK Generation Issue](https://github.com/Sideko-Inc/sideko/issues/new?template=generation-bug.md)
+- [📘 Complete CLI Reference Docs](./docs/CLI.md)
+- [📝 Report an Issue](https://github.com/Sideko-Inc/sideko/issues/new?template=generation-bug.md)
 - [⚖️ License](./LICENSE)
 - Shell autocomplete: `sideko config autocomplete --shell (your shell)` (must run this command with each Sideko CLI update)
 

@@ -12,36 +12,31 @@ use log::info;
 
 #[derive(Parser)]
 #[command(name = "sideko")]
-#[command(author = "Team Sideko <team@sideko.dev>")]
+#[command(author = "team sideko <team@sideko.dev>")]
 #[command(about = &fmt_cyan(r#"
-```
-.*....*......*.....*......*....*........*....*.....
+```       _      _        _          
+     ___ (_)  __| |  ___ | | __  ___  
+    / __|| | / _` | / _ \| |/ / / _ \ 
+    \__ \| || (_| ||  __/|   < | (_) |
+    |___/|_| \__,_| \___||_|\_\ \___/ 
 
-..####...######..#####...######..##..##...####..
-.##........##....##..##..##......##.##...##..##.
-..####.....##....##..##..####....####....##..##.
-.....##....##....##..##..##......##.##...##..##.
-..####...######..#####...######..##..##...####..
-................................................
-
-- Your API Ecosystem, On Autopilot
-*....*......*.....*......*.....*......*.....*.....*            
-```                                                                                                                             
+    your api ecosystem on autopilot
+```                                                                                                                            
 "#), long_about = None)]
 #[command(version)]
 pub struct SidekoCli {
     #[command(subcommand)]
     command: SidekoCommands,
 
-    /// No logging except for errors
+    /// no logging except for errors
     #[arg(long, short = 'q', global = true)]
     quiet: bool,
 
-    /// Verbose logging (-v) or trace logging (-vv)
+    /// verbose logging (-v) or trace logging (-vv)
     #[arg(long, short = 'v', action = clap::ArgAction::Count, global = true)]
     verbose: u8,
 
-    /// Load config from custom path
+    /// load config from custom path
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file
@@ -76,32 +71,32 @@ impl SidekoCli {
 #[derive(Subcommand)]
 #[command(styles=styles::get_styles())]
 enum SidekoCommands {
-    /// Authenticate CLI interactively via browser
+    /// authenticate cli interactively via browser
     Login(cmds::LoginCommand),
 
-    /// Manage API specifications
+    /// manage api specifications
     #[command(subcommand)]
     Api(cmds::ApiSubcommand),
 
-    /// Manage your Sideko account
+    /// manage your sideko account
     #[command(subcommand)]
     Account(cmds::AccountSubcommand),
 
-    /// Generate, customize, and sync SDKs
+    /// generate, customize, and sync sdks
     #[command(subcommand)]
     Sdk(cmds::SdkSubcommand),
 
-    /// Manage API documentation websites
+    /// manage api documentation websites
     #[command(subcommand)]
     Doc(cmds::DocSubcommand),
 
-    /// Logout of Sideko
+    /// logout of sideko
     ///
-    /// Removes the Sideko API key from the OS-native key service
-    /// (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
+    /// removes the api key from the os-native key service
+    /// (e.g. `keychain` on macos, `keyutils` on linux,  or `windows credential manager`)
     Logout(cmds::LogoutCommand),
 
-    /// Configure the CLI
+    /// configure the cli
     #[command(subcommand)]
     Config(cmds::ConfigSubcommand),
 }
@@ -112,7 +107,7 @@ pub async fn cli(args: Vec<String>) -> CliResult<()> {
     let handled = cli.handle().await;
     if let Err(e) = &handled {
         e.log();
-        info!("Re-run the command in verbose mode (-v/-vv) to for more information")
+        info!("re-run the command in verbose mode (-v/-vv) to for more information")
     }
 
     handled

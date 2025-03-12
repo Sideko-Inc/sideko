@@ -5,7 +5,7 @@ mod my_api_key;
 #[derive(clap::Subcommand)]
 pub enum AccountSubcommand {
     // ------------ SUB-COMMANDS ------------
-    /// Gets the value of your personal Sideko API key and pastes it to your clipboard
+    /// retrieves value of your personal api key and pastes it to your clipboard
     GetMyApiKey(my_api_key::GetMyApiKeyCommand),
 }
 

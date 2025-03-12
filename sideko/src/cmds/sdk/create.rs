@@ -19,27 +19,27 @@ use super::SdkLang;
 
 #[derive(clap::Args)]
 pub struct SdkCreateCommand {
-    /// Path to SDK config
+    /// path to sdk config
     #[arg(long, value_parser = crate::utils::validators::validate_file_yaml)]
     pub config: Utf8PathBuf,
 
-    /// Programming language to generate
+    /// programming language to generate
     #[arg(long)]
     pub lang: SdkLang,
 
-    /// Semantic version of generated SDK
+    /// semantic version of generated sdk
     #[arg(long, default_value = "0.1.0")]
     pub version: semver::Version,
 
-    /// Generate SDK for a specific version of the API (e.g. `2.1.5`)
+    /// generate sdk for a specific version of the api (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
     pub api_version: String,
 
-    /// Include Github actions for testing and publishing the SDK in the generation
+    /// include github actions for testing and publishing the sdk in the generation
     #[arg(long)]
     pub gh_actions: bool,
 
-    /// Path to save SDK
+    /// path to save sdk
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_dir_allow_dne,
@@ -54,7 +54,7 @@ impl SdkCreateCommand {
 
         let start = chrono::Utc::now();
 
-        let mut sp = Spinner::new(format!("🪄  Generating {} SDK", self.lang.0));
+        let mut sp = Spinner::new(format!("🪄  generating {} sdk", self.lang.0));
         let sdk_res = match client
             .sdk()
             .generate(GenerateRequest {
@@ -73,25 +73,25 @@ impl SdkCreateCommand {
         {
             Ok(r) => {
                 sp.stop_success(format!(
-                    "{} {} SDK generated!",
+                    "{} {} sdk generated.",
                     self.lang.emoji(),
-                    utils::capitalize(&self.lang.0.to_string())
+                    &self.lang.0.to_string()
                 ));
                 r
             }
             Err(e) => {
-                sp.stop_error("Failed generating SDK");
+                sp.stop_error("failed generating sdk");
                 return Err(e.into());
             }
         };
 
         debug!(
-            "Generation took {}s",
+            "generation took {}s",
             (chrono::Utc::now() - start).num_seconds()
         );
 
         debug!(
-            "Unpacking sdk to {dest}: {size} bytes",
+            "unpacking sdk to {dest}: {size} bytes",
             dest = &self.output,
             size = sdk_res.content.len(),
         );
@@ -99,7 +99,7 @@ impl SdkCreateCommand {
         let mut archive = Archive::new(decoder);
         archive
             .unpack(&self.output)
-            .map_err(|e| CliError::io_custom("Failed unpacking sdk archive into output", e))?;
+            .map_err(|e| CliError::io_custom("failed unpacking sdk archive into output", e))?;
 
         let mut dest = self.output.clone();
         if let Some(archive_filename) =
@@ -112,7 +112,7 @@ impl SdkCreateCommand {
             )
         }
 
-        info!("Saved to {dest}");
+        info!("saved to {dest}");
 
         Ok(())
     }

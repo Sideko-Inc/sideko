@@ -14,22 +14,22 @@ use crate::{
 
 #[derive(clap::Args)]
 pub struct SdkConfigInitCommand {
-    /// API name or id e.g. my-api
+    /// api name or id e.g. my-api
     #[arg(long)]
     pub api_name: String,
 
-    /// Generate config for specific version (e.g. `2.1.5`)
+    /// generate config for specific version (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
     pub api_version: String,
 
-    /// Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+    /// use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
     ///
-    /// Including this flag will cause the module config to be omitted from the generated
+    /// including this flag will cause the module config to be omitted from the generated
     /// config file.
     #[arg(long)]
     pub x_mods: bool,
 
-    /// Custom output path of SDK config (must be .yaml or .yml)
+    /// custom output path of sdk config (must be .yaml or .yml)
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_yaml_allow_dne,
@@ -61,18 +61,18 @@ impl SdkConfigInitCommand {
         // load yml as string and save to output
         let config = String::from_utf8(config_res.content.to_vec()).map_err(|e| {
             CliError::general_debug(
-                "Failed to parse config yaml as UTF-8 string",
+                "failed to parse config yaml as UTF-8 string",
                 format!("{e:?}"),
             )
         })?;
         fs::write(&self.output, &config).map_err(|e| {
-            CliError::io_custom(format!("Failed writing config to {}", &self.output), e)
+            CliError::io_custom(format!("failed writing config to {}", &self.output), e)
         })?;
 
         // preview the config
-        info!("Config written to {}", &self.output);
+        info!("config written to {}", &self.output);
         utils::logging::log_table(utils::tabled::preview_table(
-            "SDK Configuration Preview",
+            "sdk configuration Preview",
             &config,
             15,
         ));

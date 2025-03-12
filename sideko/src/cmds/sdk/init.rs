@@ -28,9 +28,9 @@ pub struct SdkInitCommand;
 
 impl SdkInitCommand {
     async fn prompt_create_api(&self) -> CliResult<Api> {
-        let name = inquire::Text::new("API Name:")
+        let name = inquire::Text::new("api name:")
             .with_help_message(
-                "API name must only include lower-case alphanumeric characters and dashes",
+                "api name must only include lower-case alphanumeric characters and dashes",
             )
             .with_placeholder("my-api")
             .with_validator(ApiNameValidator)
@@ -38,23 +38,21 @@ impl SdkInitCommand {
 
         let mut client = get_sideko_client();
         let new_api = client.api().create(api::CreateRequest { name }).await?;
-        info!("{} API created", fmt_green("✔"));
-        debug!("New API with id: {}", &new_api.id);
+        info!("{} api created", fmt_green("✔"));
+        debug!("api with id: {}", &new_api.id);
 
         Ok(new_api)
     }
 
     async fn prompt_create_version(&self, api: &Api) -> CliResult<ApiSpec> {
-        let oas_path = inquire::Text::new("OpenAPI:")
-            .with_help_message("Enter path to OpenAPI (≥3.0) specification for the new version")
+        let oas_path = inquire::Text::new("openapi:")
+            .with_help_message("enter path to openapi (≥3.0) specification for the new version")
             .with_placeholder("path/to/spec.yml")
             .with_validator(PathValidator::file().with_extensions(&[".json", ".yaml", ".yml"]))
             .with_autocomplete(FilePathCompleter::default())
             .prompt()?;
-        let version = inquire::Text::new("Version:")
-            .with_help_message(
-                "Enter the version of this API following the semantic versioning format",
-            )
+        let version = inquire::Text::new("version:")
+            .with_help_message("enter the version of this api in the semver format")
             .with_placeholder("0.1.0")
             .with_validator(SemverValidator)
             .prompt()?;
@@ -66,16 +64,16 @@ impl SdkInitCommand {
             .create(spec::CreateRequest {
                 api_name: api.name.clone(),
                 openapi: UploadFile::from_path(&oas_path).map_err(|e| {
-                    CliError::io_custom(format!("Failed reading OpenAPI from path: {oas_path}"), e)
+                    CliError::io_custom(format!("failed reading openapi from path: {oas_path}"), e)
                 })?,
                 version: VersionOrBump::Str(version),
                 mock_server_enabled: Some(true),
                 ..Default::default()
             })
             .await?;
-        info!("{} Version created", fmt_green("✔"));
+        info!("{} version created", fmt_green("✔"));
         debug!(
-            "New API version in `{}` with id: {}",
+            "new api version in `{}` with id: {}",
             &api.name, &new_version.id
         );
 
@@ -87,11 +85,11 @@ impl SdkInitCommand {
             self.prompt_create_api().await
         } else {
             // select one of the existing APIs or create a new one
-            let create_new_option = "<Create New API>";
+            let create_new_option = "<create new api>";
             let mut names: Vec<String> = options.iter().map(|a| a.name.clone()).collect();
             names.insert(0, create_new_option.into());
 
-            let choice = inquire::Select::new("Select API:", names).prompt()?;
+            let choice = inquire::Select::new("select api:", names).prompt()?;
 
             if choice == create_new_option {
                 self.prompt_create_api().await
@@ -100,7 +98,7 @@ impl SdkInitCommand {
                     .iter()
                     .find(|a| a.name == choice)
                     .cloned()
-                    .expect("Invalid option chosen"))
+                    .expect("invalid option chosen"))
             }
         }
     }
@@ -110,11 +108,11 @@ impl SdkInitCommand {
             self.prompt_create_version(api).await
         } else {
             // select one of the existing versions or create a new one
-            let create_new_option = "<Create New Version>";
+            let create_new_option = "<create new version>";
             let mut versions: Vec<String> = options.iter().map(|v| v.version.clone()).collect();
             versions.insert(0, create_new_option.to_string());
 
-            let choice = inquire::Select::new("Select Version:", versions).prompt()?;
+            let choice = inquire::Select::new("select version:", versions).prompt()?;
 
             if choice == create_new_option {
                 self.prompt_create_version(api).await
@@ -123,32 +121,32 @@ impl SdkInitCommand {
                     .iter()
                     .find(|v| v.version == choice)
                     .cloned()
-                    .expect("Invalid option chosen"))
+                    .expect("invalid option chosen"))
             }
         }
     }
 
     async fn select_config(&self, api: &Api, version: &ApiSpec) -> CliResult<(Utf8PathBuf, bool)> {
-        let generate_new = inquire::Confirm::new("Create SDK config?")
+        let generate_new = inquire::Confirm::new("create new sdk config? (need one to generate)")
             .with_default(true)
             .prompt()?;
         if generate_new {
-            let config_option = "Config file";
-            let use_x_fields_option = "OpenAPI x-fields";
+            let config_option = "1. sdk config";
+            let use_x_fields_option = "2. openapi extensions (x-fields)";
             let customization_options = vec![config_option, use_x_fields_option];
 
             let res = inquire::Select::new(
-                "SDK modules and functions:",
+                "sdk customization method:",
                 customization_options,
             )
-            .with_help_message("Select a customization method. Learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
+            .with_help_message("select a customization method. learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
             .prompt()?;
 
             let is_sdk_config = res == config_option;
             Ok((self.create_config(api, version, is_sdk_config).await?, true))
         } else {
-            let config_path = inquire::Text::new("Config:")
-                .with_help_message("Enter path to SDK config")
+            let config_path = inquire::Text::new("config:")
+                .with_help_message("enter path to sdk config")
                 .with_placeholder("./sdk-config.yml")
                 .with_validator(PathValidator::file().with_extensions(&[".yaml", ".yml"]))
                 .with_autocomplete(FilePathCompleter::default())
@@ -171,7 +169,7 @@ impl SdkInitCommand {
             debug!("default config output exists, trying {output}...");
             path_modifier += 1;
         }
-        debug!("Running `sideko sdk config init` with prompted input...");
+        debug!("running `sideko sdk config init` with prompted input...");
         let init_cmd = SdkConfigInitCommand {
             api_name: api.name.clone(),
             api_version: version.version.clone(),
@@ -179,7 +177,7 @@ impl SdkInitCommand {
             output: output.clone(),
         };
         init_cmd.handle().await?;
-        info!("{} Default SDK config generated", fmt_green("✔"));
+        info!("{} default sdk config generated", fmt_green("✔"));
 
         Ok(output)
     }
@@ -193,7 +191,7 @@ impl SdkInitCommand {
         let validator = SdkLanguageValidator::new(&org.features);
 
         while langs.is_empty() {
-            let input = inquire::MultiSelect::new("Select Languages:", validator.options())
+            let input = inquire::MultiSelect::new("select languages:", validator.options())
                 .with_validator(validator.clone())
                 .prompt()?;
 
@@ -215,7 +213,7 @@ impl SdkInitCommand {
         let mut client = get_sideko_client();
 
         let api_options = client.api().list().await?;
-        debug!("Found {} APIs to choose from", &api_options.len());
+        debug!("found {} apis to choose from", &api_options.len());
         let api = self.select_api(&api_options).await?;
 
         let version_options = client
@@ -225,7 +223,7 @@ impl SdkInitCommand {
                 api_name: api.name.clone(),
             })
             .await?;
-        debug!("Found {} versions to choose from", &version_options.len());
+        debug!("found {} versions to choose from", &version_options.len());
         let api_version = self.select_version(&api, &version_options).await?;
         let max_sdk_methods = client.org().get().await?.features.max_sdk_api_methods;
 
@@ -239,12 +237,12 @@ impl SdkInitCommand {
             })
             .await?;
 
-        if stats.methods > max_sdk_methods || stats.methods < 0 {
+        if stats.methods > max_sdk_methods && !max_sdk_methods == -1 {
             info!(
-                "⚠️ ⚠️ ⚠️ Your API has {} operations, which exceeds your limit of {}.",
+                "⚠️ ⚠️ ⚠️ api has {} operations, which exceeds your current limit of {}.",
                 stats.methods, max_sdk_methods
             );
-            info!("⚠️ ⚠️ ⚠️ Consider using the SDK config to hide operations: https://docs.sideko.dev/sdk-generation/customizing-sdks");
+            info!("⚠️ ⚠️ ⚠️ consider using the SDK config to hide unused operations: https://docs.sideko.dev/sdk-generation/customizing-sdks");
         }
 
         let (config, newly_generated) = self.select_config(&api, &api_version).await?;
@@ -252,11 +250,11 @@ impl SdkInitCommand {
             // First ask if they want to review the config
             let editor = get_editor();
             let review_config = inquire::Confirm::new(&format!(
-                "Review SDK config in {} before continuing? (recommended)",
-                editor
+                "review sdk config in {} before continuing? (recommended)",
+                editor.to_uppercase()
             ))
             .with_default(true)
-            .with_help_message("Opens config in default text editor")
+            .with_help_message("opens config in your default text editor")
             .prompt()?;
 
             if review_config {
@@ -268,16 +266,14 @@ impl SdkInitCommand {
         };
         if generate_now {
             let langs = self.select_languages().await?;
-            let version = inquire::Text::new("SDK Version:")
-                .with_help_message(
-                    "Enter the version for the generated SDK(s) following the semantic versioning format",
-                )
+            let version = inquire::Text::new("sdk version:")
+                .with_help_message("enter initial version for the sdks(s) in semver format")
                 .with_default("0.1.0")
                 .with_validator(SemverValidator)
                 .prompt()?;
             for lang in langs {
                 debug!(
-                    "Running `sideko sdk create --lang {} ...` with prompted input",
+                    "running `sideko sdk create --lang {} ...` with prompted input",
                     json!(&lang)
                 );
                 let create_sdk_cmd = SdkCreateCommand {
@@ -291,10 +287,10 @@ impl SdkInitCommand {
                 create_sdk_cmd.handle().await?;
             }
 
-            info!("\n{} SDKs generated successfully.", fmt_green("✔"));
-            info!("\nLearn about automatic SDK updates: https://docs.sideko.dev/sdk-generation/managed-sdks\n");
+            info!("\n{} sdks generated successfully.", fmt_green("✔"));
+            info!("\nlearn about setting up automatic updates here: https://docs.sideko.dev/sdk-generation/managed-sdks\n");
         } else {
-            info!("Review {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) and run `sideko sdk create` to generate an SDK")
+            info!("review {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) and run `sideko sdk create` to generate an sdk")
         }
 
         Ok(())
@@ -310,17 +306,17 @@ impl inquire::validator::StringValidator for ApiNameValidator {
     ) -> Result<inquire::validator::Validation, inquire::CustomUserError> {
         if input.len() < 3 {
             return Ok(inquire::validator::Validation::Invalid(
-                "API name must be at least 3 characters".into(),
+                "api name must be at least 3 characters".into(),
             ));
         }
 
         let api_name_pattern =
-            Regex::new(r"^[a-z0-9]+(-[a-z0-9]+)*$").expect("invalid API Name regex pattern");
+            Regex::new(r"^[a-z0-9]+(-[a-z0-9]+)*$").expect("invalid api name regex pattern");
         if api_name_pattern.is_match(input) {
             Ok(inquire::validator::Validation::Valid)
         } else {
             Ok(inquire::validator::Validation::Invalid(
-                "Invalid API Name".into(),
+                "invalid api name".into(),
             ))
         }
     }
@@ -336,7 +332,7 @@ impl inquire::validator::StringValidator for SemverValidator {
         let valid = match semver::Version::parse(input) {
             Ok(_) => inquire::validator::Validation::Valid,
             Err(e) => inquire::validator::Validation::Invalid(
-                format!("Invalid semantic version: {e}").into(),
+                format!("invalid semantic version: {e}").into(),
             ),
         };
 
@@ -449,7 +445,7 @@ impl inquire::validator::MultiOptionValidator<String> for SdkLanguageValidator {
                 Ok(l) => l,
                 Err(_) => {
                     return Ok(inquire::validator::Validation::Invalid(
-                        "Invalid language selected".into(),
+                        "invalid language selected".into(),
                     ))
                 }
             };
@@ -461,7 +457,7 @@ impl inquire::validator::MultiOptionValidator<String> for SdkLanguageValidator {
         if !disallowed_langs.is_empty() {
             Ok(inquire::validator::Validation::Invalid(
                 format!(
-                    "The selected language(s) is not available in your plan: {}",
+                    "the selected language(s) is not available in your plan: {}",
                     json!(disallowed_langs)
                 )
                 .into(),
@@ -472,7 +468,7 @@ impl inquire::validator::MultiOptionValidator<String> for SdkLanguageValidator {
     }
 }
 
-/// Lifted from https://github.com/mikaelmello/inquire/blob/main/inquire/examples/complex_autocompletion.rs
+/// lifted from https://github.com/mikaelmello/inquire/blob/main/inquire/examples/complex_autocompletion.rs
 #[derive(Clone, Default)]
 pub struct FilePathCompleter {
     input: String,

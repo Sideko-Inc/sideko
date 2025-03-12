@@ -10,18 +10,18 @@ mod version;
 #[derive(clap::Subcommand)]
 pub enum ApiSubcommand {
     // ------------ SUB-COMMANDS ------------
-    /// Manage API specification versions
+    /// manage api specification versions
     #[command(subcommand)]
     Version(version::ApiVersionSubcommand),
 
     // ------------ COMMANDS ------------
-    /// Create a new API
+    /// create a new api
     Create(create::ApiCreateCommand),
-    /// List all APIs
+    /// list all apis
     List(list::ApiListCommand),
-    /// Display stats gathered from the API specification
+    /// display stats gathered from the specification
     Stats(stats::ApiStatsCommand),
-    /// Linting errors gathered from the API specification
+    /// linting errors gathered from the specification
     Lint(lint::LintCommand),
 }
 

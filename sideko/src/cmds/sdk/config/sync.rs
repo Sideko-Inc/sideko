@@ -15,32 +15,32 @@ use crate::{
 
 #[derive(clap::Args)]
 pub struct SdkConfigSyncCommand {
-    /// API name or id e.g. my-api
+    /// api name or id e.g. my-api
     #[arg(long)]
     pub name: String,
 
-    /// Sync config with specific version (e.g. `2.1.5`)
+    /// sync config with specific version (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
     pub version: String,
 
-    /// Sync config with local OpenAPI specification
+    /// sync config with local openapi specification
     #[arg(long, value_parser = crate::utils::validators::validate_file_json_yaml)]
     pub spec: Option<Utf8PathBuf>,
 
-    /// Config to sync
+    /// config to sync
     #[arg(long, value_parser = crate::utils::validators::validate_file_yaml)]
     pub config: Utf8PathBuf,
 
-    /// Custom output path of SDK config (must be .yaml or .yml) [defaults to same path as --config]
+    /// custom output path of sdk config (must be .yaml or .yml) [defaults to same path as --config]
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_yaml_allow_dne,
     )]
     pub output: Option<Utf8PathBuf>,
 
-    /// Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+    /// use the `x-sideko-*` x-fields in openapi to define the module structure/function names for the sdk
     ///
-    /// Including this flag will cause the module config to be omitted from the generated
+    /// including this flag will cause the module config to be omitted from the generated
     /// config file.
     #[arg(long)]
     pub x_mods: bool,
@@ -60,7 +60,7 @@ impl SdkConfigSyncCommand {
             (
                 None,
                 Some(UploadFile::from_path(spec.as_str()).map_err(|e| {
-                    CliError::io_custom(format!("Failed reading OpenAPI from path: {spec}"), e)
+                    CliError::io_custom(format!("failed reading openapi from path: {spec}"), e)
                 })?),
             )
         } else {
@@ -74,7 +74,7 @@ impl SdkConfigSyncCommand {
                 api_version,
                 config: UploadFile::from_path(self.config.as_str()).map_err(|e| {
                     CliError::io_custom(
-                        format!("Failed reading config from path: {}", &self.config),
+                        format!("failed reading config from path: {}", &self.config),
                         e,
                     )
                 })?,
@@ -87,22 +87,22 @@ impl SdkConfigSyncCommand {
         let output = self.output.as_ref().unwrap_or(&self.config);
         let config = String::from_utf8(synced_res.content.to_vec()).map_err(|e| {
             CliError::general_debug(
-                "Failed to parses synced config yaml as UTF-8 string",
+                "failed to parse synced config yaml as UTF-8 string",
                 format!("{e:?}"),
             )
         })?;
         fs::write(output, &config).map_err(|e| {
-            CliError::io_custom(format!("Failed writing synced config to {output}"), e)
+            CliError::io_custom(format!("failed writing synced config to {output}"), e)
         })?;
 
         // preview the synced config
         utils::logging::log_table(utils::tabled::preview_table(
-            "SDK Configuration Preview",
+            "sdk configuration preview",
             &config,
             25,
         ));
 
-        info!("Synced config written to {output}");
+        info!("synced config written to {output}");
 
         Ok(())
     }

@@ -10,7 +10,7 @@ use super::tabled::TabledApi;
 
 #[derive(clap::Args)]
 pub struct ApiListCommand {
-    /// Display result as a raw json or prettified
+    /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
 }
@@ -28,7 +28,7 @@ impl ApiListCommand {
                     api,
                     subdomain: org.subdomain.clone(),
                 }));
-                utils::tabled::header_panel(&mut table, "APIs");
+                utils::tabled::header_panel(&mut table, "apis");
                 table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(table);
             }

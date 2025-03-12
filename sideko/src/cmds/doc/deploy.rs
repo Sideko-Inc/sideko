@@ -18,15 +18,15 @@ use crate::{
 
 #[derive(clap::Args)]
 pub struct DocDeployCommand {
-    /// Doc project name or id e.g. my-docs
+    /// doc project name or id e.g. my-docs
     #[arg(long)]
     pub name: String,
 
-    /// Deploy to production [default: preview]
+    /// deploy to production [default: preview]
     #[arg(long)]
     pub prod: bool,
 
-    /// Exit command after successful trigger [default: waits until deployment completes]
+    /// exit command after successful trigger [default: waits until deployment completes]
     #[arg(long)]
     pub no_wait: bool,
 }
@@ -45,7 +45,7 @@ impl DocDeployCommand {
     async fn poll_deployment(&self, mut deployment: Deployment) -> CliResult<Deployment> {
         let mut client = get_sideko_client();
         let mut status = deployment.status.clone();
-        let mut sp = Spinner::new(format!("📖 Deployment {}", fmt_yellow(&status.to_string())));
+        let mut sp = Spinner::new(format!("📖 deployment {}", fmt_yellow(&status.to_string())));
 
         while !self.is_terminal_status(&status) {
             // poll for new status every 2 secs
@@ -64,7 +64,7 @@ impl DocDeployCommand {
             // update spinner on status change
             if deployment.status.to_string() != status.to_string() {
                 status = deployment.status.clone();
-                sp.update_text(format!("Deployment {}", fmt_yellow(&status.to_string())));
+                sp.update_text(format!("deployment {}", fmt_yellow(&status.to_string())));
             }
         }
 
@@ -73,35 +73,35 @@ impl DocDeployCommand {
 
         match &deployment.status {
             DeploymentStatusEnum::Complete => {
-                sp.stop_success("📖 Deployment complete!");
+                sp.stop_success("📖 deployment complete.");
             }
             DeploymentStatusEnum::Cancelled => {
-                sp.stop_warn("Deployment has been cancelled");
+                sp.stop_warn("deployment has been cancelled");
                 return Err(CliError::general_debug(
                     format!(
-                        "Deployment polling terminated in `{}` status",
+                        "deployment polling terminated in `{}` status",
                         deployment.status
                     ),
-                    format!("Deployment: {deployment_details}"),
+                    format!("deployment: {deployment_details}"),
                 ));
             }
             DeploymentStatusEnum::Error => {
-                sp.stop_error("Deployment failed");
+                sp.stop_error("deployment failed");
                 return Err(CliError::general_debug(
                     format!(
-                        "Deployment polling terminated in `{}` status",
+                        "deployment polling terminated in `{}` status",
                         deployment.status
                     ),
-                    format!("Deployment: {deployment_details}"),
+                    format!("deployment: {deployment_details}"),
                 ));
             }
             DeploymentStatusEnum::Created
             | DeploymentStatusEnum::Building
             | DeploymentStatusEnum::Generated => {
-                sp.stop_warn("Polling terminated in non-terminal status");
+                sp.stop_warn("polling terminated in non-terminal status");
                 return Err(CliError::general_debug(
-                    format!("Deployment polling terminated in `{}` status. Polling should continue until terminal status", deployment.status),
-                    format!("Deployment: {deployment_details}"),
+                    format!("deployment polling terminated in `{}` status. polling should continue until terminal status", deployment.status),
+                    format!("deployment: {deployment_details}"),
                 ));
             }
         }
@@ -152,7 +152,7 @@ impl DocDeployCommand {
         match tokio::time::timeout(Duration::from_secs(600), poll_future).await {
             Ok(deployment_res) => {
                 debug!(
-                    "Deployment took {}s",
+                    "deployment took {}s",
                     (chrono::Utc::now() - start).num_seconds()
                 );
 
@@ -172,11 +172,11 @@ impl DocDeployCommand {
                     }
                 };
 
-                info!("Site available at: {url}");
+                info!("site available at: {url}");
                 Ok(())
             }
             Err(_) => Err(CliError::general(
-                "Timeout: Deployment did not complete within 10min",
+                "timeout: deployment did not complete within 10min",
             )),
         }
     }

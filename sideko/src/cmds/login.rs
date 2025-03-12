@@ -12,11 +12,11 @@ use crate::{
 
 #[derive(clap::Args)]
 pub(crate) struct LoginCommand {
-    /// Manually provide you Sideko API key to the CLI, this will take priority over browser login
+    /// manually provide your api key to the cli, this will take priority over browser login
     #[arg(long)]
     pub key: Option<String>,
 
-    /// Path to file to store API key, default: $HOME/.sideko
+    /// path to file to store api key, default: $HOME/.sideko
     #[arg(long)]
     pub output: Option<Utf8PathBuf>,
 }
@@ -25,7 +25,7 @@ impl LoginCommand {
     pub async fn handle(&self) -> CliResult<()> {
         if let Some(key) = &self.key {
             utils::config::ConfigKey::ApiKey.set_keyring(key)?;
-            info!("{} CLI authenticated!", fmt_green("✔"));
+            info!("{} cli authenticated", fmt_green("✔"));
             return Ok(());
         }
 
@@ -47,19 +47,19 @@ impl LoginCommand {
         )
         .map_err(|e| CliError::general_debug("Failed building login URL", format!("{e:?}")))?;
 
-        info!("Continue by logging in via the browser popup...");
+        info!("continue by logging in with the browser popup...");
         if let Err(e) = open::that(login_url.as_str()) {
             log::warn!(
-                "Failed opening browser for login, please navigate to `{login_url}` to complete login"
+                "failed opening browser for login, please navigate to `{login_url}` to complete login"
             );
             log::debug!("{:?}", e);
         }
 
-        debug!("If the browser does not open, you can log in via this link: {login_url}");
+        debug!("if the browser does not open, you can log in via this link: {login_url}");
         time::sleep(time::Duration::from_secs(1)).await; // allow user to read info log
 
         // launch callback server & wait for callback
-        debug!("Starting callback server on port {port}... will wait {wait_secs} seconds for auth callback");
+        debug!("starting callback server on port {port}... will wait {wait_secs} seconds for auth callback");
         let server_config = rocket::Config {
             port,
             log_level: rocket::config::LogLevel::Off,
@@ -76,7 +76,7 @@ impl LoginCommand {
 
         if timeout.is_err() {
             Err(CliError::general(format!(
-                "Authentication was not completed within {wait_secs} seconds"
+                "authentication was not completed within {wait_secs} seconds"
             )))
         } else {
             Ok(())
@@ -93,7 +93,7 @@ static FAILURE_HTML: &str = include_str!("../html/failure.html");
 async fn login_success(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
-    info!("{} CLI authenticated!", fmt_green("✔"));
+    info!("{} cli authenticated", fmt_green("✔"));
     shutdown.notify();
     rocket::response::content::RawHtml(SUCCESS_HTML)
 }
@@ -103,7 +103,7 @@ async fn login_failure(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
     shutdown.notify();
-    error!("{} Authentication failed", fmt_red("x"));
+    error!("{} authentication failed", fmt_red("x"));
     rocket::response::content::RawHtml(FAILURE_HTML)
 }
 
@@ -126,7 +126,7 @@ async fn login_callback(code: String, output: String) -> rocket::response::Redir
             rocket::response::Redirect::to(rocket::uri!(login_success))
         }
         Err(e) => {
-            CliError::api_custom("Failed exchanging auth code for API key", e).log();
+            CliError::api_custom("failed exchanging auth code for api key", e).log();
             rocket::response::Redirect::to(rocket::uri!(login_success))
         }
     }

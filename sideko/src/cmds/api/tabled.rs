@@ -18,6 +18,6 @@ impl tabled::Tabled for TabledApi {
     }
 
     fn headers() -> Vec<std::borrow::Cow<'static, str>> {
-        vec!["Name".into(), "Versions".into(), "🔗 Link".into()]
+        vec!["name".into(), "versions".into(), "🔗 link".into()]
     }
 }

@@ -10,7 +10,7 @@ impl LogoutCommand {
         ConfigKey::ApiKey.unset_env()?;
         ConfigKey::ApiKey.unset_keyring()?;
 
-        info!("{} Logout successful", fmt_green("✔"));
+        info!("{} logout successful", fmt_green("✔"));
         Ok(())
     }
 }

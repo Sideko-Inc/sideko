@@ -10,7 +10,7 @@ use super::tabled::TabledDocProject;
 
 #[derive(clap::Args)]
 pub struct DocListCommand {
-    /// Display result as a raw json or prettified
+    /// display result format
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
 }
@@ -28,7 +28,7 @@ impl DocListCommand {
                         doc,
                         org_subdomain: org.subdomain.clone(),
                     }));
-                utils::tabled::header_panel(&mut table, "Documentation Projects");
+                utils::tabled::header_panel(&mut table, "documentation projects");
                 table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(table);
             }

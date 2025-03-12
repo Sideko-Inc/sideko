@@ -13,15 +13,15 @@ use tabled::settings::{object::Rows, Modify, Padding, Remove, Style, Width};
 
 #[derive(clap::Args, Debug)]
 pub struct LintCommand {
-    /// API name or id e.g. my-api
+    /// aPI name or id e.g. my-api
     #[arg(long)]
     pub name: String,
 
-    /// API version e.g. v1, latest
+    /// api version e.g. v1, latest
     #[arg(long, default_value = "latest")]
     pub version: String,
 
-    /// Display result as a raw json or prettified
+    /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
 }
@@ -46,11 +46,11 @@ impl LintCommand {
                 // Display summary
                 let summary_data = vec![
                     SummaryRow::new(
-                        "Missing Operation IDs",
+                        "missing operation ids",
                         lint_errors.missing_operation_ids.len(),
                     ),
-                    SummaryRow::new("Incorrect Paths", lint_errors.incorrect_paths.len()),
-                    SummaryRow::new("Incorrect Examples", lint_errors.incorrect_examples.len()),
+                    SummaryRow::new("incorrect paths", lint_errors.incorrect_paths.len()),
+                    SummaryRow::new("incorrect examples", lint_errors.incorrect_examples.len()),
                 ];
 
                 let mut summary_table = tabled::Table::new(summary_data);
@@ -60,19 +60,19 @@ impl LintCommand {
                     .with(Remove::row(Rows::first()))
                     .with(Modify::new(Rows::new(0..)).with(Width::wrap(60)));
 
-                utils::tabled::header_panel(&mut summary_table, "Lint Summary");
+                utils::tabled::header_panel(&mut summary_table, "lint summary");
                 utils::logging::log_table(summary_table);
 
                 // Display detailed errors if any exist
                 if !lint_errors.missing_operation_ids.is_empty() {
                     display_lint_error_details(
-                        "Missing Operation IDs",
+                        "missing operation ids",
                         &lint_errors.missing_operation_ids,
                     );
                 }
 
                 if !lint_errors.incorrect_paths.is_empty() {
-                    println!("\nIncorrect Paths:");
+                    println!("\nincorrect paths:");
                     for path in lint_errors.incorrect_paths {
                         println!("  - {}", path);
                     }
@@ -80,7 +80,7 @@ impl LintCommand {
 
                 if !lint_errors.incorrect_examples.is_empty() {
                     display_lint_error_details(
-                        "Incorrect Examples",
+                        "incorrect examples",
                         &lint_errors.incorrect_examples,
                     );
                 }
@@ -108,13 +108,13 @@ impl SummaryRow {
 
 #[derive(tabled::Tabled)]
 struct LintErrorRow {
-    #[tabled(rename = "Path")]
+    #[tabled(rename = "path")]
     path: String,
-    #[tabled(rename = "Method")]
+    #[tabled(rename = "method")]
     method: String,
-    #[tabled(rename = "Location")]
+    #[tabled(rename = "location")]
     location: String,
-    #[tabled(rename = "Message")]
+    #[tabled(rename = "message")]
     message: String,
 }
 

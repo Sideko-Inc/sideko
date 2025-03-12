@@ -21,8 +21,8 @@ pub fn get_editor() -> String {
 
 pub fn open_config_in_editor(config_path: &Utf8PathBuf) -> CliResult<()> {
     let editor = get_editor();
-    debug!("Using editor: {}", editor);
-    info!("Opening editor for file: {} - please review the SDK config and save any changes before closing", config_path);
+    debug!("using editor: {}", editor);
+    info!("opening editor for file: {} - please review the sdk config and save any changes before closing", config_path);
 
     Command::new(&editor)
         .arg(config_path.as_str())
@@ -34,15 +34,15 @@ pub fn open_config_in_editor(config_path: &Utf8PathBuf) -> CliResult<()> {
             )
         })?;
 
-    let confirmed = Confirm::new("Have you completed reviewing the SDK config?")
+    let confirmed = Confirm::new("have you completed reviewing the sdk config?")
         .with_default(true)
-        .with_help_message("'n' to open the SDK config again")
+        .with_help_message("'n' to open the sdk config again")
         .prompt()?;
 
     if !confirmed {
         return open_config_in_editor(config_path);
     }
 
-    info!("SDK config review complete");
+    info!("sdk config review complete");
     Ok(())
 }

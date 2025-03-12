@@ -15,24 +15,24 @@ pub fn validate_path(
     allow_dne: bool,
 ) -> Result<Utf8PathBuf, String> {
     let path =
-        Utf8PathBuf::from_str(raw_path).map_err(|_e| format!("Ill-formed path: {raw_path}"))?;
+        Utf8PathBuf::from_str(raw_path).map_err(|_e| format!("ill-formed path: {raw_path}"))?;
 
     let (allowed, err_msg) = match (path_kind, allow_dne) {
         (PathKind::File, false) => (
             path.is_file(),
-            format!("Path `{path}` must be an existing file"),
+            format!("path `{path}` must be an existing file"),
         ),
         (PathKind::File, true) => (
             path.is_file() || !path.exists(),
-            format!("Path `{path}` must be a file or a non-existent path"),
+            format!("path `{path}` must be a file or a non-existent path"),
         ),
         (PathKind::Dir, false) => (
             path.is_dir(),
-            format!("Path `{path}` must be an existing directory"),
+            format!("path `{path}` must be an existing directory"),
         ),
         (PathKind::Dir, true) => (
             path.is_dir() || !path.exists(),
-            format!("Path `{path}` must be a directory or a non-existent path"),
+            format!("path `{path}` must be a directory or a non-existent path"),
         ),
     };
 
@@ -52,7 +52,7 @@ pub fn validate_file_with_extension(
     let extension = format!(".{}", path.extension().unwrap_or_default());
     if !extensions.contains(&extension.as_str()) {
         Err(format!(
-            "Path has incorrect extension, only {extensions:?} are permitted"
+            "path has incorrect extension, only {extensions:?} are permitted"
         ))
     } else {
         Ok(path)

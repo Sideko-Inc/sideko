@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 
 #[derive(Args)]
 pub(crate) struct AutocompleteCommand {
-    /// Generate completions for the specified shell
+    /// Ggnerate completions for the specified shell
     #[arg(long)]
     shell: Shell,
 }
@@ -28,10 +28,10 @@ impl AutocompleteCommand {
 
         // Ask for permission to modify files
         let message = format!(
-            "This will:\n\
-                     1. Create completion script at: {}\n\
-                     2. Update shell configuration at: {}\n\n\
-                     Continue?",
+            "this will:\n\
+                     1. create completion script at: {}\n\
+                     2. update shell configuration at: {}\n\n\
+                     continue?",
             completion_path.display(),
             rc_path.display()
         );
@@ -52,14 +52,14 @@ impl AutocompleteCommand {
         if let Some(parent) = completion_path.parent() {
             fs::create_dir_all(parent).map_err(|err| CliError::Io {
                 err,
-                override_msg: Some("Failed to create completion directory".to_string()),
+                override_msg: Some("failed to create completion directory".to_string()),
             })?;
         }
 
         // Generate completion script
         let mut file = File::create(&completion_path).map_err(|err| CliError::Io {
             err,
-            override_msg: Some("Failed to create completion file".to_string()),
+            override_msg: Some("failed to create completion file".to_string()),
         })?;
         generate(self.shell, &mut cmd, &name, &mut file);
 
@@ -67,18 +67,18 @@ impl AutocompleteCommand {
         self.update_rc_file(&rc_path, &completion_path)?;
 
         println!(
-            "{} Installed {} completions for {}",
+            "{} installed {} completions for {}",
             fmt_green("✓"),
             self.shell,
             name
         );
         println!(
-            "{} Saved completion script: {}",
+            "{} saved completion script: {}",
             fmt_green("✓"),
             completion_path.display()
         );
         println!(
-            "{} Saved updated RC file: {}",
+            "{} saved updated RC file: {}",
             fmt_green("✓"),
             rc_path.display()
         );
@@ -88,7 +88,7 @@ impl AutocompleteCommand {
 
     fn get_shell_paths(&self) -> CliResult<(PathBuf, PathBuf)> {
         let home = home_dir().ok_or(CliError::General {
-            msg: "Could not find home directory".to_string(),
+            msg: "could not find home directory".to_string(),
             debug: None,
         })?;
 
@@ -125,7 +125,7 @@ impl AutocompleteCommand {
         // Create RC file if it doesn't exist
         if !rc_path.exists() {
             let confirm = Confirm::new(&format!(
-                "RC file {} does not exist. Create it?",
+                "rc file {} does not exist. create it?",
                 rc_path.display()
             ))
             .with_default(true)
@@ -141,24 +141,24 @@ impl AutocompleteCommand {
 
             File::create(rc_path).map_err(|err| CliError::Io {
                 err,
-                override_msg: Some("Failed to create RC file".to_string()),
+                override_msg: Some("failed to create rc file".to_string()),
             })?;
         }
 
         let content = fs::read_to_string(rc_path).map_err(|err| CliError::Io {
             err,
-            override_msg: Some("Failed to read RC file".to_string()),
+            override_msg: Some("failed to read rc file".to_string()),
         })?;
 
         // Generate appropriate source command
         let source_line = match self.shell {
             Shell::Bash => format!(
-                "\n# Added by sideko\n[[ -f {} ]] && source {}\n",
+                "\n# added by sideko\n[[ -f {} ]] && source {}\n",
                 completion_path.display(),
                 completion_path.display()
             ),
             Shell::Zsh => {
-                "\n# Added by sideko\nfpath=(~/.zfunc $fpath)\nautoload -Uz compinit && compinit\n"
+                "\n# added by sideko\nfpath=(~/.zfunc $fpath)\nautoload -Uz compinit && compinit\n"
                     .to_string()
             }
             Shell::Fish => String::new(), // Fish automatically loads from ~/.config/fish/completions
@@ -172,12 +172,12 @@ impl AutocompleteCommand {
                 .open(rc_path)
                 .map_err(|err| CliError::Io {
                     err,
-                    override_msg: Some("Failed to open RC file for writing".to_string()),
+                    override_msg: Some("failed to open rc file for writing".to_string()),
                 })?;
             file.write_all(source_line.as_bytes())
                 .map_err(|err| CliError::Io {
                     err,
-                    override_msg: Some("Failed to update RC file".to_string()),
+                    override_msg: Some("failed to update rc file".to_string()),
                 })?;
         }
 

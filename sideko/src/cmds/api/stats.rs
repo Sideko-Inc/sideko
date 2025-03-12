@@ -9,15 +9,15 @@ use crate::{
 
 #[derive(clap::Args, Debug)]
 pub struct ApiStatsCommand {
-    /// API name or id e.g. my-api
+    /// api name or id e.g. my-api
     #[arg(long)]
     pub name: String,
 
-    /// API name or id e.g. my-api
+    /// api name or id e.g. my-api
     #[arg(long, default_value = "latest")]
     pub version: String,
 
-    /// Display result as a raw json or prettified
+    /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
 }
@@ -42,19 +42,17 @@ impl ApiStatsCommand {
                     stats.authentication_schemes.join("; ")
                 };
                 let summary_data = vec![
-                    SummaryRow::new("Total Endpoints (paths)", stats.endpoints),
-                    SummaryRow::new("Total Methods (operation)", stats.methods),
-                    SummaryRow::new("Authenticated Methods", stats.authenticated_methods),
-                    SummaryRow::new("Public Methods", stats.public_methods),
-                    SummaryRow::new("Authentication Schemes", auth_schemes),
+                    SummaryRow::new("total endpoints (paths)", stats.endpoints),
+                    SummaryRow::new("total methods (operations)", stats.methods),
+                    SummaryRow::new("authenticated methods", stats.authenticated_methods),
+                    SummaryRow::new("public methods", stats.public_methods),
+                    SummaryRow::new("authentication schemes", auth_schemes),
                 ];
                 let mut table = tabled::Table::new(summary_data);
                 table.with(Remove::row(Rows::first()));
-                utils::tabled::header_panel(&mut table, "Stats");
+                utils::tabled::header_panel(&mut table, "stats");
 
                 utils::logging::log_table(table);
-
-                // TODO: LINTING
             }
         }
         Ok(())

@@ -5,11 +5,7 @@ mod autocomplete;
 #[derive(clap::Subcommand)]
 pub enum ConfigSubcommand {
     // ------------ COMMANDS ------------
-    /// Writes shell completion for the CLI to stdout
-    ///
-    /// Example (`zsh`): `sideko config autocomplete --shell zsh > ~/sideko-complete.sh`
-    ///
-    /// Then add `source ~/sideko-complete.sh` to `~/.zshrc`
+    /// writes shell completion for the cli to stdout
     Autocomplete(autocomplete::AutocompleteCommand),
 }
 

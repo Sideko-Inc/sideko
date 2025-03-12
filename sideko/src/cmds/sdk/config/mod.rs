@@ -6,10 +6,10 @@ pub(crate) mod sync;
 #[derive(clap::Subcommand)]
 pub enum SdkConfigSubcommand {
     // ------------ COMMANDS ------------
-    /// Generate the default SDK configuration for an API
+    /// generate the default sdk configuration for an api
     Init(init::SdkConfigInitCommand),
 
-    /// Sync SDK configuration file with an API version
+    /// sync sdk configuration file with an api version
     Sync(sync::SdkConfigSyncCommand),
 }
 

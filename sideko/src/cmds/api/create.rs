@@ -12,26 +12,26 @@ use super::{tabled::TabledApi, version::tabled::TabledApiSpec};
 
 #[derive(clap::Args)]
 pub struct ApiCreateCommand {
-    /// Name of API (only alphanumeric characters and dashes, e.g. `my-api`)
+    /// name of api (only alphanumeric characters and dashes, e.g. `my-api`)
     #[arg(long)]
     pub name: String,
 
-    /// Semantic version of initial version (e.g. `2.1.5`)
+    /// semantic version of initial version (e.g. `0.1.0`)
     #[arg(long)]
     pub version: String,
 
-    /// Path to OpenAPI spec of initial version (YAML or JSON format)
+    /// path to openapi spec of initial version (yaml or json format)
     #[arg(
         long,
         value_parser = crate::utils::validators::validate_file_json_yaml,
     )]
     pub spec: Utf8PathBuf,
 
-    /// Disable mock server for initial version [default: enabled]
+    /// disable mock server for initial version [default: enabled]
     #[arg(long)]
     pub disable_mock: bool,
 
-    /// Display result as a raw json or prettified
+    /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
 }
@@ -45,7 +45,7 @@ impl ApiCreateCommand {
                 mock_server_enabled: Some(!self.disable_mock),
                 openapi: UploadFile::from_path(self.spec.as_str()).map_err(|e| {
                     CliError::io_custom(
-                        format!("Failed reading OpenAPI from path: {}", &self.spec),
+                        format!("failed reading openapi from path: {}", &self.spec),
                         e,
                     )
                 })?,
@@ -62,7 +62,7 @@ impl ApiCreateCommand {
                     api: version.api.clone(),
                     subdomain: org.subdomain.clone(),
                 }]);
-                utils::tabled::header_panel(&mut api_table, "API");
+                utils::tabled::header_panel(&mut api_table, "api");
                 api_table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(api_table);
 
@@ -70,7 +70,7 @@ impl ApiCreateCommand {
                     version,
                     org_subdomain: org.subdomain.clone(),
                 }]);
-                utils::tabled::header_panel(&mut version_table, "Initial Version");
+                utils::tabled::header_panel(&mut version_table, "initial version");
                 version_table.modify(Rows::single(1), Color::BOLD);
                 utils::logging::log_table(version_table);
             }

@@ -11,15 +11,15 @@ use super::tabled::TabledApiSpec;
 
 #[derive(clap::Args)]
 pub struct ApiVersionListCommand {
-    /// API name or id e.g. my-api
+    /// api name or id e.g. my-api
     #[arg(long)]
     pub name: String,
 
-    /// Limit results to most recent N versions
+    /// limit results to most recent N versions
     #[arg(long)]
     pub limit: Option<usize>,
 
-    /// Display result as a raw json or prettified
+    /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
 }
@@ -47,7 +47,7 @@ impl ApiVersionListCommand {
                     org_subdomain: org.subdomain.clone(),
                 });
                 let mut table = tabled::Table::new(iter);
-                utils::tabled::header_panel(&mut table, "API Versions");
+                utils::tabled::header_panel(&mut table, "api versions");
                 table.modify(Rows::single(1), Color::BOLD);
 
                 utils::logging::log_table(table);

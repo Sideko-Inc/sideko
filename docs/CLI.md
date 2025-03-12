@@ -1,4 +1,4 @@
-# The Sideko Command Line Interface for generating API Ecosystem tools
+# A CLI for Constructing an API Ecosystem
 
 This document contains the help content for the `sideko` command-line program.
 
@@ -34,97 +34,92 @@ This document contains the help content for the `sideko` command-line program.
 ## `sideko`
 
 
-```
-.*....*......*.....*......*....*........*....*.....
+```       _      _        _          
+     ___ (_)  __| |  ___ | | __  ___  
+    / __|| | / _` | / _ \| |/ / / _ \ 
+    \__ \| || (_| ||  __/|   < | (_) |
+    |___/|_| \__,_| \___||_|\_\ \___/ 
 
-..####...######..#####...######..##..##...####..
-.##........##....##..##..##......##.##...##..##.
-..####.....##....##..##..####....####....##..##.
-.....##....##....##..##..##......##.##...##..##.
-..####...######..#####...######..##..##...####..
-................................................
-
-- Your API Ecosystem, On Autopilot
-*....*......*.....*......*.....*......*.....*.....*            
-```                                                                                                                             
+    your api ecosystem on autopilot
+```                                                                                                                            
 
 
 **Usage:** `sideko [OPTIONS] <COMMAND>`
 
 ###### **Subcommands:**
 
-* `login` — Authenticate CLI interactively via browser
-* `api` — Manage API specifications
-* `account` — Manage your Sideko account
-* `sdk` — Generate, customize, and sync SDKs
-* `doc` — Manage API documentation websites
-* `logout` — Logout of Sideko
-* `config` — Configure the CLI
+* `login` — authenticate cli interactively via browser
+* `api` — manage api specifications
+* `account` — manage your sideko account
+* `sdk` — generate, customize, and sync sdks
+* `doc` — manage api documentation websites
+* `logout` — logout of sideko
+* `config` — configure the cli
 
 ###### **Options:**
 
-* `-q`, `--quiet` — No logging except for errors
-* `-v`, `--verbose` — Verbose logging (-v) or trace logging (-vv)
-* `--config <CONFIG>` — Load config from custom path
+* `-q`, `--quiet` — no logging except for errors
+* `-v`, `--verbose` — verbose logging (-v) or trace logging (-vv)
+* `--config <CONFIG>` — load config from custom path
 
 
 
 ## `sideko login`
 
-Authenticate CLI interactively via browser
+authenticate cli interactively via browser
 
 **Usage:** `sideko login [OPTIONS]`
 
 ###### **Options:**
 
-* `--key <KEY>` — Manually provide you Sideko API key to the CLI, this will take priority over browser login
-* `--output <OUTPUT>` — Path to file to store API key, default: $HOME/.sideko
+* `--key <KEY>` — manually provide your api key to the cli, this will take priority over browser login
+* `--output <OUTPUT>` — path to file to store api key, default: $HOME/.sideko
 
 
 
 ## `sideko api`
 
-Manage API specifications
+manage api specifications
 
 **Usage:** `sideko api <COMMAND>`
 
 ###### **Subcommands:**
 
-* `version` — Manage API specification versions
-* `create` — Create a new API
-* `list` — List all APIs
-* `stats` — Display stats gathered from the API specification
-* `lint` — Linting errors gathered from the API specification
+* `version` — manage api specification versions
+* `create` — create a new api
+* `list` — list all apis
+* `stats` — display stats gathered from the specification
+* `lint` — linting errors gathered from the specification
 
 
 
 ## `sideko api version`
 
-Manage API specification versions
+manage api specification versions
 
 **Usage:** `sideko api version <COMMAND>`
 
 ###### **Subcommands:**
 
-* `create` — Create a new version of an API with an OpenAPI spec
-* `list` — List an APIs versions
-* `update` — Updates an existing API version
+* `create` — create a new version of an api with an openapi spec
+* `list` — list api versions
+* `update` — updates an existing api version
 
 
 
 ## `sideko api version create`
 
-Create a new version of an API with an OpenAPI spec
+create a new version of an api with an openapi spec
 
 **Usage:** `sideko api version create [OPTIONS] --name <NAME> --version <VERSION> --spec <SPEC>`
 
 ###### **Options:**
 
-* `--name <NAME>` — API name or id e.g. my-api
-* `--version <VERSION>` — Semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
-* `--spec <SPEC>` — Path to OpenAPI spec (YAML or JSON format)
-* `--disable-mock` — Disable mock server for new version [default: enabled]
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--name <NAME>` — api name or id e.g. my-api
+* `--version <VERSION>` — semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
+* `--spec <SPEC>` — path to openapi specification (YAML or JSON format)
+* `--disable-mock` — disable mock server for new version [default: enabled]
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -135,15 +130,15 @@ Create a new version of an API with an OpenAPI spec
 
 ## `sideko api version list`
 
-List an APIs versions
+list api versions
 
 **Usage:** `sideko api version list [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
-* `--name <NAME>` — API name or id e.g. my-api
-* `--limit <LIMIT>` — Limit results to most recent N versions
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--name <NAME>` — api name or id e.g. my-api
+* `--limit <LIMIT>` — limit results to most recent N versions
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -154,21 +149,21 @@ List an APIs versions
 
 ## `sideko api version update`
 
-Updates an existing API version
+updates an existing api version
 
 **Usage:** `sideko api version update [OPTIONS] --name <NAME> --version <VERSION>`
 
 ###### **Options:**
 
-* `--name <NAME>` — API name or id e.g. my-api
-* `--version <VERSION>` — Version to update (e.g. `2.1.5` or `latest`)
-* `--new-version <NEW_VERSION>` — Version to update with (e.g. `2.1.5`)
-* `--spec <SPEC>` — Path to OpenAPI spec (YAML or JSON format) to update with
-* `--mock <MOCK>` — Enable or disable the mock server
+* `--name <NAME>` — api name or id e.g. my-api
+* `--version <VERSION>` — version to update (e.g. `2.1.5` or `latest`)
+* `--new-version <NEW_VERSION>` — version to update with (e.g. `2.1.5`)
+* `--spec <SPEC>` — path to openapi spec (yaml or json format) to update with
+* `--mock <MOCK>` — enable or disable the mock server
 
   Possible values: `true`, `false`
 
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -179,17 +174,17 @@ Updates an existing API version
 
 ## `sideko api create`
 
-Create a new API
+create a new api
 
 **Usage:** `sideko api create [OPTIONS] --name <NAME> --version <VERSION> --spec <SPEC>`
 
 ###### **Options:**
 
-* `--name <NAME>` — Name of API (only alphanumeric characters and dashes, e.g. `my-api`)
-* `--version <VERSION>` — Semantic version of initial version (e.g. `2.1.5`)
-* `--spec <SPEC>` — Path to OpenAPI spec of initial version (YAML or JSON format)
-* `--disable-mock` — Disable mock server for initial version [default: enabled]
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--name <NAME>` — name of api (only alphanumeric characters and dashes, e.g. `my-api`)
+* `--version <VERSION>` — semantic version of initial version (e.g. `0.1.0`)
+* `--spec <SPEC>` — path to openapi spec of initial version (yaml or json format)
+* `--disable-mock` — disable mock server for initial version [default: enabled]
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -200,13 +195,13 @@ Create a new API
 
 ## `sideko api list`
 
-List all APIs
+list all apis
 
 **Usage:** `sideko api list [OPTIONS]`
 
 ###### **Options:**
 
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -217,17 +212,17 @@ List all APIs
 
 ## `sideko api stats`
 
-Display stats gathered from the API specification
+display stats gathered from the specification
 
 **Usage:** `sideko api stats [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
-* `--name <NAME>` — API name or id e.g. my-api
-* `--version <VERSION>` — API name or id e.g. my-api
+* `--name <NAME>` — api name or id e.g. my-api
+* `--version <VERSION>` — api name or id e.g. my-api
 
   Default value: `latest`
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -238,17 +233,17 @@ Display stats gathered from the API specification
 
 ## `sideko api lint`
 
-Linting errors gathered from the API specification
+linting errors gathered from the specification
 
 **Usage:** `sideko api lint [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
-* `--name <NAME>` — API name or id e.g. my-api
-* `--version <VERSION>` — API version e.g. v1, latest
+* `--name <NAME>` — aPI name or id e.g. my-api
+* `--version <VERSION>` — api version e.g. v1, latest
 
   Default value: `latest`
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`
 
@@ -259,19 +254,19 @@ Linting errors gathered from the API specification
 
 ## `sideko account`
 
-Manage your Sideko account
+manage your sideko account
 
 **Usage:** `sideko account <COMMAND>`
 
 ###### **Subcommands:**
 
-* `get-my-api-key` — Gets the value of your personal Sideko API key and pastes it to your clipboard
+* `get-my-api-key` — retrieves value of your personal api key and pastes it to your clipboard
 
 
 
 ## `sideko account get-my-api-key`
 
-Gets the value of your personal Sideko API key and pastes it to your clipboard
+retrieves value of your personal api key and pastes it to your clipboard
 
 **Usage:** `sideko account get-my-api-key`
 
@@ -279,22 +274,22 @@ Gets the value of your personal Sideko API key and pastes it to your clipboard
 
 ## `sideko sdk`
 
-Generate, customize, and sync SDKs
+generate, customize, and sync sdks
 
 **Usage:** `sideko sdk <COMMAND>`
 
 ###### **Subcommands:**
 
-* `init` — Interactively configure and create suite of SDKs (recommended command for getting started)
-* `config` — Manage SDK configs
-* `create` — Create an SDK using an SDK Config
-* `update` — Update SDK to implement changes to APIs
+* `init` — interactively configure and create suite of sdks (recommended command for getting started)
+* `config` — manage sdk configs
+* `create` — create an sdk using an existing sdk Config
+* `update` — update sdk to implement changes to apis
 
 
 
 ## `sideko sdk init`
 
-Interactively configure and create suite of SDKs (recommended command for getting started)
+interactively configure and create suite of sdks (recommended command for getting started)
 
 **Usage:** `sideko sdk init`
 
@@ -302,33 +297,33 @@ Interactively configure and create suite of SDKs (recommended command for gettin
 
 ## `sideko sdk config`
 
-Manage SDK configs
+manage sdk configs
 
 **Usage:** `sideko sdk config <COMMAND>`
 
 ###### **Subcommands:**
 
-* `init` — Generate the default SDK configuration for an API
-* `sync` — Sync SDK configuration file with an API version
+* `init` — generate the default sdk configuration for an api
+* `sync` — sync sdk configuration file with an api version
 
 
 
 ## `sideko sdk config init`
 
-Generate the default SDK configuration for an API
+generate the default sdk configuration for an api
 
 **Usage:** `sideko sdk config init [OPTIONS] --api-name <API_NAME>`
 
 ###### **Options:**
 
-* `--api-name <API_NAME>` — API name or id e.g. my-api
-* `--api-version <API_VERSION>` — Generate config for specific version (e.g. `2.1.5`)
+* `--api-name <API_NAME>` — api name or id e.g. my-api
+* `--api-version <API_VERSION>` — generate config for specific version (e.g. `2.1.5`)
 
   Default value: `latest`
-* `--x-mods` — Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+* `--x-mods` — use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
 
-   Including this flag will cause the module config to be omitted from the generated config file.
-* `--output <OUTPUT>` — Custom output path of SDK config (must be .yaml or .yml)
+   including this flag will cause the module config to be omitted from the generated config file.
+* `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml)
 
   Default value: `./sdk-config.yaml`
 
@@ -336,46 +331,46 @@ Generate the default SDK configuration for an API
 
 ## `sideko sdk config sync`
 
-Sync SDK configuration file with an API version
+sync sdk configuration file with an api version
 
 **Usage:** `sideko sdk config sync [OPTIONS] --name <NAME> --config <CONFIG>`
 
 ###### **Options:**
 
-* `--name <NAME>` — API name or id e.g. my-api
-* `--version <VERSION>` — Sync config with specific version (e.g. `2.1.5`)
+* `--name <NAME>` — api name or id e.g. my-api
+* `--version <VERSION>` — sync config with specific version (e.g. `2.1.5`)
 
   Default value: `latest`
-* `--spec <SPEC>` — Sync config with local OpenAPI specification
-* `--config <CONFIG>` — Config to sync
-* `--output <OUTPUT>` — Custom output path of SDK config (must be .yaml or .yml) [defaults to same path as --config]
-* `--x-mods` — Use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+* `--spec <SPEC>` — sync config with local openapi specification
+* `--config <CONFIG>` — config to sync
+* `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml) [defaults to same path as --config]
+* `--x-mods` — use the `x-sideko-*` x-fields in openapi to define the module structure/function names for the sdk
 
-   Including this flag will cause the module config to be omitted from the generated config file.
+   including this flag will cause the module config to be omitted from the generated config file.
 
 
 
 ## `sideko sdk create`
 
-Create an SDK using an SDK Config
+create an sdk using an existing sdk Config
 
 **Usage:** `sideko sdk create [OPTIONS] --config <CONFIG> --lang <LANG>`
 
 ###### **Options:**
 
-* `--config <CONFIG>` — Path to SDK config
-* `--lang <LANG>` — Programming language to generate
+* `--config <CONFIG>` — path to sdk config
+* `--lang <LANG>` — programming language to generate
 
   Possible values: `python`, `typescript`, `rust`, `go`, `java`
 
-* `--version <VERSION>` — Semantic version of generated SDK
+* `--version <VERSION>` — semantic version of generated sdk
 
   Default value: `0.1.0`
-* `--api-version <API_VERSION>` — Generate SDK for a specific version of the API (e.g. `2.1.5`)
+* `--api-version <API_VERSION>` — generate sdk for a specific version of the api (e.g. `2.1.5`)
 
   Default value: `latest`
-* `--gh-actions` — Include Github actions for testing and publishing the SDK in the generation
-* `--output <OUTPUT>` — Path to save SDK
+* `--gh-actions` — include github actions for testing and publishing the sdk in the generation
+* `--output <OUTPUT>` — path to save sdk
 
   Default value: `./`
 
@@ -383,16 +378,16 @@ Create an SDK using an SDK Config
 
 ## `sideko sdk update`
 
-Update SDK to implement changes to APIs
+update sdk to implement changes to apis
 
 **Usage:** `sideko sdk update [OPTIONS] --config <CONFIG> --repo <REPO> --version <VERSION>`
 
 ###### **Options:**
 
-* `--config <CONFIG>` — Path to SDK config
-* `--repo <REPO>` — Path to root of SDK repo
-* `--version <VERSION>` — Semantic version of generated SDK (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
-* `--api-version <API_VERSION>` — API version to update SDK with (e.g. `2.1.5`)
+* `--config <CONFIG>` — path to sdk config
+* `--repo <REPO>` — path to root of sdk repo
+* `--version <VERSION>` — semantic version of generated sdk (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
+* `--api-version <API_VERSION>` — api version to update sdk with (e.g. `2.1.5`)
 
   Default value: `latest`
 
@@ -400,26 +395,26 @@ Update SDK to implement changes to APIs
 
 ## `sideko doc`
 
-Manage API documentation websites
+manage api documentation websites
 
 **Usage:** `sideko doc <COMMAND>`
 
 ###### **Subcommands:**
 
-* `list` — List all documentation websites
-* `deploy` — Trigger documentation website deployment to preview or production
+* `list` — list all documentation websites
+* `deploy` — trigger documentation website deployment to preview or production
 
 
 
 ## `sideko doc list`
 
-List all documentation websites
+list all documentation websites
 
 **Usage:** `sideko doc list [OPTIONS]`
 
 ###### **Options:**
 
-* `--display <DISPLAY>` — Display result as a raw json or prettified
+* `--display <DISPLAY>` — display result format
 
   Default value: `pretty`
 
@@ -430,23 +425,23 @@ List all documentation websites
 
 ## `sideko doc deploy`
 
-Trigger documentation website deployment to preview or production
+trigger documentation website deployment to preview or production
 
 **Usage:** `sideko doc deploy [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
-* `--name <NAME>` — Doc project name or id e.g. my-docs
-* `--prod` — Deploy to production [default: preview]
-* `--no-wait` — Exit command after successful trigger [default: waits until deployment completes]
+* `--name <NAME>` — doc project name or id e.g. my-docs
+* `--prod` — deploy to production [default: preview]
+* `--no-wait` — exit command after successful trigger [default: waits until deployment completes]
 
 
 
 ## `sideko logout`
 
-Logout of Sideko
+logout of sideko
 
-Removes the Sideko API key from the OS-native key service (e.g. `keychain` on macOS, `keyutils` on Linux, `Windows Credential Manager` on Windows)
+removes the api key from the os-native key service (e.g. `keychain` on macos, `keyutils` on linux,  or `windows credential manager`)
 
 **Usage:** `sideko logout`
 
@@ -454,29 +449,25 @@ Removes the Sideko API key from the OS-native key service (e.g. `keychain` on ma
 
 ## `sideko config`
 
-Configure the CLI
+configure the cli
 
 **Usage:** `sideko config <COMMAND>`
 
 ###### **Subcommands:**
 
-* `autocomplete` — Writes shell completion for the CLI to stdout
+* `autocomplete` — writes shell completion for the cli to stdout
 
 
 
 ## `sideko config autocomplete`
 
-Writes shell completion for the CLI to stdout
-
-Example (`zsh`): `sideko config autocomplete --shell zsh > ~/sideko-complete.sh`
-
-Then add `source ~/sideko-complete.sh` to `~/.zshrc`
+writes shell completion for the cli to stdout
 
 **Usage:** `sideko config autocomplete --shell <SHELL>`
 
 ###### **Options:**
 
-* `--shell <SHELL>` — Generate completions for the specified shell
+* `--shell <SHELL>` — Ggnerate completions for the specified shell
 
   Possible values: `bash`, `elvish`, `fish`, `powershell`, `zsh`
 

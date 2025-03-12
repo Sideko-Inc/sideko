@@ -7,11 +7,11 @@ mod update;
 
 #[derive(clap::Subcommand)]
 pub enum ApiVersionSubcommand {
-    /// Create a new version of an API with an OpenAPI spec
+    /// create a new version of an api with an openapi spec
     Create(create::ApiVersionCreateCommand),
-    /// List an APIs versions
+    /// list api versions
     List(list::ApiVersionListCommand),
-    /// Updates an existing API version
+    /// updates an existing api version
     Update(update::ApiVersionUpdateCommand),
 }
 impl ApiVersionSubcommand {

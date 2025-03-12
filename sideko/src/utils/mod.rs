@@ -14,7 +14,7 @@ pub(crate) mod tabled;
 pub(crate) mod url_builder;
 pub(crate) mod validators;
 
-/// Initializes SidekoClient using base url & api key from config environment
+/// initializes SidekoClient using base url & api key from config environment
 pub(crate) fn get_sideko_client() -> SidekoClient {
     let mut client = SidekoClient::default().with_base_url(&config::get_base_url());
     if let Some(key) = config::get_api_key() {
@@ -24,10 +24,10 @@ pub(crate) fn get_sideko_client() -> SidekoClient {
     client
 }
 
-/// Uses the Sideko API to check for CLI notices/update requirements
+/// Uses the sideko api to check for cli notices/update requirements
 pub async fn check_for_updates() -> CliResult<()> {
     let cli_version = env!("CARGO_PKG_VERSION").to_string();
-    debug!("Checking for updates (CLI version: {cli_version})...");
+    debug!("checking for updates (cli version: {cli_version})...");
 
     let mut client = SidekoClient::default().with_base_url(&config::get_base_url());
     let updates = client
@@ -42,20 +42,20 @@ pub async fn check_for_updates() -> CliResult<()> {
         for update in updates {
             match update.severity {
                 CliUpdateSeverityEnum::Info => {
-                    info!("Update info: {}", update.message);
+                    info!("update info: {}", update.message);
                 }
                 CliUpdateSeverityEnum::Suggested => {
-                    warn!("Update suggested: {}", update.message);
+                    warn!("update suggested: {}", update.message);
                 }
                 CliUpdateSeverityEnum::Required => {
-                    error!("Update required: {}", update.message);
+                    error!("update required: {}", update.message);
                     early_exit = true;
                 }
             }
         }
 
         if early_exit {
-            return Err(CliError::general("Must update CLI to continue"));
+            return Err(CliError::general("must update cli to continue"));
         }
     }
 

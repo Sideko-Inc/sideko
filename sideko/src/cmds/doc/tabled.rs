@@ -36,11 +36,11 @@ impl tabled::Tabled for TabledDocProject {
 
     fn headers() -> Vec<std::borrow::Cow<'static, str>> {
         vec![
-            "Name".into(),
-            "Current Version".into(),
-            "Production URL".into(),
-            "Preview URL".into(),
-            "🔗 Link".into(),
+            "name".into(),
+            "current version".into(),
+            "production url".into(),
+            "preview url".into(),
+            "🔗 link".into(),
         ]
     }
 }

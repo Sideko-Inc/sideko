@@ -28,10 +28,10 @@ impl tabled::Tabled for TabledApiSpec {
 
     fn headers() -> Vec<std::borrow::Cow<'static, str>> {
         vec![
-            "Version".into(),
-            "API".into(),
-            "Mock Server".into(),
-            "🔗 Link".into(),
+            "version".into(),
+            "api".into(),
+            "mock server".into(),
+            "🔗 link".into(),
         ]
     }
 }

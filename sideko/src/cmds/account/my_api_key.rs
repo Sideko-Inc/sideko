@@ -21,9 +21,9 @@ impl GetMyApiKeyCommand {
             CliError::arboard_custom("could not copy test to your clipboard", err)
         })?;
 
-        info!("{} API key set to clipboard.", fmt_green("✔"));
+        info!("{} api key set to clipboard.", fmt_green("✔"));
         info!(
-            "{} Paste the key in a secure location.",
+            "{} save the key in a secure location.",
             fmt_yellow("⚠️ ⚠️ ⚠️")
         );
         Ok(())

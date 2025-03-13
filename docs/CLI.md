@@ -282,7 +282,7 @@ generate, customize, and sync sdks
 
 * `init` — interactively configure and create suite of sdks (recommended command for getting started)
 * `config` — manage sdk configs
-* `create` — create an sdk using an existing sdk Config
+* `create` — create an sdk using an existing sdk config
 * `update` — update sdk to implement changes to apis
 
 
@@ -352,7 +352,7 @@ sync sdk configuration file with an api version
 
 ## `sideko sdk create`
 
-create an sdk using an existing sdk Config
+create an sdk using an existing sdk config
 
 **Usage:** `sideko sdk create [OPTIONS] --config <CONFIG> --lang <LANG>`
 

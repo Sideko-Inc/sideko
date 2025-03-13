@@ -20,7 +20,7 @@ pub enum SdkSubcommand {
     Config(config::SdkConfigSubcommand),
 
     // ------------ COMMANDS ------------
-    /// create an sdk using an existing sdk Config
+    /// create an sdk using an existing sdk config
     Create(create::SdkCreateCommand),
 
     /// update sdk to implement changes to apis

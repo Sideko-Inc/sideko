@@ -64,7 +64,7 @@ impl DocDeployCommand {
             // update spinner on status change
             if deployment.status.to_string() != status.to_string() {
                 status = deployment.status.clone();
-                sp.update_text(format!("deployment {}", fmt_yellow(&status.to_string())));
+                sp.update_text(format!("status:{}", fmt_yellow(&status.to_string())));
             }
         }
 
@@ -134,6 +134,7 @@ impl DocDeployCommand {
             })
             .await?;
 
+        let target = target.to_string().to_lowercase();
         info!("{target} deployment triggered");
         debug!(
             "deployment (id={}) metadata: {}",

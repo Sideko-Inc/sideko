@@ -8,7 +8,8 @@ use crate::{
 };
 use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
-use log::info;
+use log::{error, info, warn};
+use sideko_rest_api::models::CliUpdateSeverityEnum;
 
 #[derive(Parser)]
 #[command(name = "sideko")]
@@ -53,10 +54,10 @@ impl SidekoCli {
         }
         utils::config::load()?;
 
-        utils::check_for_updates().await?;
+        let updates = utils::check_for_updates().await?;
 
         // Run command
-        match &self.command {
+        let cmd_res = match &self.command {
             SidekoCommands::Login(cmd) => cmd.handle().await,
             SidekoCommands::Logout(cmd) => cmd.handle().await,
             SidekoCommands::Api(cmd) => cmd.handle().await,
@@ -64,7 +65,24 @@ impl SidekoCli {
             SidekoCommands::Sdk(cmd) => cmd.handle().await,
             SidekoCommands::Doc(cmd) => cmd.handle().await,
             SidekoCommands::Config(cmd) => cmd.handle().await,
+        };
+
+        // log update notices
+        for update in updates {
+            match update.severity {
+                CliUpdateSeverityEnum::Info => {
+                    info!("{}", update.message);
+                }
+                CliUpdateSeverityEnum::Suggested => {
+                    warn!("{}", update.message);
+                }
+                CliUpdateSeverityEnum::Required => {
+                    error!("{}", update.message);
+                }
+            }
         }
+
+        cmd_res
     }
 }
 

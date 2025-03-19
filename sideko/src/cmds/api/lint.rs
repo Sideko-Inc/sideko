@@ -1,25 +1,34 @@
-use std::fmt::Display;
-
 use crate::{
     cmds::DisplayOutput,
-    result::CliResult,
+    result::{CliError, CliResult},
     utils::{self, get_sideko_client},
 };
+use camino::Utf8PathBuf;
 use sideko_rest_api::{
-    models::{ApiVersion, LintErrorDetails},
-    resources::api::spec::GetStatsRequest,
+    models::{ApiVersion, LintSeverityEnum},
+    resources::lint::RunRequest,
+    UploadFile,
 };
-use tabled::settings::{object::Rows, Modify, Padding, Remove, Style, Width};
+use tabled::settings::{location::ByContent, object::Rows, Color, Modify};
+
+use super::tabled::TabledLintResult;
 
 #[derive(clap::Args, Debug)]
 pub struct LintCommand {
-    /// aPI name or id e.g. my-api
-    #[arg(long)]
-    pub name: String,
+    /// Path to local OpenAPI file to lint
+    #[arg(
+        long,
+        value_parser = crate::utils::validators::validate_file_json_yaml,
+    )]
+    pub spec: Option<Utf8PathBuf>,
 
-    /// api version e.g. v1, latest
+    /// API name or id e.g. my-api
+    #[arg(long)]
+    pub name: Option<String>,
+
+    /// API version e.g. v1, latest
     #[arg(long, default_value = "latest")]
-    pub version: String,
+    pub version: Option<String>,
 
     /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
@@ -29,116 +38,147 @@ pub struct LintCommand {
 impl LintCommand {
     pub async fn handle(&self) -> CliResult<()> {
         let mut client = get_sideko_client();
-        let stats = client
-            .api()
-            .spec()
-            .get_stats(GetStatsRequest {
-                api_name: self.name.clone(),
-                api_version: ApiVersion::Str(self.version.clone()),
-            })
-            .await?;
+
+        let report = match (&self.spec, &self.name, &self.version) {
+            (Some(spec_path), ..) => {
+                let openapi = UploadFile::from_path(spec_path.as_str()).map_err(|e| {
+                    CliError::io_custom(format!("failed reading openapi from path: {spec_path}"), e)
+                })?;
+
+                client
+                    .lint()
+                    .run(RunRequest {
+                        openapi: Some(openapi),
+                        ..Default::default()
+                    })
+                    .await?
+            }
+            (_, Some(name), Some(version)) => {
+                client
+                    .lint()
+                    .run(RunRequest {
+                        api_project: Some(name.clone()),
+                        api_version: Some(ApiVersion::Str(version.clone())),
+                        ..Default::default()
+                    })
+                    .await?
+            }
+            _ => {
+                return Err(CliError::general(
+                    "you must either provide --spec <PATH> or --name <NAME> --version <VERSION>",
+                ))
+            }
+        };
 
         match &self.display {
-            DisplayOutput::Raw => utils::logging::log_json_raw(&stats.lint_errors),
+            DisplayOutput::Raw => utils::logging::log_json_raw(&report),
             DisplayOutput::Pretty => {
-                let lint_errors = stats.lint_errors;
+                let filename =
+                    if let Some(Some(filename)) = self.spec.as_ref().map(|p| p.file_name()) {
+                        filename
+                    } else {
+                        "openapi"
+                    };
 
-                // Display summary
-                let summary_data = vec![
-                    SummaryRow::new(
-                        "missing operation ids",
-                        lint_errors.missing_operation_ids.len(),
-                    ),
-                    SummaryRow::new("incorrect paths", lint_errors.incorrect_paths.len()),
-                    SummaryRow::new("incorrect examples", lint_errors.incorrect_examples.len()),
-                ];
-
-                let mut summary_table = tabled::Table::new(summary_data);
-                summary_table
-                    .with(Style::modern())
-                    .with(Padding::new(1, 1, 0, 0))
-                    .with(Remove::row(Rows::first()))
-                    .with(Modify::new(Rows::new(0..)).with(Width::wrap(60)));
-
-                utils::tabled::header_panel(&mut summary_table, "lint summary");
-                utils::logging::log_table(summary_table);
-
-                // Display detailed errors if any exist
-                if !lint_errors.missing_operation_ids.is_empty() {
-                    display_lint_error_details(
-                        "missing operation ids",
-                        &lint_errors.missing_operation_ids,
-                    );
-                }
-
-                if !lint_errors.incorrect_paths.is_empty() {
-                    println!("\nincorrect paths:");
-                    for path in lint_errors.incorrect_paths {
-                        println!("  - {}", path);
+                // build summary table
+                let mut summary_rows: Vec<SummaryRow> = vec![];
+                for result in &report.results {
+                    if let Some(row) = summary_rows
+                        .iter_mut()
+                        .find(|r| r.category == result.category)
+                    {
+                        match &result.severity {
+                            LintSeverityEnum::Error => row.errors += 1,
+                            LintSeverityEnum::Warn => row.warnings += 1,
+                            LintSeverityEnum::Info => row.info += 1,
+                            LintSeverityEnum::Unknown => continue,
+                        }
+                    } else {
+                        let new_row = match &result.severity {
+                            LintSeverityEnum::Error => SummaryRow {
+                                category: result.category.clone(),
+                                errors: 1,
+                                ..Default::default()
+                            },
+                            LintSeverityEnum::Warn => SummaryRow {
+                                category: result.category.clone(),
+                                warnings: 1,
+                                ..Default::default()
+                            },
+                            LintSeverityEnum::Info => SummaryRow {
+                                category: result.category.clone(),
+                                info: 1,
+                                ..Default::default()
+                            },
+                            LintSeverityEnum::Unknown => continue,
+                        };
+                        summary_rows.push(new_row);
                     }
                 }
+                summary_rows.push(SummaryRow {
+                    category: "Total".into(),
+                    errors: report.summary.errors as usize,
+                    warnings: report.summary.warns as usize,
+                    info: report.summary.infos as usize,
+                });
+                let mut summary_table = tabled::Table::new(summary_rows);
+                utils::tabled::header_panel(
+                    &mut summary_table,
+                    &format!("{filename} Lint Summary"),
+                );
+                summary_table
+                    .modify(Rows::single(1), Color::BOLD)
+                    .modify(Rows::last(), Color::BOLD)
+                    .with(Modify::new(ByContent::new("Errors")).with(Color::FG_RED))
+                    .with(Modify::new(ByContent::new("Warnings")).with(Color::FG_YELLOW))
+                    .with(Modify::new(ByContent::new("Info")).with(Color::FG_BLUE));
 
-                if !lint_errors.incorrect_examples.is_empty() {
-                    display_lint_error_details(
-                        "incorrect examples",
-                        &lint_errors.incorrect_examples,
+                // display full results table
+                if !report.results.is_empty() {
+                    let mut report_table =
+                        tabled::Table::new(report.results.into_iter().map(|result| {
+                            TabledLintResult {
+                                filename: filename.to_string(),
+                                result,
+                            }
+                        }));
+                    utils::tabled::header_panel(
+                        &mut report_table,
+                        &format!("{filename} Lint Results"),
                     );
+                    report_table
+                        .with(Modify::new(ByContent::new("error")).with(Color::FG_RED))
+                        .with(Modify::new(ByContent::new("warn")).with(Color::FG_YELLOW))
+                        .with(Modify::new(ByContent::new("info")).with(Color::FG_BLUE));
+                    report_table.modify(Rows::single(1), Color::BOLD);
+
+                    utils::logging::log_table(report_table);
                 }
+
+                // display summary table
+                utils::logging::log_table(summary_table);
             }
         }
 
-        Ok(())
-    }
-}
-
-#[derive(tabled::Tabled)]
-struct SummaryRow {
-    name: String,
-    val: String,
-}
-
-impl SummaryRow {
-    pub fn new<N: ToString, V: Display>(name: N, val: V) -> Self {
-        Self {
-            name: name.to_string(),
-            val: val.to_string(),
+        if report.summary.errors > 0 {
+            Err(CliError::general(format!(
+                "{} linting errors found",
+                report.summary.errors
+            )))
+        } else {
+            Ok(())
         }
     }
 }
 
-#[derive(tabled::Tabled)]
-struct LintErrorRow {
-    #[tabled(rename = "path")]
-    path: String,
-    #[tabled(rename = "method")]
-    method: String,
-    #[tabled(rename = "location")]
-    location: String,
-    #[tabled(rename = "message")]
-    message: String,
-}
-
-fn display_lint_error_details(title: &str, errors: &[LintErrorDetails]) {
-    if errors.is_empty() {
-        return;
-    }
-
-    let error_rows: Vec<LintErrorRow> = errors
-        .iter()
-        .map(|error| LintErrorRow {
-            path: error.path.clone(),
-            method: error.method.clone(),
-            location: error.location.clone().unwrap_or_default(),
-            message: error.message.clone().unwrap_or_default(),
-        })
-        .collect();
-
-    let mut error_table = tabled::Table::new(error_rows);
-    error_table
-        .with(Style::modern())
-        .with(Padding::new(1, 1, 0, 0))
-        .with(Modify::new(Rows::new(0..)).with(Width::wrap(60)));
-
-    utils::tabled::header_panel(&mut error_table, title);
-    utils::logging::log_table(error_table);
+#[derive(tabled::Tabled, Default)]
+struct SummaryRow {
+    #[tabled(rename = "Category")]
+    category: String,
+    #[tabled(rename = "Errors")]
+    errors: usize,
+    #[tabled(rename = "Warnings")]
+    warnings: usize,
+    #[tabled(rename = "Info")]
+    info: usize,
 }

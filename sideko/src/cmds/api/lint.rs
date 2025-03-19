@@ -57,7 +57,7 @@ impl LintCommand {
                 client
                     .lint()
                     .run(RunRequest {
-                        api_project: Some(name.clone()),
+                        api_name: Some(name.clone()),
                         api_version: Some(ApiVersion::Str(version.clone())),
                         ..Default::default()
                     })

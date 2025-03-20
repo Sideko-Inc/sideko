@@ -11,6 +11,7 @@ This document contains the help content for the `sideko` command-line program.
 * [`sideko api version create`↴](#sideko-api-version-create)
 * [`sideko api version list`↴](#sideko-api-version-list)
 * [`sideko api version update`↴](#sideko-api-version-update)
+* [`sideko api version download`↴](#sideko-api-version-download)
 * [`sideko api create`↴](#sideko-api-create)
 * [`sideko api list`↴](#sideko-api-list)
 * [`sideko api stats`↴](#sideko-api-stats)
@@ -104,6 +105,7 @@ manage api specification versions
 * `create` — create a new version of an api with an openapi spec
 * `list` — list api versions
 * `update` — updates an existing api version
+* `download` — downloads the openapi specification of an api version
 
 
 
@@ -172,6 +174,20 @@ updates an existing api version
 
 
 
+## `sideko api version download`
+
+downloads the openapi specification of an api version
+
+**Usage:** `sideko api version download [OPTIONS] --name <NAME> --version <VERSION>`
+
+###### **Options:**
+
+* `--name <NAME>` — api name or id e.g. my-api
+* `--version <VERSION>` — version to update (e.g. `2.1.5` or `latest`)
+* `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml or .json) the command may alter the extension according to the format of the downloaded OpenAPI file
+
+
+
 ## `sideko api create`
 
 create a new api
@@ -235,12 +251,13 @@ display stats gathered from the specification
 
 linting errors gathered from the specification
 
-**Usage:** `sideko api lint [OPTIONS] --name <NAME>`
+**Usage:** `sideko api lint [OPTIONS]`
 
 ###### **Options:**
 
-* `--name <NAME>` — aPI name or id e.g. my-api
-* `--version <VERSION>` — api version e.g. v1, latest
+* `--spec <SPEC>` — Path to local OpenAPI file to lint
+* `--name <NAME>` — API name or id e.g. my-api
+* `--version <VERSION>` — API version e.g. v1, latest
 
   Default value: `latest`
 * `--display <DISPLAY>` — display result as a raw json or prettified

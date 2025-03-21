@@ -13,9 +13,9 @@ homepage = "https://sideko.dev"
 default-run = "sideko"
 
 [target.x86_64-unknown-linux-musl.dependencies]
-openssl = { version = "^0.10.68", features = ["vendored"] }
+openssl = { version = "^0.10.70", features = ["vendored"] }
 [target.x86_64-unknown-linux-gnu.dependencies]
-openssl = { version = "^0.10.68", features = ["vendored"] }
+openssl = { version = "^0.10.70", features = ["vendored"] }
 
 [dependencies]
 anstyle = "1.0.3"
@@ -32,10 +32,10 @@ tar = "0.4.40"
 tokio = { version = "1.35.1", features = ["time"] }
 url = "2.4.1"
 semver = "1.0.23"
-sideko_rest_api = "0.4.0-rc.6"
+sideko_rest_api = "0.5.1"
 tempfile = "3.12.0"
 dotenvy = "0.15.7"
-tabled = "0.17.0"
+tabled = "0.18.0"
 terminal_size = "0.4.1"
 regex = "1.11.1"
 inquire = "0.7.5"
@@ -45,6 +45,7 @@ keyring = { version = "3.6.1", features = [
     "windows-native",
     "linux-native",
 ] }
+ring = "^0.17.12"
 chrono = "0.4.39"
 spinoff = "0.8.0"
 clap_complete = "4.5.42"

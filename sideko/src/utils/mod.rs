@@ -1,6 +1,8 @@
-use log::{debug, error, info, warn};
+use log::{debug, error};
 use sideko_rest_api::{
-    models::CliUpdateSeverityEnum, resources::cli::CheckUpdatesRequest, SidekoClient,
+    models::{CliUpdate, CliUpdateSeverityEnum},
+    resources::cli::CheckUpdatesRequest,
+    SidekoClient,
 };
 
 use crate::result::{CliError, CliResult};
@@ -24,8 +26,11 @@ pub(crate) fn get_sideko_client() -> SidekoClient {
     client
 }
 
-/// Uses the sideko api to check for cli notices/update requirements
-pub async fn check_for_updates() -> CliResult<()> {
+/// Uses the sideko api to check for cli notices/update requirements, returning an Err
+/// if a required update is detected
+///
+/// Returns all non-required updates to be logged at the end of the command
+pub async fn check_for_updates() -> CliResult<Vec<CliUpdate>> {
     let cli_version = env!("CARGO_PKG_VERSION").to_string();
     debug!("checking for updates (cli version: {cli_version})...");
 
@@ -35,29 +40,20 @@ pub async fn check_for_updates() -> CliResult<()> {
         .check_updates(CheckUpdatesRequest { cli_version })
         .await?;
 
-    if updates.is_empty() {
-        debug!("No updates!")
-    } else {
-        let mut early_exit = false;
-        for update in updates {
-            match update.severity {
-                CliUpdateSeverityEnum::Info => {
-                    info!("update info: {}", update.message);
-                }
-                CliUpdateSeverityEnum::Suggested => {
-                    warn!("update suggested: {}", update.message);
-                }
-                CliUpdateSeverityEnum::Required => {
-                    error!("update required: {}", update.message);
-                    early_exit = true;
-                }
-            }
-        }
-
-        if early_exit {
-            return Err(CliError::general("must update cli to continue"));
+    let mut early_exit = false;
+    for update in &updates {
+        if matches!(&update.severity, CliUpdateSeverityEnum::Required) {
+            error!("{}", update.message);
+            early_exit = true;
         }
     }
 
-    Ok(())
+    if early_exit {
+        return Err(CliError::general("must update cli to continue"));
+    }
+
+    Ok(updates
+        .into_iter()
+        .filter(|u| !matches!(&u.severity, CliUpdateSeverityEnum::Required))
+        .collect())
 }

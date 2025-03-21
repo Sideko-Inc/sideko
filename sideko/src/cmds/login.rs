@@ -25,7 +25,7 @@ impl LoginCommand {
     pub async fn handle(&self) -> CliResult<()> {
         if let Some(key) = &self.key {
             utils::config::ConfigKey::ApiKey.set_keyring(key)?;
-            info!("{} cli authenticated", fmt_green("✔"));
+            info!("{} CLI authenticated", fmt_green("✔"));
             return Ok(());
         }
 
@@ -93,7 +93,7 @@ static FAILURE_HTML: &str = include_str!("../html/failure.html");
 async fn login_success(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
-    info!("{} cli authenticated", fmt_green("✔"));
+    info!("{} CLI authenticated", fmt_green("✔"));
     shutdown.notify();
     rocket::response::content::RawHtml(SUCCESS_HTML)
 }
@@ -103,7 +103,7 @@ async fn login_failure(
     shutdown: rocket::Shutdown,
 ) -> rocket::response::content::RawHtml<&'static str> {
     shutdown.notify();
-    error!("{} authentication failed", fmt_red("x"));
+    error!("{} CLI authentication failed", fmt_red("x"));
     rocket::response::content::RawHtml(FAILURE_HTML)
 }
 

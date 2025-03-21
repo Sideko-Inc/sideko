@@ -237,7 +237,7 @@ def main():
 
     # 2. Create and push tag
     if confirm_action(
-        f"Run and push tag? git tag v{version} && git push origin v{version}"
+        f"Step 2: Run and push tag? git tag v{version} && git push origin v{version}"
     ):
         run_command(f"git tag v{version}")
         run_command(f"git push origin v{version}")

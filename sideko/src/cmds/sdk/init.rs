@@ -68,6 +68,7 @@ impl SdkInitCommand {
                 })?,
                 version: VersionOrBump::Str(version),
                 mock_server_enabled: Some(true),
+                allow_lint_errors: Some(false),
                 ..Default::default()
             })
             .await?;

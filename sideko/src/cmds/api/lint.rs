@@ -30,6 +30,10 @@ pub struct LintCommand {
     #[arg(long, default_value = "latest")]
     pub version: Option<String>,
 
+    /// Show errors only
+    #[arg(long)]
+    pub errors: bool,
+
     /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
@@ -75,9 +79,13 @@ impl LintCommand {
             DisplayOutput::Pretty => {
                 let filename =
                     if let Some(Some(filename)) = self.spec.as_ref().map(|p| p.file_name()) {
-                        filename
+                        filename.to_string()
                     } else {
-                        "openapi"
+                        format!(
+                            "{name}-{version}-openapi",
+                            name = self.name.clone().unwrap_or_default(),
+                            version = self.version.clone().unwrap_or_default()
+                        )
                     };
 
                 // build summary table
@@ -136,10 +144,14 @@ impl LintCommand {
                 // display full results table
                 if !report.results.is_empty() {
                     let mut report_table =
-                        tabled::Table::new(report.results.into_iter().map(|result| {
-                            TabledLintResult {
-                                filename: filename.to_string(),
-                                result,
+                        tabled::Table::new(report.results.into_iter().filter_map(|result| {
+                            if !self.errors || matches!(&result.severity, LintSeverityEnum::Error) {
+                                Some(TabledLintResult {
+                                    filename: filename.to_string(),
+                                    result,
+                                })
+                            } else {
+                                None
                             }
                         }));
                     utils::tabled::header_panel(

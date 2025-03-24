@@ -197,6 +197,9 @@ def main():
     )
     args = parser.parse_args()
 
+    # Confirm there are no rust compile-time issues
+    run_command("cargo check", check=True)
+
     # Confirm `gh` CLI is installed & authenticated
     run_command("gh auth status", check=True)
 
@@ -246,10 +249,11 @@ def main():
     # 3. Restore sideko-py
     print("\nStep 3: Restoring sideko-py to workspace...")
     update_workspace_toml(delete=False)
-    show_git_diff([Path("Cargo.toml")])
+    run_command("cargo check", check=True)  # run cargo check to update lockfile
+    show_git_diff([Path("Cargo.toml"), Path("Cargo.lock")])
     if not confirm_action("Does this look correct?"):
         print("Aborting on user request")
-        run_command("git restore Cargo.toml")
+        run_command("git restore Cargo.toml Cargo.lock")
         sys.exit(1)
 
     # 4. Push changes
@@ -266,10 +270,11 @@ def main():
     # 6. Remove sideko-py again
     print("\nStep 6: Removing sideko-py from workspace...")
     update_workspace_toml(delete=True)
-    show_git_diff([Path("Cargo.toml")])
+    run_command("cargo check", check=True)  # run cargo check to update lockfile
+    show_git_diff([Path("Cargo.toml"), Path("Cargo.lock")])
     if not confirm_action("Does this look correct?"):
         print("Aborting on user request")
-        run_command("git restore Cargo.toml")
+        run_command("git restore Cargo.toml Cargo.lock")
         sys.exit(1)
 
     # 7. Final push

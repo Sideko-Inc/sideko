@@ -192,14 +192,15 @@ def main():
     )
     parser.add_argument(
         "--version",
+        required=True,
         help="Version to release (if not provided, will use current version)",
     )
     args = parser.parse_args()
 
-    current_version = get_current_version()
-    if not args.version:
-        raise Exception(f"Must specify version. Current is: {current_version}")
+    # Confirm `gh` CLI is installed & authenticated
+    run_command("gh auth status", check=True)
 
+    current_version = get_current_version()
     version = args.version
     print(f"\nBumping version from {current_version} to {version}")
 

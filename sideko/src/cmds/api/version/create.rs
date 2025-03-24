@@ -29,7 +29,7 @@ pub struct ApiVersionCreateCommand {
 
     /// Allow linting errors to be present in the provided spec [default: false]
     ///
-    /// By default creating a new version an OpenAPI that contains linting errors is disallowed.
+    /// By default creating a new version with an OpenAPI that contains linting errors is disallowed.
     /// If you wish to allow linting errors you may experience issues later with SDK generation or mock servers.
     #[arg(long)]
     pub allow_lint_errors: bool,

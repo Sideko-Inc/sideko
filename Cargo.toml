@@ -1,5 +1,9 @@
 [workspace]
-members = ["sideko", "docs"]
+members = [
+    "sideko",
+    "docs",
+    "sideko-py",
+]
 resolver = "2"
 
 # The profile that 'dist' will build with

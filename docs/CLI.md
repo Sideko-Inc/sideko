@@ -120,6 +120,9 @@ create a new version of an api with an openapi spec
 * `--name <NAME>` — api name or id e.g. my-api
 * `--version <VERSION>` — semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
 * `--spec <SPEC>` — path to openapi specification (YAML or JSON format)
+* `--allow-lint-errors` — Allow linting errors to be present in the provided spec [default: false]
+
+   By default creating a new version with an OpenAPI that contains linting errors is disallowed. If you wish to allow linting errors you may experience issues later with SDK generation or mock servers.
 * `--disable-mock` — disable mock server for new version [default: enabled]
 * `--display <DISPLAY>` — display result as a raw json or prettified
 
@@ -161,6 +164,9 @@ updates an existing api version
 * `--version <VERSION>` — version to update (e.g. `2.1.5` or `latest`)
 * `--new-version <NEW_VERSION>` — version to update with (e.g. `2.1.5`)
 * `--spec <SPEC>` — path to openapi spec (yaml or json format) to update with
+* `--allow-lint-errors` — Allow linting errors to be present in the provided spec [default: false]
+
+   By default using an OpenAPI that contains linting errors is disallowed. If you wish to allow linting errors you may experience issues later with SDK generation or mock servers.
 * `--mock <MOCK>` — enable or disable the mock server
 
   Possible values: `true`, `false`
@@ -199,6 +205,9 @@ create a new api
 * `--name <NAME>` — name of api (only alphanumeric characters and dashes, e.g. `my-api`)
 * `--version <VERSION>` — semantic version of initial version (e.g. `0.1.0`)
 * `--spec <SPEC>` — path to openapi spec of initial version (yaml or json format)
+* `--allow-lint-errors` — Allow linting errors to be present in the provided spec [default: false]
+
+   By default using an OpenAPI that contains linting errors is disallowed. If you wish to allow linting errors you may experience issues later with SDK generation or mock servers.
 * `--disable-mock` — disable mock server for initial version [default: enabled]
 * `--display <DISPLAY>` — display result as a raw json or prettified
 
@@ -260,6 +269,7 @@ linting errors gathered from the specification
 * `--version <VERSION>` — API version e.g. v1, latest
 
   Default value: `latest`
+* `--errors` — Show errors only
 * `--display <DISPLAY>` — display result as a raw json or prettified
 
   Default value: `pretty`

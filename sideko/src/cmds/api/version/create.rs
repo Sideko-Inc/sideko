@@ -27,6 +27,13 @@ pub struct ApiVersionCreateCommand {
     )]
     pub spec: Utf8PathBuf,
 
+    /// Allow linting errors to be present in the provided spec [default: false]
+    ///
+    /// By default creating a new version with an OpenAPI that contains linting errors is disallowed.
+    /// If you wish to allow linting errors you may experience issues later with SDK generation or mock servers.
+    #[arg(long)]
+    pub allow_lint_errors: bool,
+
     /// disable mock server for new version [default: enabled]
     #[arg(long)]
     pub disable_mock: bool,
@@ -52,6 +59,7 @@ impl ApiVersionCreateCommand {
                     )
                 })?,
                 notes: None,
+                allow_lint_errors: Some(self.allow_lint_errors),
             })
             .await?;
 

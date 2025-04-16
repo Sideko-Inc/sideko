@@ -39,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/Sideko-Inc/sideko/main/install.sh |
 
 ## Quickstart - Premium SDKs in Seconds
 ```bash
-# authenticate
+# authenticate (uses native keychain to store credentials on host)
 sideko login
 
 # interactively create sdks

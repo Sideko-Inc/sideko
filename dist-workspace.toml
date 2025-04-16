@@ -26,3 +26,6 @@ tap = "Sideko-Inc/homebrew-tap"
 publish-jobs = ["homebrew", "npm"]
 # A namespace to use when publishing this package to the npm registry
 npm-scope = "@sideko"
+
+[dist.github-custom-runners]
+global = "ubuntu-22.04"

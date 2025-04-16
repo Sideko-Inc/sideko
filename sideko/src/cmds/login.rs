@@ -23,6 +23,7 @@ pub(crate) struct LoginCommand {
 
 impl LoginCommand {
     pub async fn handle(&self) -> CliResult<()> {
+        info!("🔑🔑🔑 this CLI uses your OS keychain to securely store your Sideko API key...");
         if let Some(key) = &self.key {
             utils::config::ConfigKey::ApiKey.set_keyring(key)?;
             info!("{} CLI authenticated", fmt_green("✔"));
@@ -48,6 +49,7 @@ impl LoginCommand {
         .map_err(|e| CliError::general_debug("Failed building login URL", format!("{e:?}")))?;
 
         info!("continue by logging in with the browser popup...");
+
         if let Err(e) = open::that(login_url.as_str()) {
             log::warn!(
                 "failed opening browser for login, please navigate to `{login_url}` to complete login"

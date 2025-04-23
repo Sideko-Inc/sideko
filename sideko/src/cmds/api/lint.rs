@@ -37,13 +37,17 @@ pub struct LintCommand {
     /// display result as a raw json or prettified
     #[arg(long, default_value = "pretty")]
     pub display: DisplayOutput,
+
+    /// save result as a CSV
+    #[arg(long)]
+    pub save: bool,
 }
 
 impl LintCommand {
     pub async fn handle(&self) -> CliResult<()> {
         let mut client = get_sideko_client();
 
-        let report = match (&self.spec, &self.name, &self.version) {
+        let mut report = match (&self.spec, &self.name, &self.version) {
             (Some(spec_path), ..) => {
                 let openapi = UploadFile::from_path(spec_path.as_str()).map_err(|e| {
                     CliError::io_custom(format!("failed reading openapi from path: {spec_path}"), e)
@@ -73,6 +77,11 @@ impl LintCommand {
                 ))
             }
         };
+        if self.errors {
+            report
+                .results
+                .retain(|result| matches!(&result.severity, LintSeverityEnum::Error));
+        }
 
         match &self.display {
             DisplayOutput::Raw => utils::logging::log_json_raw(&report),
@@ -141,18 +150,13 @@ impl LintCommand {
                     .with(Modify::new(ByContent::new("Warnings")).with(Color::FG_YELLOW))
                     .with(Modify::new(ByContent::new("Info")).with(Color::FG_BLUE));
 
-                // display full results table
-                if !report.results.is_empty() {
+                if !&report.results.is_empty() {
                     let mut report_table =
-                        tabled::Table::new(report.results.into_iter().filter_map(|result| {
-                            if !self.errors || matches!(&result.severity, LintSeverityEnum::Error) {
-                                Some(TabledLintResult {
-                                    filename: filename.to_string(),
-                                    result,
-                                })
-                            } else {
-                                None
-                            }
+                        tabled::Table::new(report.results.clone().into_iter().map(|result| {
+                            Some(TabledLintResult {
+                                filename: filename.to_string(),
+                                result,
+                            })
                         }));
                     utils::tabled::header_panel(
                         &mut report_table,
@@ -170,6 +174,53 @@ impl LintCommand {
                 // display summary table
                 utils::logging::log_table(summary_table);
             }
+        }
+
+        if self.save {
+            let filename = if let Some(Some(filename)) = self.spec.as_ref().map(|p| p.file_name()) {
+                filename.to_string()
+            } else {
+                format!(
+                    "{name}-lint-report",
+                    name = self.name.clone().unwrap_or_default(),
+                )
+            };
+            let csv_filename = format!("{}.csv", filename);
+            let file = std::fs::File::create(&csv_filename)
+                .map_err(|e| CliError::io_custom(format!("Failed to create CSV file: {}", e), e))?;
+            let mut wtr = csv::WriterBuilder::new().from_writer(file);
+            #[derive(serde::Serialize)]
+            struct FlatLintResult {
+                category: String,
+                severity: String,
+                message: String,
+                path: String,
+                start_line: i64,
+                start_column: i64,
+                end_line: i64,
+                end_column: i64,
+            }
+            for result in &report.results {
+                let location = result.location.clone();
+                let flat_result = FlatLintResult {
+                    category: result.category.clone(),
+                    severity: result.severity.to_string(),
+                    message: result.message.clone(),
+                    path: location.path.clone(),
+                    start_line: location.start_line,
+                    start_column: location.start_column,
+                    end_line: location.end_line,
+                    end_column: location.end_column,
+                };
+                wtr.serialize(flat_result).map_err(|e| {
+                    CliError::io_custom(format!("Failed to write CSV data: {}", e), e.into())
+                })?;
+            }
+            wtr.flush()
+                .map_err(|e| CliError::io_custom(format!("Failed to flush CSV data: {}", e), e))?;
+
+            // Inform the user where the report was saved
+            log::info!("Lint report saved to: {}", csv_filename);
         }
 
         if report.summary.errors > 0 {

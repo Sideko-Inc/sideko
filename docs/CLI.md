@@ -276,6 +276,7 @@ linting errors gathered from the specification
 
   Possible values: `raw`, `pretty`
 
+* `--save` — save result as a CSV
 
 
 

@@ -20,7 +20,7 @@ use crate::{
         config::init::SdkConfigInitCommand, create::SdkCreateCommand, SdkLang, SdkModuleStructure,
     },
     result::{CliError, CliResult},
-    styles::fmt_green,
+    styles::{fmt_green, fmt_grey},
     utils::{self, get_sideko_client, validators::PathKind},
 };
 
@@ -133,19 +133,34 @@ impl SdkInitCommand {
             .with_default(true)
             .prompt()?;
         if generate_new {
-            let mod_struct_options = vec!["path (recommended)", "flat", "tag"];
+            let mod_struct_options = vec![
+                format!(
+                    "endpoints (recommended) {}",
+                    fmt_grey("-- e.g. /store/order -> store.order.list()")
+                ),
+                format!(
+                    "tags {}",
+                    fmt_grey("-- uses OpenAPI tag to generate modules")
+                ),
+                format!(
+                    "flat {}",
+                    fmt_grey("-- all SDK functions available at the root")
+                ),
+            ];
 
             let res = inquire::Select::new(
-                "generate modules from:",
+                "generate SDK modules from:",
                 mod_struct_options,
             )
             .with_help_message("select default SDK module/function name generation technique. learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
             .prompt()?;
 
-            let mod_struct = match res {
-                "flat" => SdkModuleStructureEnum::Flat,
-                "tag" => SdkModuleStructureEnum::Tag,
-                _ => SdkModuleStructureEnum::Path,
+            let mod_struct = if res.starts_with("tags") {
+                SdkModuleStructureEnum::Tag
+            } else if res.starts_with("flat") {
+                SdkModuleStructureEnum::Flat
+            } else {
+                SdkModuleStructureEnum::Path
             };
 
             self.create_config(api, version, mod_struct).await

@@ -135,11 +135,11 @@ impl SdkInitCommand {
         if generate_new {
             let mod_struct_options = vec![
                 format!(
-                    "endpoints (recommended) {}",
+                    "path (recommended) {}",
                     fmt_grey("-- e.g. /store/order -> store.order.list()")
                 ),
                 format!(
-                    "tags {}",
+                    "tag {}",
                     fmt_grey("-- uses OpenAPI tag to generate modules")
                 ),
                 format!(
@@ -152,7 +152,7 @@ impl SdkInitCommand {
                 "generate SDK modules from:",
                 mod_struct_options,
             )
-            .with_help_message("select default SDK module/function name generation technique. learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
+            .with_help_message("select default SDK module/function name generation technique. learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks#module--function-customizations")
             .prompt()?;
 
             let mod_struct = if res.starts_with("tags") {

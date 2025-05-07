@@ -348,9 +348,10 @@ generate the default sdk configuration for an api
 * `--api-version <API_VERSION>` — generate config for specific version (e.g. `2.1.5`)
 
   Default value: `latest`
-* `--x-mods` — use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
+* `--module-structure <MODULE_STRUCTURE>` — default module structure that should be generated for the SDK config
 
-   including this flag will cause the module config to be omitted from the generated config file.
+  Possible values: `path`, `flat`, `tag`
+
 * `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml)
 
   Default value: `./sdk-config.yaml`
@@ -361,20 +362,16 @@ generate the default sdk configuration for an api
 
 sync sdk configuration file with an api version
 
-**Usage:** `sideko sdk config sync [OPTIONS] --name <NAME> --config <CONFIG>`
+**Usage:** `sideko sdk config sync [OPTIONS] --config <CONFIG>`
 
 ###### **Options:**
 
-* `--name <NAME>` — api name or id e.g. my-api
-* `--version <VERSION>` — sync config with specific version (e.g. `2.1.5`)
+* `--api-version <API_VERSION>` — sync config with specific api version (e.g. `2.1.5`)
 
   Default value: `latest`
 * `--spec <SPEC>` — sync config with local openapi specification
 * `--config <CONFIG>` — config to sync
 * `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml) [defaults to same path as --config]
-* `--x-mods` — use the `x-sideko-*` x-fields in openapi to define the module structure/function names for the sdk
-
-   including this flag will cause the module config to be omitted from the generated config file.
 
 
 

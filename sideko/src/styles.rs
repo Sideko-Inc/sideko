@@ -58,3 +58,8 @@ pub fn fmt_yellow(msg: &str) -> String {
     let yellow = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Yellow)));
     fmt_style(msg, &yellow)
 }
+
+pub fn fmt_grey(msg: &str) -> String {
+    let grey = Style::new().dimmed();
+    fmt_style(msg, &grey)
+}

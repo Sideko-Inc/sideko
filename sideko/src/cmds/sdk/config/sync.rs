@@ -2,11 +2,7 @@ use std::fs;
 
 use camino::Utf8PathBuf;
 use log::info;
-use sideko_rest_api::{
-    models::{ApiVersion, ConfigCustomizationsEnum},
-    resources::sdk::config::SyncRequest,
-    UploadFile,
-};
+use sideko_rest_api::{models::ApiVersion, resources::sdk::config::SyncRequest, UploadFile};
 
 use crate::{
     result::{CliError, CliResult},
@@ -15,13 +11,9 @@ use crate::{
 
 #[derive(clap::Args)]
 pub struct SdkConfigSyncCommand {
-    /// api name or id e.g. my-api
-    #[arg(long)]
-    pub name: String,
-
-    /// sync config with specific version (e.g. `2.1.5`)
+    /// sync config with specific api version (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
-    pub version: String,
+    pub api_version: String,
 
     /// sync config with local openapi specification
     #[arg(long, value_parser = crate::utils::validators::validate_file_json_yaml)]
@@ -37,24 +29,11 @@ pub struct SdkConfigSyncCommand {
         value_parser = crate::utils::validators::validate_file_yaml_allow_dne,
     )]
     pub output: Option<Utf8PathBuf>,
-
-    /// use the `x-sideko-*` x-fields in openapi to define the module structure/function names for the sdk
-    ///
-    /// including this flag will cause the module config to be omitted from the generated
-    /// config file.
-    #[arg(long)]
-    pub x_mods: bool,
 }
 
 impl SdkConfigSyncCommand {
     pub async fn handle(&self) -> CliResult<()> {
         let mut client = get_sideko_client();
-
-        let customizations = if self.x_mods {
-            ConfigCustomizationsEnum::XField
-        } else {
-            ConfigCustomizationsEnum::Config
-        };
 
         let (api_version, openapi) = if let Some(spec) = &self.spec {
             (
@@ -64,7 +43,7 @@ impl SdkConfigSyncCommand {
                 })?),
             )
         } else {
-            (Some(ApiVersion::Str(self.version.clone())), None)
+            (Some(ApiVersion::Str(self.api_version.clone())), None)
         };
 
         let synced_res = client
@@ -78,7 +57,6 @@ impl SdkConfigSyncCommand {
                         e,
                     )
                 })?,
-                customizations: Some(customizations),
                 openapi,
             })
             .await?;

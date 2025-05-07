@@ -1,5 +1,5 @@
 use clap::{builder::PossibleValue, ValueEnum};
-use sideko_rest_api::models::SdkLanguageEnum;
+use sideko_rest_api::models::{SdkLanguageEnum, SdkModuleStructureEnum};
 
 use crate::result::CliResult;
 
@@ -70,6 +70,28 @@ impl ValueEnum for SdkLang {
             SdkLanguageEnum::Rust => PossibleValue::new("rust"),
             SdkLanguageEnum::Go => PossibleValue::new("go"),
             SdkLanguageEnum::Java => PossibleValue::new("java"),
+        };
+
+        Some(val)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SdkModuleStructure(SdkModuleStructureEnum);
+impl ValueEnum for SdkModuleStructure {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            SdkModuleStructure(SdkModuleStructureEnum::Path),
+            SdkModuleStructure(SdkModuleStructureEnum::Flat),
+            SdkModuleStructure(SdkModuleStructureEnum::Tag),
+        ]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        let val = match &self.0 {
+            SdkModuleStructureEnum::Path => PossibleValue::new("path"),
+            SdkModuleStructureEnum::Flat => PossibleValue::new("flat"),
+            SdkModuleStructureEnum::Tag => PossibleValue::new("tag"),
         };
 
         Some(val)

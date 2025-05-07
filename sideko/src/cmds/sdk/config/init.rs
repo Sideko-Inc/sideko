@@ -2,12 +2,10 @@ use std::fs;
 
 use camino::Utf8PathBuf;
 use log::info;
-use sideko_rest_api::{
-    models::{ApiVersion, ConfigCustomizationsEnum},
-    resources::sdk::config::InitRequest,
-};
+use sideko_rest_api::{models::ApiVersion, resources::sdk::config::InitRequest};
 
 use crate::{
+    cmds::sdk::SdkModuleStructure,
     result::{CliError, CliResult},
     utils::{self, get_sideko_client},
 };
@@ -22,12 +20,10 @@ pub struct SdkConfigInitCommand {
     #[arg(long, default_value = "latest")]
     pub api_version: String,
 
-    /// use the `x-sideko-*` x-fields in OpenAPI to define the module structure/function names for the SDK
-    ///
-    /// including this flag will cause the module config to be omitted from the generated
-    /// config file.
+    /// default module structure that should be generated
+    /// for the SDK config.
     #[arg(long)]
-    pub x_mods: bool,
+    pub module_structure: Option<SdkModuleStructure>,
 
     /// custom output path of sdk config (must be .yaml or .yml)
     #[arg(
@@ -42,19 +38,13 @@ impl SdkConfigInitCommand {
     pub async fn handle(&self) -> CliResult<()> {
         let mut client = get_sideko_client();
 
-        let customizations = if self.x_mods {
-            ConfigCustomizationsEnum::XField
-        } else {
-            ConfigCustomizationsEnum::Config
-        };
-
         let config_res = client
             .sdk()
             .config()
             .init(InitRequest {
                 api_name: self.api_name.clone(),
                 api_version: Some(ApiVersion::Str(self.api_version.clone())),
-                customizations: Some(customizations),
+                default_module_structure: self.module_structure.clone().map(|m| m.0),
             })
             .await?;
 

@@ -131,6 +131,7 @@ impl CliError {
                             log::debug!("Unable to display body ({} bytes)", e.content.len())
                         }
                     }
+                    sideko_rest_api::Error::Custom(msg) => debug!("{msg}"),
                 }
 
                 override_msg.clone().unwrap_or_else(|| err.to_string())

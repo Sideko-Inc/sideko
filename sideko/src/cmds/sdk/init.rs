@@ -4,23 +4,24 @@ use camino::Utf8PathBuf;
 use fuzzy_matcher::{skim::SkimMatcherV2, FuzzyMatcher};
 use log::{debug, info};
 use regex::Regex;
+use semver::Version;
 use serde_json::json;
 use sideko_rest_api::{
-    models::{Api, ApiSpec, ApiVersion, OrganizationFeatures, SdkLanguageEnum, VersionOrBump},
+    models::{
+        Api, ApiSpec, ApiVersion, OrganizationFeatures, SdkLanguageEnum, SdkModuleStructureEnum,
+        VersionOrBump,
+    },
     resources::api::{self, spec},
     UploadFile,
 };
 
 use crate::{
-    cmds::sdk::{config::init::SdkConfigInitCommand, create::SdkCreateCommand, SdkLang},
+    cmds::sdk::{
+        config::init::SdkConfigInitCommand, create::SdkCreateCommand, SdkLang, SdkModuleStructure,
+    },
     result::{CliError, CliResult},
     styles::fmt_green,
-    utils::{
-        self,
-        editor::{get_editor, open_config_in_editor},
-        get_sideko_client,
-        validators::PathKind,
-    },
+    utils::{self, get_sideko_client, validators::PathKind},
 };
 
 #[derive(clap::Args)]
@@ -53,7 +54,7 @@ impl SdkInitCommand {
             .prompt()?;
         let version = inquire::Text::new("version:")
             .with_help_message("enter the version of this api in the semver format")
-            .with_placeholder("0.1.0")
+            .with_default("0.1.0")
             .with_validator(SemverValidator)
             .prompt()?;
 
@@ -127,24 +128,27 @@ impl SdkInitCommand {
         }
     }
 
-    async fn select_config(&self, api: &Api, version: &ApiSpec) -> CliResult<(Utf8PathBuf, bool)> {
+    async fn select_config(&self, api: &Api, version: &ApiSpec) -> CliResult<Utf8PathBuf> {
         let generate_new = inquire::Confirm::new("create new sdk config? (need one to generate)")
             .with_default(true)
             .prompt()?;
         if generate_new {
-            let config_option = "1. sdk config";
-            let use_x_fields_option = "2. openapi extensions (x-fields)";
-            let customization_options = vec![config_option, use_x_fields_option];
+            let mod_struct_options = vec!["path (recommended)", "flat", "tag"];
 
             let res = inquire::Select::new(
-                "sdk customization method:",
-                customization_options,
+                "generate modules from:",
+                mod_struct_options,
             )
-            .with_help_message("select a customization method. learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
+            .with_help_message("select default SDK module/function name generation technique. learn more at: https://docs.sideko.dev/sdk-generation/customizing-sdks")
             .prompt()?;
 
-            let is_sdk_config = res == config_option;
-            Ok((self.create_config(api, version, is_sdk_config).await?, true))
+            let mod_struct = match res {
+                "flat" => SdkModuleStructureEnum::Flat,
+                "tag" => SdkModuleStructureEnum::Tag,
+                _ => SdkModuleStructureEnum::Path,
+            };
+
+            self.create_config(api, version, mod_struct).await
         } else {
             let config_path = inquire::Text::new("config:")
                 .with_help_message("enter path to sdk config")
@@ -153,7 +157,7 @@ impl SdkInitCommand {
                 .with_autocomplete(FilePathCompleter::default())
                 .prompt()?;
 
-            Ok((Utf8PathBuf::new().join(config_path), false))
+            Ok(Utf8PathBuf::new().join(config_path))
         }
     }
 
@@ -161,7 +165,7 @@ impl SdkInitCommand {
         &self,
         api: &Api,
         version: &ApiSpec,
-        is_sdk_config: bool,
+        mod_struct: SdkModuleStructureEnum,
     ) -> CliResult<Utf8PathBuf> {
         let mut output = Utf8PathBuf::new().join("./sdk-config.yml");
         let mut path_modifier = 1;
@@ -174,11 +178,11 @@ impl SdkInitCommand {
         let init_cmd = SdkConfigInitCommand {
             api_name: api.name.clone(),
             api_version: version.version.clone(),
-            x_mods: !is_sdk_config,
+            module_structure: Some(SdkModuleStructure(mod_struct)),
             output: output.clone(),
         };
         init_cmd.handle().await?;
-        info!("{} default sdk config generated", fmt_green("✔"));
+        info!("{} sdk config generated", fmt_green("✔"));
 
         Ok(output)
     }
@@ -246,53 +250,26 @@ impl SdkInitCommand {
             info!("⚠️ ⚠️ ⚠️ consider using the SDK config to hide unused operations: https://docs.sideko.dev/sdk-generation/customizing-sdks");
         }
 
-        let (config, newly_generated) = self.select_config(&api, &api_version).await?;
-        let generate_now = if newly_generated {
-            // First ask if they want to review the config
-            let editor = get_editor();
-            let review_config = inquire::Confirm::new(&format!(
-                "review sdk config in {} before continuing? (recommended)",
-                editor.to_uppercase()
-            ))
-            .with_default(true)
-            .with_help_message("opens config in your default text editor")
-            .prompt()?;
-
-            if review_config {
-                open_config_in_editor(&config)?;
-            }
-            true
-        } else {
-            true
-        };
-        if generate_now {
-            let langs = self.select_languages().await?;
-            let version = inquire::Text::new("sdk version:")
-                .with_help_message("enter initial version for the sdks(s) in semver format")
-                .with_default("0.1.0")
-                .with_validator(SemverValidator)
-                .prompt()?;
-            for lang in langs {
-                debug!(
-                    "running `sideko sdk create --lang {} ...` with prompted input",
-                    json!(&lang)
-                );
-                let create_sdk_cmd = SdkCreateCommand {
-                    config: config.clone(),
-                    lang: SdkLang(lang),
-                    version: version.parse().expect("failed parsing sdk semver"),
-                    api_version: api_version.version.clone(),
-                    gh_actions: true,
-                    output: Utf8PathBuf::new().join("."),
-                };
-                create_sdk_cmd.handle().await?;
-            }
-
-            info!("\n{} sdks generated successfully.", fmt_green("✔"));
-            info!("\nlearn about setting up automatic updates here: https://docs.sideko.dev/sdk-generation/managed-sdks\n");
-        } else {
-            info!("review {config} (https://docs.sideko.dev/sdk-generation/customizing-sdks) and run `sideko sdk create` to generate an sdk")
+        let config = self.select_config(&api, &api_version).await?;
+        let langs = self.select_languages().await?;
+        for lang in langs {
+            debug!(
+                "running `sideko sdk create --lang {} ...` with prompted input",
+                json!(&lang)
+            );
+            let create_sdk_cmd = SdkCreateCommand {
+                config: config.clone(),
+                lang: SdkLang(lang),
+                version: Version::new(0, 1, 0),
+                api_version: api_version.version.clone(),
+                gh_actions: true,
+                output: Utf8PathBuf::new().join("."),
+            };
+            create_sdk_cmd.handle().await?;
         }
+
+        info!("\n{} sdks generated successfully.", fmt_green("✔"));
+        info!("\nlearn about setting up automatic updates here: https://docs.sideko.dev/sdk-generation/managed-sdks\n");
 
         Ok(())
     }

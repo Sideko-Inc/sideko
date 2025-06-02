@@ -48,6 +48,7 @@ impl SdkLang {
             SdkLanguageEnum::Python => "🐍".into(),
             SdkLanguageEnum::Rust => "🦀".into(),
             SdkLanguageEnum::Typescript => "🟦".into(),
+            SdkLanguageEnum::Csharp => "💠".into(),
         }
     }
 }
@@ -59,6 +60,7 @@ impl ValueEnum for SdkLang {
             SdkLang(SdkLanguageEnum::Typescript),
             SdkLang(SdkLanguageEnum::Rust),
             SdkLang(SdkLanguageEnum::Go),
+            SdkLang(SdkLanguageEnum::Csharp),
             SdkLang(SdkLanguageEnum::Java),
         ]
     }
@@ -70,6 +72,7 @@ impl ValueEnum for SdkLang {
             SdkLanguageEnum::Rust => PossibleValue::new("rust"),
             SdkLanguageEnum::Go => PossibleValue::new("go"),
             SdkLanguageEnum::Java => PossibleValue::new("java"),
+            SdkLanguageEnum::Csharp => PossibleValue::new("csharp"),
         };
 
         Some(val)

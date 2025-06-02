@@ -399,6 +399,7 @@ impl SdkLanguageValidator {
             SdkLanguageEnum::Python => self.features.allow_sdk_python,
             SdkLanguageEnum::Rust => self.features.allow_sdk_rust,
             SdkLanguageEnum::Typescript => self.features.allow_sdk_typescript,
+            SdkLanguageEnum::Csharp => self.features.allow_sdk_csharp,
         }
     }
 
@@ -417,6 +418,7 @@ impl SdkLanguageValidator {
             self.option(&SdkLanguageEnum::Python),
             self.option(&SdkLanguageEnum::Typescript),
             self.option(&SdkLanguageEnum::Go),
+            self.option(&SdkLanguageEnum::Csharp),
             self.option(&SdkLanguageEnum::Rust),
             self.option(&SdkLanguageEnum::Java),
         ]

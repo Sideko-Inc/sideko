@@ -386,7 +386,7 @@ create an sdk using an existing sdk config
 * `--config <CONFIG>` — path to sdk config
 * `--lang <LANG>` — programming language to generate
 
-  Possible values: `python`, `typescript`, `rust`, `go`, `java`
+  Possible values: `python`, `typescript`, `rust`, `go`, `csharp`, `java`
 
 * `--version <VERSION>` — semantic version of generated sdk
 

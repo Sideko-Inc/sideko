@@ -27,6 +27,11 @@ use crate::{
 #[derive(clap::Args)]
 pub struct SdkInitCommand;
 
+#[derive(Debug, serde::Deserialize)]
+pub struct ApiErrorBody {
+    description: String,
+}
+
 impl SdkInitCommand {
     async fn prompt_create_api(&self) -> CliResult<Api> {
         let name = inquire::Text::new("api name:")
@@ -45,7 +50,7 @@ impl SdkInitCommand {
         Ok(new_api)
     }
 
-    async fn prompt_create_version(&self, api: &Api) -> CliResult<ApiSpec> {
+    async fn prompt_create_version(&self, api: &Api) -> CliResult<(ApiSpec, bool)> {
         let oas_path = inquire::Text::new("openapi:")
             .with_help_message("enter path to openapi (≥3.0) specification for the new version")
             .with_placeholder("path/to/spec.yml")
@@ -59,7 +64,9 @@ impl SdkInitCommand {
             .prompt()?;
 
         let mut client = get_sideko_client();
-        let new_version = client
+
+        // Try to create the spec with strict linting first
+        let result = client
             .api()
             .spec()
             .create(spec::CreateRequest {
@@ -67,19 +74,76 @@ impl SdkInitCommand {
                 openapi: UploadFile::from_path(&oas_path).map_err(|e| {
                     CliError::io_custom(format!("failed reading openapi from path: {oas_path}"), e)
                 })?,
-                version: VersionOrBump::Str(version),
+                version: VersionOrBump::Str(version.clone()),
                 mock_server_enabled: Some(true),
                 allow_lint_errors: Some(false),
                 ..Default::default()
             })
-            .await?;
-        info!("{} version created", fmt_green("✔"));
-        debug!(
-            "new api version in `{}` with id: {}",
-            &api.name, &new_version.id
-        );
+            .await;
 
-        Ok(new_version)
+        match result {
+            Ok(v) => {
+                info!("{} version created", fmt_green("✔"));
+                debug!("new api version in `{}` with id: {}", &api.name, &v.id);
+                Ok((v, false))
+            }
+            Err(sideko_rest_api::Error::Api(e)) => {
+                let err_msg: ApiErrorBody = serde_json::from_slice(&e.content)
+                    .map_err(|_| sideko_rest_api::Error::Api(e.clone()))?;
+
+                if err_msg.description.contains("linting errors") {
+                    // Ask user if they want to continue with linting errors
+                    let continue_with_errors = inquire::Confirm::new(
+                        "OpenAPI spec has linting errors. Continue anyway?",
+                    )
+                    .with_help_message(
+                        "Continuing will allow the spec to be uploaded despite linting errors. This may result in poor SDK quality!",
+                    )
+                    .with_default(false)
+                    .prompt()?;
+
+                    if continue_with_errors {
+                        // Retry with allow_lint_errors = true
+                        let retry_result = client
+                            .api()
+                            .spec()
+                            .create(spec::CreateRequest {
+                                api_name: api.name.clone(),
+                                openapi: UploadFile::from_path(&oas_path).map_err(|e| {
+                                    CliError::io_custom(
+                                        format!("failed reading openapi from path: {oas_path}"),
+                                        e,
+                                    )
+                                })?,
+                                version: VersionOrBump::Str(version.clone()),
+                                mock_server_enabled: Some(true),
+                                allow_lint_errors: Some(true),
+                                ..Default::default()
+                            })
+                            .await;
+
+                        match retry_result {
+                            Ok(v) => {
+                                info!(
+                                    "{} version created (please fix the linting errors later by running: sideko api lint)",
+                                    fmt_green("✔")
+                                );
+                                debug!("new api version in `{}` with id: {}", &api.name, &v.id);
+                                Ok((v, true))
+                            }
+                            Err(e) => Err(e.into()),
+                        }
+                    } else {
+                        // User chose not to continue, return the original error
+                        Err(sideko_rest_api::Error::Api(e).into())
+                    }
+                } else {
+                    // Different error, return it
+                    Err(sideko_rest_api::Error::Api(e).into())
+                }
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     async fn select_api(&self, options: &[Api]) -> CliResult<Api> {
@@ -105,7 +169,7 @@ impl SdkInitCommand {
         }
     }
 
-    async fn select_version(&self, api: &Api, options: &[ApiSpec]) -> CliResult<ApiSpec> {
+    async fn select_version(&self, api: &Api, options: &[ApiSpec]) -> CliResult<(ApiSpec, bool)> {
         if options.is_empty() {
             self.prompt_create_version(api).await
         } else {
@@ -119,11 +183,14 @@ impl SdkInitCommand {
             if choice == create_new_option {
                 self.prompt_create_version(api).await
             } else {
-                Ok(options
-                    .iter()
-                    .find(|v| v.version == choice)
-                    .cloned()
-                    .expect("invalid option chosen"))
+                Ok((
+                    options
+                        .iter()
+                        .find(|v| v.version == choice)
+                        .cloned()
+                        .expect("invalid option chosen"),
+                    false,
+                ))
             }
         }
     }
@@ -253,7 +320,7 @@ impl SdkInitCommand {
             .spec()
             .get_stats(spec::GetStatsRequest {
                 api_name: api.name.clone(),
-                api_version: ApiVersion::Str(api_version.version.clone()),
+                api_version: ApiVersion::Str(api_version.0.version.clone()),
             })
             .await?;
 
@@ -265,7 +332,7 @@ impl SdkInitCommand {
             info!("⚠️ ⚠️ ⚠️ consider using the SDK config to hide unused operations: https://docs.sideko.dev/sdk-generation/customizing-sdks");
         }
 
-        let config = self.select_config(&api, &api_version).await?;
+        let config = self.select_config(&api, &api_version.0).await?;
         let langs = self.select_languages().await?;
         for lang in langs {
             debug!(
@@ -276,9 +343,10 @@ impl SdkInitCommand {
                 config: config.clone(),
                 lang: SdkLang(lang),
                 version: Version::new(0, 1, 0),
-                api_version: api_version.version.clone(),
+                api_version: api_version.0.version.clone(),
                 gh_actions: true,
                 output: Utf8PathBuf::new().join("."),
+                allow_lint_errors: api_version.1,
             };
             create_sdk_cmd.handle().await?;
         }

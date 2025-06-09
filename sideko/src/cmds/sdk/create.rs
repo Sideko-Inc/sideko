@@ -39,6 +39,10 @@ pub struct SdkCreateCommand {
     #[arg(long)]
     pub gh_actions: bool,
 
+    /// create the SDK despite the fact that OpenAPI linting errors were caught
+    #[arg(long)]
+    pub allow_lint_errors: bool,
+
     /// path to save sdk
     #[arg(
         long,
@@ -68,6 +72,7 @@ impl SdkCreateCommand {
                 github_actions: Some(self.gh_actions),
                 language: self.lang.0.clone(),
                 sdk_version: Some(self.version.to_string()),
+                allow_lint_errors: Some(self.allow_lint_errors),
             })
             .await
         {

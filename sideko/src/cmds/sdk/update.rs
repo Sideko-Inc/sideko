@@ -33,6 +33,10 @@ pub struct SdkUpdateCommand {
     /// api version to update sdk with (e.g. `2.1.5`)
     #[arg(long, default_value = "latest")]
     pub api_version: String,
+
+    /// create the SDK despite the fact that OpenAPI linting errors were caught
+    #[arg(long)]
+    pub allow_lint_errors: bool,
 }
 
 impl SdkUpdateCommand {
@@ -145,6 +149,7 @@ impl SdkUpdateCommand {
                 prev_sdk_git,
                 prev_sdk_id,
                 sdk_version: VersionOrBump::Str(self.version.clone()),
+                allow_lint_errors: Some(self.allow_lint_errors),
             })
             .await
         {

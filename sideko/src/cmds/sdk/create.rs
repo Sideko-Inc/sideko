@@ -39,7 +39,7 @@ pub struct SdkCreateCommand {
     #[arg(long)]
     pub gh_actions: bool,
 
-    /// create the SDK despite the fact that OpenAPI linting errors were caught
+    /// create the SDK even thought OpenAPI linting errors were caught in this API version
     #[arg(long)]
     pub allow_lint_errors: bool,
 

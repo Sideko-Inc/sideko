@@ -34,7 +34,7 @@ pub struct SdkUpdateCommand {
     #[arg(long, default_value = "latest")]
     pub api_version: String,
 
-    /// create the SDK despite the fact that OpenAPI linting errors were caught
+    /// update the SDK even thought OpenAPI linting errors were caught in this API version
     #[arg(long)]
     pub allow_lint_errors: bool,
 }

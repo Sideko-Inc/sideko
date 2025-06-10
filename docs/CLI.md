@@ -395,6 +395,7 @@ create an sdk using an existing sdk config
 
   Default value: `latest`
 * `--gh-actions` — include github actions for testing and publishing the sdk in the generation
+* `--allow-lint-errors` — create the SDK even thought OpenAPI linting errors were caught in this API version
 * `--output <OUTPUT>` — path to save sdk
 
   Default value: `./`
@@ -415,6 +416,7 @@ update sdk to implement changes to apis
 * `--api-version <API_VERSION>` — api version to update sdk with (e.g. `2.1.5`)
 
   Default value: `latest`
+* `--allow-lint-errors` — update the SDK even thought OpenAPI linting errors were caught in this API version
 
 
 

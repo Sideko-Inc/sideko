@@ -2480,9 +2480,9 @@ dependencies = [
 
 [[package]]
 name = "sideko_rest_api"
-version = "0.7.1"
+version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60a4de069b8e24f683f773105245817c6201006f09e239ccba7fffcddbcc179f"
+checksum = "e91b8877dda3c732ca42cac9455ac2dfae9fa1d72763af074c340e88e79e3abe"
 dependencies = [
  "bytes",
  "http 1.2.0",

@@ -120,19 +120,12 @@ impl SdkInitCommand {
                                 allow_lint_errors: Some(true),
                                 ..Default::default()
                             })
-                            .await;
-
-                        match retry_result {
-                            Ok(v) => {
-                                info!(
-                                    "{} version created (please fix the linting errors later by running: sideko api lint)",
-                                    fmt_green("✔")
-                                );
-                                debug!("new api version in `{}` with id: {}", &api.name, &v.id);
-                                Ok((v, true))
-                            }
-                            Err(e) => Err(e.into()),
-                        }
+                            .await?;
+                        info!(
+                            "{} version created (please fix the linting errors later by running: sideko api lint)",
+                            fmt_green("✔")
+                        );
+                        Ok((retry_result, true))
                     } else {
                         // User chose not to continue, return the original error
                         Err(sideko_rest_api::Error::Api(e).into())

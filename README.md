@@ -58,7 +58,7 @@ To authenticate locally run: ```sideko login```
 ## Authenticating in CI/CD
 Set `SIDEKO_API_KEY` environment variable in CI/CD.
 1. With your own API key run: `sideko account get-my-api-key`
-2. With a service account [see documentation](https://docs.sideko.dev/organizations/service-accounts)
+2. With a service account [see documentation](https://docs.sideko.dev/sideko-platform/service-accounts)
 
 # Resources
 - [📘 Complete CLI Reference Docs](./docs/CLI.md)

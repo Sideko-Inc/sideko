@@ -192,7 +192,6 @@ def main():
     )
     parser.add_argument(
         "--version",
-        required=True,
         help="Version to release (if not provided, will use current version)",
     )
     args = parser.parse_args()
@@ -203,16 +202,22 @@ def main():
     # Confirm `gh` CLI is installed & authenticated
     run_command("gh auth status", check=True)
 
-    current_version = get_current_version()
-    version = args.version
-    print(f"\nBumping version from {current_version} to {version}")
-
     # Track all modified files
     modified_files = []
+    version = get_current_version()
 
-    # Update versions in both Cargo.toml files
-    modified_files.append(update_version(Path("sideko/Cargo.toml"), version))
-    modified_files.append(update_version(Path("sideko-py/Cargo.toml"), version))
+    if args.version:
+        print(f"\nBumping version from {version} to {args.version}")
+
+        # Update versions in both Cargo.toml files
+        modified_files.append(update_version(Path("sideko/Cargo.toml"), args.version))
+        modified_files.append(
+            update_version(Path("sideko-py/Cargo.toml"), args.version)
+        )
+
+        version = args.version
+    else:
+        print(f"\nReleasing current version {version}")
 
     # Delete sideko-py from workspace
     modified_files.append(update_workspace_toml(delete=True))

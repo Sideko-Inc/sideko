@@ -25,6 +25,7 @@ This document contains the help content for the `sideko` command-line program.
 * [`sideko sdk config sync`↴](#sideko-sdk-config-sync)
 * [`sideko sdk create`↴](#sideko-sdk-create)
 * [`sideko sdk update`↴](#sideko-sdk-update)
+* [`sideko sdk released`↴](#sideko-sdk-released)
 * [`sideko doc`↴](#sideko-doc)
 * [`sideko doc list`↴](#sideko-doc-list)
 * [`sideko doc deploy`↴](#sideko-doc-deploy)
@@ -113,12 +114,14 @@ manage api specification versions
 
 create a new version of an api with an openapi spec
 
-**Usage:** `sideko api version create [OPTIONS] --name <NAME> --version <VERSION> --spec <SPEC>`
+**Usage:** `sideko api version create [OPTIONS] --name <NAME> --spec <SPEC>`
 
 ###### **Options:**
 
 * `--name <NAME>` — api name or id e.g. my-api
-* `--version <VERSION>` — semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
+* `--version <VERSION>` — semantic version (e.g. `2.1.5`) or version bump (`auto`, `patch`, `minor`, `major`, `rc-patch`, `rc-minor`, `rc-major`, `release`)
+
+  Default value: `auto`
 * `--spec <SPEC>` — path to openapi specification (YAML or JSON format)
 * `--allow-lint-errors` — Allow linting errors to be present in the provided spec [default: false]
 
@@ -156,12 +159,14 @@ list api versions
 
 updates an existing api version
 
-**Usage:** `sideko api version update [OPTIONS] --name <NAME> --version <VERSION>`
+**Usage:** `sideko api version update [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
 * `--name <NAME>` — api name or id e.g. my-api
 * `--version <VERSION>` — version to update (e.g. `2.1.5` or `latest`)
+
+  Default value: `latest`
 * `--new-version <NEW_VERSION>` — version to update with (e.g. `2.1.5`)
 * `--spec <SPEC>` — path to openapi spec (yaml or json format) to update with
 * `--allow-lint-errors` — Allow linting errors to be present in the provided spec [default: false]
@@ -184,12 +189,14 @@ updates an existing api version
 
 downloads the openapi specification of an api version
 
-**Usage:** `sideko api version download [OPTIONS] --name <NAME> --version <VERSION>`
+**Usage:** `sideko api version download [OPTIONS] --name <NAME>`
 
 ###### **Options:**
 
 * `--name <NAME>` — api name or id e.g. my-api
 * `--version <VERSION>` — version to update (e.g. `2.1.5` or `latest`)
+
+  Default value: `latest`
 * `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml or .json) the command may alter the extension according to the format of the downloaded OpenAPI file
 
 
@@ -198,12 +205,14 @@ downloads the openapi specification of an api version
 
 create a new api
 
-**Usage:** `sideko api create [OPTIONS] --name <NAME> --version <VERSION> --spec <SPEC>`
+**Usage:** `sideko api create [OPTIONS] --name <NAME> --spec <SPEC>`
 
 ###### **Options:**
 
 * `--name <NAME>` — name of api (only alphanumeric characters and dashes, e.g. `my-api`)
 * `--version <VERSION>` — semantic version of initial version (e.g. `0.1.0`)
+
+  Default value: `0.1.0`
 * `--spec <SPEC>` — path to openapi spec of initial version (yaml or json format)
 * `--allow-lint-errors` — Allow linting errors to be present in the provided spec [default: false]
 
@@ -312,6 +321,7 @@ generate, customize, and sync sdks
 * `config` — manage sdk configs
 * `create` — create an sdk using an existing sdk config
 * `update` — update sdk to implement changes to apis
+* `released` — mark an sdk as released
 
 
 
@@ -406,17 +416,34 @@ create an sdk using an existing sdk config
 
 update sdk to implement changes to apis
 
-**Usage:** `sideko sdk update [OPTIONS] --config <CONFIG> --repo <REPO> --version <VERSION>`
+**Usage:** `sideko sdk update [OPTIONS] --config <CONFIG> --repo <REPO>`
 
 ###### **Options:**
 
 * `--config <CONFIG>` — path to sdk config
 * `--repo <REPO>` — path to root of sdk repo
-* `--version <VERSION>` — semantic version of generated sdk (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
+* `--version <VERSION>` — semantic version (e.g. `2.1.5`) or version bump (`auto`, `patch`, `minor`, `major`, `rc-patch`, `rc-minor`, `rc-major`, `release`)
+
+  Default value: `auto`
 * `--api-version <API_VERSION>` — api version to update sdk with (e.g. `2.1.5`)
 
   Default value: `latest`
 * `--allow-lint-errors` — update the SDK even thought OpenAPI linting errors were caught in this API version
+
+
+
+## `sideko sdk released`
+
+mark an sdk as released
+
+**Usage:** `sideko sdk released [OPTIONS]`
+
+###### **Options:**
+
+* `--repo <REPO>` — path to root of sdk repo
+
+  Default value: `./`
+* `--id <ID>` — sdk id to be marked as released, if this is provided the command will not look for the sdk id via the --repo
 
 
 

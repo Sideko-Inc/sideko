@@ -12,6 +12,7 @@ use sideko_rest_api::{
 use tempfile::TempDir;
 
 use crate::{
+    cmds::sdk::SdkMetadata,
     result::{CliError, CliResult},
     utils::{get_sideko_client, spinner::Spinner},
 };
@@ -26,8 +27,9 @@ pub struct SdkUpdateCommand {
     #[arg(long, value_parser = crate::utils::validators::validate_dir)]
     pub repo: Utf8PathBuf,
 
-    /// semantic version of generated sdk (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
-    #[arg(long)]
+    /// semantic version (e.g. `2.1.5`) or version bump
+    /// (`auto`, `patch`, `minor`, `major`, `rc-patch`, `rc-minor`, `rc-major`, `release`)
+    #[arg(long, default_value = "auto")]
     pub version: String,
 
     /// api version to update sdk with (e.g. `2.1.5`)
@@ -82,37 +84,10 @@ impl SdkUpdateCommand {
         Ok(git_dir)
     }
 
-    /// validates the .sdk.json file in the root of the repo has an id field
-    pub fn validate_sdk_id(&self) -> CliResult<String> {
-        let md_path = self.repo.join(".sdk.json");
-        if !(md_path.is_file() && md_path.exists()) {
-            return Err(CliError::general_debug(
-                "could not determine sdk id of this repository. are you sure this a sideko sdk?",
-                format!("sdk metadata path does not exist in repo: {md_path}"),
-            ));
-        }
-
-        let md_str = fs::read_to_string(&md_path).map_err(|e| {
-            CliError::general_debug(
-                "could not determine sdk id of this repository. are you sure this a sideko sdk?",
-                format!("unable to read sdk metadata path to string {md_path}: {e:?}"),
-            )
-        })?;
-        debug!("Found sdk metadata: {md_str}");
-
-        let md: SdkMetadata = serde_json::from_str(&md_str).map_err(|e| {
-            CliError::general_debug(
-                "could not determine sdk id of this repository. are you sure this a sideko sdk?",
-                format!("unable to deserialize sdk metadata path to string {md_path}: {e:?}"),
-            )
-        })?;
-        Ok(md.id)
-    }
-
     pub async fn handle(&self) -> CliResult<()> {
         // validate and prep args
         let git_root = self.validate_git_root()?;
-        let prev_sdk_id = self.validate_sdk_id()?;
+        let prev_sdk_id = SdkMetadata::load_from_repo(&self.repo)?.id;
         let config = UploadFile::from_path(self.config.as_str()).map_err(|e| {
             CliError::io_custom(
                 format!("failed reading config from path: {}", &self.config),
@@ -148,7 +123,7 @@ impl SdkUpdateCommand {
                 config,
                 prev_sdk_git,
                 prev_sdk_id,
-                sdk_version: VersionOrBump::Str(self.version.clone()),
+                sdk_version: Some(VersionOrBump::Str(self.version.clone())),
                 allow_lint_errors: Some(self.allow_lint_errors),
             })
             .await
@@ -205,9 +180,4 @@ impl SdkUpdateCommand {
             ))
         }
     }
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct SdkMetadata {
-    pub id: String,
 }

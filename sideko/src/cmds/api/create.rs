@@ -17,7 +17,7 @@ pub struct ApiCreateCommand {
     pub name: String,
 
     /// semantic version of initial version (e.g. `0.1.0`)
-    #[arg(long)]
+    #[arg(long, default_value = "0.1.0")]
     pub version: String,
 
     /// path to openapi spec of initial version (yaml or json format)
@@ -56,7 +56,7 @@ impl ApiCreateCommand {
                         e,
                     )
                 })?,
-                version: VersionOrBump::Str(self.version.clone()),
+                version: Some(VersionOrBump::Str(self.version.clone())),
                 allow_lint_errors: Some(self.allow_lint_errors),
                 ..Default::default()
             })

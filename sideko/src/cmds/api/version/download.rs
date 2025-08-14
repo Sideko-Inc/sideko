@@ -16,7 +16,7 @@ pub struct ApiVersionDownloadCommand {
     pub name: String,
 
     /// version to update (e.g. `2.1.5` or `latest`)
-    #[arg(long)]
+    #[arg(long, default_value = "latest")]
     pub version: String,
 
     /// custom output path of sdk config (must be .yaml or .yml or .json)

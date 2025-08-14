@@ -16,8 +16,9 @@ pub struct ApiVersionCreateCommand {
     #[arg(long)]
     pub name: String,
 
-    /// semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
-    #[arg(long)]
+    /// semantic version (e.g. `2.1.5`) or version bump
+    /// (`auto`, `patch`, `minor`, `major`, `rc-patch`, `rc-minor`, `rc-major`, `release`)
+    #[arg(long, default_value = "auto")]
     pub version: String,
 
     /// path to openapi specification (YAML or JSON format)
@@ -50,7 +51,7 @@ impl ApiVersionCreateCommand {
             .spec()
             .create(CreateRequest {
                 api_name: self.name.clone(),
-                version: VersionOrBump::Str(self.version.clone()),
+                version: Some(VersionOrBump::Str(self.version.clone())),
                 mock_server_enabled: Some(!self.disable_mock),
                 openapi: UploadFile::from_path(self.spec.as_str()).map_err(|e| {
                     CliError::io_custom(

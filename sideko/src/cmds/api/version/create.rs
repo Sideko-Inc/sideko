@@ -51,7 +51,7 @@ impl ApiVersionCreateCommand {
             .spec()
             .create(CreateRequest {
                 api_name: self.name.clone(),
-                version: VersionOrBump::Str(self.version.clone()),
+                version: Some(VersionOrBump::Str(self.version.clone())),
                 mock_server_enabled: Some(!self.disable_mock),
                 openapi: UploadFile::from_path(self.spec.as_str()).map_err(|e| {
                     CliError::io_custom(

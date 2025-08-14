@@ -74,7 +74,7 @@ impl SdkInitCommand {
                 openapi: UploadFile::from_path(&oas_path).map_err(|e| {
                     CliError::io_custom(format!("failed reading openapi from path: {oas_path}"), e)
                 })?,
-                version: VersionOrBump::Str(version.clone()),
+                version: Some(VersionOrBump::Str(version.clone())),
                 mock_server_enabled: Some(true),
                 allow_lint_errors: Some(false),
                 ..Default::default()
@@ -115,7 +115,7 @@ impl SdkInitCommand {
                                         e,
                                     )
                                 })?,
-                                version: VersionOrBump::Str(version.clone()),
+                                version: Some(VersionOrBump::Str(version.clone())),
                                 mock_server_enabled: Some(true),
                                 allow_lint_errors: Some(true),
                                 ..Default::default()

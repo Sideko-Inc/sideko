@@ -56,7 +56,7 @@ impl ApiCreateCommand {
                         e,
                     )
                 })?,
-                version: VersionOrBump::Str(self.version.clone()),
+                version: Some(VersionOrBump::Str(self.version.clone())),
                 allow_lint_errors: Some(self.allow_lint_errors),
                 ..Default::default()
             })

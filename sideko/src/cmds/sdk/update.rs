@@ -149,7 +149,7 @@ impl SdkUpdateCommand {
                 config,
                 prev_sdk_git,
                 prev_sdk_id,
-                sdk_version: VersionOrBump::Str(self.version.clone()),
+                sdk_version: Some(VersionOrBump::Str(self.version.clone())),
                 allow_lint_errors: Some(self.allow_lint_errors),
             })
             .await

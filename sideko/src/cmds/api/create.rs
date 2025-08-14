@@ -17,7 +17,7 @@ pub struct ApiCreateCommand {
     pub name: String,
 
     /// semantic version of initial version (e.g. `0.1.0`)
-    #[arg(long)]
+    #[arg(long, default_value = "0.1.0")]
     pub version: String,
 
     /// path to openapi spec of initial version (yaml or json format)

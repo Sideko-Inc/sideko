@@ -17,7 +17,7 @@ pub struct ApiVersionUpdateCommand {
     pub name: String,
 
     /// version to update (e.g. `2.1.5` or `latest`)
-    #[arg(long)]
+    #[arg(long, default_value = "latest")]
     pub version: String,
 
     /// version to update with (e.g. `2.1.5`)

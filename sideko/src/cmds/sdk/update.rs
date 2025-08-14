@@ -26,8 +26,9 @@ pub struct SdkUpdateCommand {
     #[arg(long, value_parser = crate::utils::validators::validate_dir)]
     pub repo: Utf8PathBuf,
 
-    /// semantic version of generated sdk (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
-    #[arg(long)]
+    /// semantic version (e.g. `2.1.5`) or version bump
+    /// (`auto`, `patch`, `minor`, `major`, `rc-patch`, `rc-minor`, `rc-major`, `release`)
+    #[arg(long, default_value = "auto")]
     pub version: String,
 
     /// api version to update sdk with (e.g. `2.1.5`)

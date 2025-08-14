@@ -16,8 +16,9 @@ pub struct ApiVersionCreateCommand {
     #[arg(long)]
     pub name: String,
 
-    /// semantic version (e.g. `2.1.5`) or version bump (`patch`, `minor`, `major`, `rc`)
-    #[arg(long)]
+    /// semantic version (e.g. `2.1.5`) or version bump
+    /// (`auto`, `patch`, `minor`, `major`, `rc-patch`, `rc-minor`, `rc-major`, `release`)
+    #[arg(long, default_value = "auto")]
     pub version: String,
 
     /// path to openapi specification (YAML or JSON format)

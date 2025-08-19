@@ -5,15 +5,14 @@
 </a>
 </p>
 <p align="center">
- Your API Ecosystem On Autopilot
+ Automate your API Work and Accelerate Integrations
 </p>
 <p align="center">
 <a href="https://sideko.dev"><strong>Website</strong></a> ·
 <a href="https://docs.sideko.dev"><strong>Documentation</strong></a>
 </p>
 
-## The single platform to generate an ecosystem for your APIs
-Using OpenAPI 3.x specifications you can create:
+## OpenAPI -> Dozens of Tools
 - 🚀 **SDKs** with types, tests, authentication, and code snippets
 - 🔄 **Mock Servers** that mimic API behavior
 - 📚 **API Documentation** that stays up to date automatically

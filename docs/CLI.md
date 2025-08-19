@@ -365,6 +365,10 @@ generate the default sdk configuration for an api
 * `--output <OUTPUT>` — custom output path of sdk config (must be .yaml or .yml)
 
   Default value: `./sdk-config.yaml`
+* `--llm-coding-assistants <LLM_CODING_ASSISTANTS>` — llm coding assistant rules files to include (comma-separated or multiple flags) Example: --llm-coding-assistants cursor,claude_code
+
+  Possible values: `claude_code`, `cursor`, `gemini`, `github_copilot`
+
 
 
 

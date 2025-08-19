@@ -8,8 +8,8 @@ use semver::Version;
 use serde_json::json;
 use sideko_rest_api::{
     models::{
-        Api, ApiSpec, ApiVersion, OrganizationFeatures, SdkLanguageEnum, SdkModuleStructureEnum,
-        VersionOrBump,
+        Api, ApiSpec, ApiVersion, InitSdkConfigLlmCodingAssistantItemEnum, OrganizationFeatures,
+        SdkLanguageEnum, SdkModuleStructureEnum, VersionOrBump,
     },
     resources::api::{self, spec},
     UploadFile,
@@ -17,7 +17,8 @@ use sideko_rest_api::{
 
 use crate::{
     cmds::sdk::{
-        config::init::SdkConfigInitCommand, create::SdkCreateCommand, SdkLang, SdkModuleStructure,
+        config::init::SdkConfigInitCommand, create::SdkCreateCommand, LlmCodingAssistantItem,
+        SdkLang, SdkModuleStructure,
     },
     result::{CliError, CliResult},
     styles::{fmt_green, fmt_grey},
@@ -250,11 +251,14 @@ impl SdkInitCommand {
             path_modifier += 1;
         }
         debug!("running `sideko sdk config init` with prompted input...");
+        let llm_assistants = self.select_llm_coding_assistants()?;
+
         let init_cmd = SdkConfigInitCommand {
             api_name: api.name.clone(),
             api_version: version.version.clone(),
             module_structure: Some(SdkModuleStructure(mod_struct)),
             output: output.clone(),
+            llm_coding_assistants: Some(llm_assistants),
         };
         init_cmd.handle().await?;
         info!("{} sdk config generated", fmt_green("✔"));
@@ -287,6 +291,36 @@ impl SdkInitCommand {
         }
 
         Ok(langs)
+    }
+
+    fn select_llm_coding_assistants(&self) -> CliResult<Vec<LlmCodingAssistantItem>> {
+        let all_assistants = vec![
+            "Claude Code".to_string(),
+            "Cursor".to_string(),
+            "Gemini".to_string(),
+            "GitHub Copilot".to_string(),
+        ];
+
+        let selected = inquire::MultiSelect::new("select LLM coding assistants:", all_assistants)
+            .with_all_selected_by_default()
+            .with_help_message("choose which LLM coding assistants to include in the SDK config")
+            .prompt()?;
+
+        let assistants = selected
+            .into_iter()
+            .map(|name| {
+                let variant = match name.as_str() {
+                    "Claude Code" => InitSdkConfigLlmCodingAssistantItemEnum::ClaudeCode,
+                    "Cursor" => InitSdkConfigLlmCodingAssistantItemEnum::Cursor,
+                    "Gemini" => InitSdkConfigLlmCodingAssistantItemEnum::Gemini,
+                    "GitHub Copilot" => InitSdkConfigLlmCodingAssistantItemEnum::GithubCopilot,
+                    _ => unreachable!("unexpected assistant name: {}", name),
+                };
+                LlmCodingAssistantItem(variant)
+            })
+            .collect();
+
+        Ok(assistants)
     }
 
     pub async fn handle(&self) -> CliResult<()> {

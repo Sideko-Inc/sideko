@@ -3,7 +3,7 @@ use std::fs;
 use camino::Utf8PathBuf;
 use clap::{builder::PossibleValue, ValueEnum};
 use log::debug;
-use sideko_rest_api::models::{SdkLanguageEnum, SdkModuleStructureEnum};
+use sideko_rest_api::models::{InitSdkConfigLlmCodingAssistantItemEnum, SdkLanguageEnum, SdkModuleStructureEnum};
 
 use crate::result::{CliError, CliResult};
 
@@ -104,6 +104,31 @@ impl ValueEnum for SdkModuleStructure {
             SdkModuleStructureEnum::Path => PossibleValue::new("path"),
             SdkModuleStructureEnum::Flat => PossibleValue::new("flat"),
             SdkModuleStructureEnum::Tag => PossibleValue::new("tag"),
+        };
+
+        Some(val)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LlmCodingAssistantItem(pub InitSdkConfigLlmCodingAssistantItemEnum);
+
+impl ValueEnum for LlmCodingAssistantItem {
+    fn value_variants<'a>() -> &'a [Self] {
+        &[
+            LlmCodingAssistantItem(InitSdkConfigLlmCodingAssistantItemEnum::ClaudeCode),
+            LlmCodingAssistantItem(InitSdkConfigLlmCodingAssistantItemEnum::Cursor),
+            LlmCodingAssistantItem(InitSdkConfigLlmCodingAssistantItemEnum::Gemini),
+            LlmCodingAssistantItem(InitSdkConfigLlmCodingAssistantItemEnum::GithubCopilot),
+        ]
+    }
+
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        let val = match &self.0 {
+            InitSdkConfigLlmCodingAssistantItemEnum::ClaudeCode => PossibleValue::new("claude_code"),
+            InitSdkConfigLlmCodingAssistantItemEnum::Cursor => PossibleValue::new("cursor"),
+            InitSdkConfigLlmCodingAssistantItemEnum::Gemini => PossibleValue::new("gemini"),
+            InitSdkConfigLlmCodingAssistantItemEnum::GithubCopilot => PossibleValue::new("github_copilot"),
         };
 
         Some(val)

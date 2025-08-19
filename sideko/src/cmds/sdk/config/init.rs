@@ -5,7 +5,7 @@ use log::info;
 use sideko_rest_api::{models::ApiVersion, resources::sdk::config::InitRequest};
 
 use crate::{
-    cmds::sdk::SdkModuleStructure,
+    cmds::sdk::{LlmCodingAssistantItem, SdkModuleStructure},
     result::{CliError, CliResult},
     utils::{self, get_sideko_client},
 };
@@ -32,6 +32,11 @@ pub struct SdkConfigInitCommand {
         default_value = "./sdk-config.yaml",
     )]
     pub output: Utf8PathBuf,
+
+    /// llm coding assistant rules files to include (comma-separated or multiple flags)
+    /// Example: --llm-coding-assistants cursor,claude_code
+    #[arg(long = "llm-coding-assistants", value_delimiter = ',')]
+    pub llm_coding_assistants: Option<Vec<LlmCodingAssistantItem>>,
 }
 
 impl SdkConfigInitCommand {
@@ -45,6 +50,10 @@ impl SdkConfigInitCommand {
                 api_name: self.api_name.clone(),
                 api_version: Some(ApiVersion::Str(self.api_version.clone())),
                 default_module_structure: self.module_structure.clone().map(|m| m.0),
+                llm_coding_assistant: self
+                    .llm_coding_assistants
+                    .clone()
+                    .map(|items| items.into_iter().map(|item| item.0).collect()),
             })
             .await?;
 

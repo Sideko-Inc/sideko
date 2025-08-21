@@ -1,0 +1,168 @@
+<svg width="900" height="320" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <style>
+            .title {
+                font-family: 'SF Mono', monospace;
+                font-size: 11px;
+                fill: #ccc;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+
+            .code {
+                font-family: 'SF Mono', monospace;
+                font-size: 9px;
+                fill: #fff;
+            }
+
+            .keyword {
+                font-weight: bold;
+            }
+
+            .string {
+                font-style: italic;
+            }
+
+            .comment {
+                fill: #888;
+            }
+
+            .function {
+                font-weight: bold;
+            }
+
+            .highlight {
+                fill: #000;
+            }
+
+            .added {
+                fill: #000;
+            }
+
+            .arrow {
+                fill: #ccc;
+                font-size: 16px;
+            }
+        </style>
+    </defs>
+
+    <!-- Background -->
+    <rect width="900" height="320" fill="#000" />
+
+    <!-- Step 1: Original Code -->
+    <rect x="20" y="20" width="260" height="280" fill="#1a1a1a" stroke="#333" rx="8" />
+    <text x="30" y="40" class="title">Original Code</text>
+    <rect x="30" y="50" width="240" height="240" fill="#0a0a0a" stroke="#666" stroke-width="1" rx="4" />
+    <rect x="30" y="50" width="4" height="240" fill="#666" />
+
+    <!-- Original code text -->
+    <text x="40" y="70" class="code keyword">import</text>
+    <text x="75" y="70" class="code string">json</text>
+
+    <text x="40" y="95" class="code keyword">def</text>
+    <text x="65" y="95" class="code function">custom_logger</text>
+    <text x="140" y="95" class="code">(msg):</text>
+    <text x="50" y="110" class="code comment"># Custom logging logic</text>
+    <text x="50" y="125" class="code keyword">print</text>
+    <text x="80" y="125" class="code">(</text>
+    <text x="85" y="125" class="code string">f"LOG: {msg}"</text>
+    <text x="165" y="125" class="code">)</text>
+
+    <text x="40" y="150" class="code keyword">class</text>
+    <text x="75" y="150" class="code function">APIClient</text>
+    <text x="140" y="150" class="code">:</text>
+
+    <!-- Highlighted section -->
+    <rect x="45" y="160" width="210" height="45" fill="#1a3a1a" rx="2" />
+    <text x="50" y="175" class="code keyword">def</text>
+    <text x="75" y="175" class="code function">send_request</text>
+    <text x="150" y="175" class="code">(self, data):</text>
+    <text x="60" y="190" class="code keyword">return</text>
+    <text x="100" y="190" class="code">json.dumps(data)</text>
+
+    <text x="50" y="225" class="code keyword">def</text>
+    <text x="75" y="225" class="code function">validate_response</text>
+    <text x="170" y="225" class="code">(self, resp):</text>
+    <text x="60" y="240" class="code comment"># Custom validation</text>
+    <text x="60" y="255" class="code keyword">return</text>
+    <text x="100" y="255" class="code">resp</text>
+    <text x="125" y="255" class="code keyword">is not None</text>
+
+    <!-- Arrow 1 -->
+    <text x="295" y="165" class="arrow">→</text>
+
+    <!-- Step 2: AST Node Updates -->
+    <rect x="320" y="20" width="260" height="280" fill="#1a1a1a" stroke="#333" rx="8" />
+    <text x="330" y="40" class="title">AST Node Updates</text>
+    <rect x="330" y="50" width="240" height="240" fill="#0a0a0a" stroke="#666" stroke-width="1" rx="4" />
+    <rect x="330" y="50" width="4" height="240" fill="#666" />
+
+    <!-- AST code text -->
+    <text x="340" y="70" class="code comment">// AST node manipulation</text>
+    <text x="340" y="90" class="code keyword">MATCH</text>
+    <text x="380" y="90" class="code">function</text>
+    <text x="430" y="90" class="code string">'send_request'</text>
+    <text x="340" y="105" class="code keyword">GET</text>
+    <text x="370" y="105" class="code">params_list = node.args</text>
+
+    <text x="340" y="130" class="code keyword">APPEND</text>
+    <text x="385" y="130" class="code">to params_list:</text>
+    <rect x="345" y="135" width="180" height="30" fill="#1a3a1a" rx="2" />
+    <text x="350" y="150" class="code added">ast.arg(arg=</text>
+    <text x="420" y="150" class="code string">'timeout'</text>
+    <text x="470" y="150" class="code added">,</text>
+    <text x="360" y="160" class="code added">default=ast.Constant(30))</text>
+
+    <text x="340" y="185" class="code keyword">UPDATE</text>
+    <text x="385" y="185" class="code">function_body</text>
+    <text x="340" y="200" class="code keyword">REPLACE</text>
+    <text x="390" y="200" class="code string">'json.dumps(data)'</text>
+    <text x="340" y="215" class="code keyword">WITH</text>
+    <rect x="345" y="220" width="200" height="15" fill="#1a3a1a" rx="2" />
+    <text x="350" y="230" class="code string added">'json.dumps(data, timeout=timeout)'</text>
+
+    <!-- Arrow 2 -->
+    <text x="595" y="165" class="arrow">→</text>
+
+    <!-- Step 3: Result -->
+    <rect x="620" y="20" width="260" height="280" fill="#1a1a1a" stroke="#333" rx="8" />
+    <text x="630" y="40" class="title">Result</text>
+    <rect x="630" y="50" width="240" height="240" fill="#0a0a0a" stroke="#666" stroke-width="1" rx="4" />
+    <rect x="630" y="50" width="4" height="240" fill="#666" />
+
+    <!-- Result code text -->
+    <text x="640" y="70" class="code keyword">import</text>
+    <text x="675" y="70" class="code string">json</text>
+
+    <text x="640" y="95" class="code keyword">def</text>
+    <text x="665" y="95" class="code function">custom_logger</text>
+    <text x="740" y="95" class="code">(msg):</text>
+    <text x="650" y="110" class="code comment"># Custom logging logic</text>
+    <text x="650" y="125" class="code keyword">print</text>
+    <text x="680" y="125" class="code">(</text>
+    <text x="685" y="125" class="code string">f"LOG: {msg}"</text>
+    <text x="765" y="125" class="code">)</text>
+
+    <text x="640" y="150" class="code keyword">class</text>
+    <text x="675" y="150" class="code function">APIClient</text>
+    <text x="740" y="150" class="code">:</text>
+
+    <!-- Updated section -->
+    <rect x="645" y="160" width="220" height="45" fill="#1a3a1a" rx="2" />
+    <text x="650" y="175" class="code keyword">def</text>
+    <text x="675" y="175" class="code function">send_request</text>
+    <text x="750" y="175" class="code">(self, data,</text>
+    <text x="650" y="190" class="code">timeout=30):</text>
+    <text x="660" y="200" class="code keyword">return</text>
+    <text x="700" y="200" class="code">json.dumps(data,</text>
+    <text x="800" y="200" class="code">timeout=timeout)</text>
+
+    <text x="650" y="225" class="code keyword">def</text>
+    <text x="675" y="225" class="code function">validate_response</text>
+    <text x="770" y="225" class="code">(self, resp):</text>
+    <text x="660" y="240" class="code comment"># Custom validation</text>
+    <text x="660" y="255" class="code keyword">return</text>
+    <text x="700" y="255" class="code">resp</text>
+    <text x="725" y="255" class="code keyword">is not None</text>
+</svg>

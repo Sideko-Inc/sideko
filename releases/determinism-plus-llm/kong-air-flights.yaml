@@ -1,0 +1,208 @@
+---
+# OpenAPI Spec for the KongAir Flights service
+openapi: 3.0.0
+
+info:
+  description: KongAir Flights service provides the scheduled flights for KongAir
+  version: 0.1.0
+  title: Flights Service
+
+servers:
+- url: https://api.kong-air.com
+  description: KongAir API Server
+
+paths:
+  /health:
+   get:
+     summary: Health check endpoint
+     description: Endpoint that returns the service health status.
+     operationId: flights-health-check
+     responses:
+       '200':
+         description: Service is healthy
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 status:
+                   type: string
+                   example: "OK"
+         headers:
+          hostname:
+            description: "The hostname of the machine fulfilling the request."
+            schema:
+              type: string
+       '500':
+         description: Service is unhealthy
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 status:
+                   type: string
+                   example: "unhealthy"
+  "/flights":
+    get:
+      summary: Get KongAir planned flights
+      description: |
+        Returns all the scheduled flights for a given day
+      tags:
+      - flight-data
+      operationId: get-flights
+      parameters:
+        - name: date
+          in: query
+          description: Filter by date (defaults to current day)
+          required: false
+          style: form
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Successful respone with scheduled flights
+          headers:
+           hostname:
+             description: "The hostname of the machine fulfilling the request."
+             schema:
+               type: string
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Flight'
+              examples:
+                Example Flights List:
+                  value:
+                    - number: "KD924"
+                      route_id: "LHR-SFO"
+                      scheduled_departure: "2024-03-20T09:12:28Z"
+                      scheduled_arrival: "2024-03-20T19:12:28Z"
+                    - number: "KD925"
+                      route_id: "SFO-LHR"
+                      scheduled_departure: "2024-03-21T09:12:28Z"
+                      scheduled_arrival: "2024-03-21T19:12:28Z"
+
+  "/flights/{flightNumber}":
+    get:
+      summary: Get a specific flight by flight number
+      description: |
+        Returns a specific flight given its flight number
+      tags:
+      - flight-data
+      operationId: get-flight-by-number
+      parameters:
+        - name: flightNumber
+          in: path
+          description: The flight number
+          required: true
+          style: simple
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response with the requested flight
+          headers:
+           hostname:
+             description: "The hostname of the machine fulfilling the request."
+             schema:
+               type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Flight'
+              examples:
+                Example Flight KD924:
+                  value:
+                    number: "KD924"
+                    route_id: "LHR-SFO"
+                    scheduled_departure: "2024-03-20T09:12:28Z"
+                    scheduled_arrival: "2024-03-20T19:12:28Z"
+        '404':
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  "/flights/{flightNumber}/details":
+    get:
+      summary: Fetch more details about a flight
+      description: Fetch more details about a flight
+      tags:
+      - flight-data
+      operationId: get-flight-details
+      parameters:
+      - name: flightNumber
+        in: path
+        description: The flight number
+        required: true
+        style: simple
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful response with the requested flight details
+          headers:
+           hostname:
+             description: "The hostname of the machine fulfilling the request."
+             schema:
+               type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlightDetails'
+        '404':
+          description: Flight not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+components:
+  schemas:
+    Flight:
+      type: object
+      properties:
+        number:
+          type: string
+        route_id:
+          type: string
+        scheduled_departure:
+          type: string
+          format: date-time
+        scheduled_arrival:
+          type: string
+          format: date-time
+      required:
+        - number
+        - route_id
+        - scheduled_departure
+        - scheduled_arrival
+    FlightDetails:
+      type: object
+      properties:
+        flight_number:
+          type: string
+        in_flight_entertainment:
+          type: boolean
+        meal_options:
+          type: array
+          items:
+            type: string
+        aircraft_type:
+          type: string
+      required:
+        - flight_number
+        - in_flight_entertainment
+        - meal_options
+        - aircraft_type

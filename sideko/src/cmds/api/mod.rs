@@ -4,7 +4,7 @@ mod create;
 mod lint;
 mod list;
 mod stats;
-mod tabled;
+pub mod tabled;
 mod version;
 
 #[derive(clap::Subcommand)]

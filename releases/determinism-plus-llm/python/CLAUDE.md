@@ -8,12 +8,12 @@
 ## Definitions
 - "the client": The main exported module e.g. `from my_sdk import MyClient`
 - "client function": An SDK function that the client can access
-- "base client" The sync and async client in `client.py` at the root of the main module
+- "root client" The sync and async client in `client.py` at the root of the main module
 
 ## Code style
 - All imports should be placed at the top of a file
 - Add a type hint to every function argument
-- Add a type hint for every function response
+- Add a return type hint to every function
 - Create a sync and an async version of all client functions
 
 ## Types Guide
@@ -26,11 +26,10 @@
 ### Argument Types Guide
 - Use `httpx._types.FileTypes` for binary data
 - For object inputs, create a typed dict class in `types/params` (see [typed-dicts](#typeddict)) and import it and use it like this: `param_name: params.MyExampleParam`
-- Optional/Nullable: Wrap in typing.Optional[T]
  
 ### Response Types Guide
 - `BinaryResponse` (imported from core) for binary data
-- For object inputs, create a pydantic model class in `types/models` (see [pydantic model](#pydantic-model)) and use it like this: `param_name: models.MyExampleModel`
+- For object responses, create a pydantic model class in `types/models` (see [pydantic model](#pydantic-model)) and use it like this: `models.MyExampleModel`
 
 ## Client function signatures
 - See [function signature example](#function-signature)
@@ -40,7 +39,7 @@
 - Complex response types go in the `types/models/` folder. These are always pydantic models
 
 ## Client functions
-- For functions that combine multiple API calls, import and instantiate the specific client classes rather than trying to access them through the base client
+- For functions that combine multiple API calls, import and instantiate specific client classes
 - Example: `from module.resources.api.spec.client import SpecClient; spec_client = SpecClient(base_client=self._base_client)`
 - Include appropriate `auth_names` list
 - Use `cast_to=type(None)` for methods returning None
@@ -49,7 +48,6 @@
 - Create tests for any new functionality in `tests/`
 - Tests run against a stateless mock server, so never make any stateful assertions in the tests
 - Create contract tests that tests that the request is successful when all parameters are given and when only required parameters are given
-- Test behavior when all parameters test - Call method with all possible parameters
 - Test behavior when all only required parameters test - Call method with only required parameters
 - Always create Async versions  using @pytest.mark.asyncio
 
@@ -57,7 +55,6 @@
 ## Documentation
 - When creating a new resource, include a README file in the resource folder
 - See the [example readme](#documentation) for the style
-- Add an internal link in the README.md file at the root of the repository
 
 ## Workflow
 - Always typecheck when you're done making a series of code changes
@@ -70,10 +67,12 @@
 ## IMPORTANT RULES
 - Do not remove or change versions of pydantic, httpx in pyproject.toml
 - Instantiate the specific client classes needed rather than trying to access them. Never access the base_client directly
-- Prefer creating a new resource  when chaining together multiple API calls
+- Prefer creating a new resource when chaining together multiple API calls
 - Remove unused imports to avoid linting errors
 - When creating new models and params, always create new files (1 type per file)
-- Always verify the correct Environment enum values before using in tests, it will usually be `Environment.MOCK_SERVER`
+- Do not change any code in `<sdk_name>/core`
+- Do not change the code in `<sdk_name>/environment.py`
+- Always use the correct Environment enum value in tests (`Environment.MOCK_SERVER`)
 - When adding to an existing resource's README.md, add new content <!-- CUSTOM DOCS START --> and <!-- CUSTOM DOCS END --> comment so that the code generator can retain the content in future versions.
 
 ## Code Examples

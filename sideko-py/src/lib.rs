@@ -1,7 +1,8 @@
 use pyo3::{
     create_exception,
     exceptions::PyException,
-    prelude::{pyfunction, pymodule, PyModule, Python},
+    prelude::{pyfunction, pymodule, Bound, PyModule, Python},
+    types::{PyAnyMethods, PyModuleMethods},
     wrap_pyfunction, PyResult,
 };
 
@@ -27,7 +28,7 @@ pub fn cli(py: Python) -> PyResult<()> {
 }
 
 #[pymodule]
-pub fn sideko_py(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn sideko_py(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cli, m)?)?;
 
     Ok(())

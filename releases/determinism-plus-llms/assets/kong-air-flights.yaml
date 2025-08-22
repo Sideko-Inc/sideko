@@ -1,5 +1,6 @@
 ---
-# OpenAPI Spec for the KongAir Flights service
+# download this file for sdk generation:
+# curl -o openapi.yaml https://raw.githubusercontent.com/Sideko-Inc/sideko/refs/heads/main/releases/determinism-plus-llm/kong-air-flights.yaml
 openapi: 3.0.0
 
 info:
